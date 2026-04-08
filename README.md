@@ -1,7 +1,7 @@
 # ❄️ Multi Air Conditioner Card
 
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/hacs/integration)
-![version](https://img.shields.io/badge/version-1.2-blue)
+![version](https://img.shields.io/badge/version-1.3-blue)
 ![HA](https://img.shields.io/badge/Home%20Assistant-2023.1+-green)
 ![license](https://img.shields.io/badge/license-MIT-lightgrey)
 
@@ -25,31 +25,39 @@ A custom Home Assistant Lovelace card for multi-room air conditioner control —
 
 ---
 
-## ✨ Features (v1.2)
+## ✨ Features (v1.3)
 
 ### 🎨 Display & Interface
-- ❄️ **Temperature dial** — animated arc gauge showing current room temperature with dynamic colour glow: blue (cold) → cyan → green → orange → red (hot)
+- ❄️ **Temperature dial** — animated arc gauge with dynamic colour glow: blue (cold) → cyan → green → orange → red (hot)
 - 🏠 **Room photo panel** — per-room image with live ON/OFF overlay badge and colour-matched temperature badge
 - 📊 **Status block** — running state, air quality indicator, PM2.5 ring, outdoor temperature, humidity and power consumption
 - 🕐 **Live clock** — real-time date and time display with greeting by time of day
 - 🌿 **Eco mode badge** — toggle eco/preset mode directly from the card header
 
+### 🖥️ Two View Modes
+- **Full** — complete layout with all panels visible (default)
+- **Lite** — compact layout that hides the left panel, showing only room tabs, power button, timer and all-off button — ideal for smaller dashboards or mobile
+
+### 🎛️ Per-element Visibility Toggles
+Every section of the card can be individually shown or hidden directly from the editor:
+- Greeting row, HVAC mode buttons (Cool / Heat / Dry / Fan individually), fan speed panel, airflow panel, Eco/Fav/Clean bar, status & sensor block, outdoor temperature, humidity, power, timer button, turn-all-off button
+
 ### ❄️ Multi-Room Control (up to 8 rooms)
-- **Room selector tabs** — shows icon, name, current temperature and ON/OFF badge for every room; always displays 4 at a time with smooth scrolling for more
+- **Room selector tabs** — shows icon, name, current temperature and ON/OFF badge; always displays 4 rooms, scrollable for more
 - **Per-room HVAC control** — Cool / Heat / Dry / Fan Only mode buttons with colour-coded active state
-- **Temperature set** — `+` / `−` buttons to adjust set-point; current temperature shown on the dial
+- **Temperature set** — `+` / `−` buttons to adjust set-point
 - **Fan speed** — cycle through Auto / Low / Medium / High with animated fan blade SVG and bar chart
 - **Swing direction** — cycle through Fixed / Up-Down / Left-Right / Both with animated wave SVG
 
 ### 🌿 Eco & Quick Actions
 - **Eco toggle** — activates eco/preset mode on the selected room's AC unit
-- **Quick-action chips** — Eco, Fav, Clean shortcut buttons on the control panel
+- **Quick-action chips** — Eco, Fav, Clean shortcut buttons
 
 ### ⏱️ Timer Scheduling
-- **Per-room timer** — choose from preset durations: `30m · 1h · 1.5h · 2h · 3h · 4h · 6h · 8h`, or type any custom number of minutes
-- **Schedule on or off** — select whether the timer should turn the AC on or off
+- **Per-room timer** — 8 preset durations: `30m · 1h · 1.5h · 2h · 3h · 4h · 6h · 8h` + free custom-minute input
+- **Schedule on or off** — choose whether the timer turns the AC on or off
 - **Countdown display** — live countdown shown on the timer button
-- **Persistent timers** — timer state is saved to localStorage and restored after page reload
+- **Persistent timers** — state saved to localStorage, restored after page reload
 
 ### 🌐 Multi-language Support (11 languages)
 - 🇻🇳 Tiếng Việt / 🇬🇧 English / 🇩🇪 Deutsch / 🇫🇷 Français / 🇳🇱 Nederlands
@@ -108,11 +116,13 @@ After adding the card, click **✏️ Edit** to open the Config Editor.
 | # | Section | Contents |
 |---|---------|----------|
 | 1 | 🌐 **Language** | 11 languages with real flag images |
-| 2 | 🔢 **Room count** | Slider to set 1–8 rooms |
-| 3 | ❄️ **Air Conditioners** | Entity picker, display name and icon per room |
-| 4 | 📡 **Environment Sensors** | PM2.5, outdoor temperature, humidity, power |
-| 5 | 🎨 **Colors** | Accent, text colours |
-| 6 | 🎨 **Background** | 16 gradient presets + custom two-colour picker |
+| 2 | 🖥️ **View mode** | Full or Lite layout |
+| 3 | 🔢 **Room count** | Slider to set 1–8 rooms |
+| 4 | ❄️ **Air Conditioners** | Entity picker, display name and icon per room |
+| 5 | 📡 **Environment Sensors** | PM2.5, outdoor temperature, humidity, power |
+| 6 | 👁️ **Visibility** | Toggle individual sections on or off |
+| 7 | 🎨 **Colors** | Accent, text colours |
+| 8 | 🎨 **Background** | 16 gradient presets + custom two-colour picker |
 
 ---
 
@@ -143,8 +153,23 @@ After adding the card, click **✏️ Edit** to open the Config Editor.
 | Config key | Type | Default | Description |
 |---|---|---|---|
 | `language` | string | `vi` | `vi`/`en`/`de`/`fr`/`nl`/`pl`/`sv`/`hu`/`cs`/`it`/`pt` |
+| `view_mode` | string | `full` | `full` = complete layout · `lite` = compact layout |
 | `room_count` | number | `4` | Number of rooms to display (1–8) |
 | `owner_name` | string | `Smart Home` | Owner name shown in greeting |
+| `show_greet` | boolean | `true` | Show greeting row |
+| `show_cool` | boolean | `true` | Show Cool mode button |
+| `show_heat` | boolean | `true` | Show Heat mode button |
+| `show_dry` | boolean | `true` | Show Dry mode button |
+| `show_fan_only` | boolean | `true` | Show Fan Only mode button |
+| `show_fan` | boolean | `true` | Show fan speed panel |
+| `show_swing` | boolean | `true` | Show airflow direction panel |
+| `show_preset_bar` | boolean | `true` | Show Eco / Fav / Clean bar |
+| `show_status` | boolean | `true` | Show status & sensor block |
+| `show_outdoor_temp` | boolean | `true` | Show outdoor temperature metric |
+| `show_humidity` | boolean | `true` | Show humidity metric |
+| `show_power` | boolean | `true` | Show power consumption metric |
+| `show_all_off` | boolean | `true` | Show turn-all-off button |
+| `show_timer` | boolean | `true` | Show timer button |
 | `background_preset` | string | `default` | Gradient preset name |
 | `bg_color1` | hex | `#001e2b` | Custom gradient colour 1 (top-left) |
 | `bg_color2` | hex | `#12c6f3` | Custom gradient colour 2 (bottom-right) |
@@ -163,12 +188,28 @@ After adding the card, click **✏️ Edit** to open the Config Editor.
 ```yaml
 type: custom:multi-air-conditioner-card
 language: en
+view_mode: full
 room_count: 4
 owner_name: My Home
 
 background_preset: default
 accent_color: "#00ffcc"
 text_color: "#ffffff"
+
+show_greet: true
+show_cool: true
+show_heat: true
+show_dry: true
+show_fan_only: true
+show_fan: true
+show_swing: true
+show_preset_bar: true
+show_status: true
+show_outdoor_temp: true
+show_humidity: true
+show_power: true
+show_all_off: true
+show_timer: true
 
 entities:
   - entity_id: climate.living_room_ac
@@ -194,12 +235,13 @@ humidity_entity: sensor.outdoor_humidity
 power_entity: sensor.ac_power_kwh
 ```
 
-### Minimal example (2 rooms, no sensors)
+### Lite mode example
 
 ```yaml
 type: custom:multi-air-conditioner-card
 language: en
-room_count: 2
+view_mode: lite
+room_count: 4
 entities:
   - entity_id: climate.living_room_ac
     label: Living Room
@@ -225,12 +267,16 @@ entities:
 
 ## 📋 Changelog
 
+### v1.3
+- 🖥️ New **Lite view mode** — compact layout ideal for mobile or sidebar dashboards
+- 👁️ **Per-element visibility toggles** — show/hide greeting, each HVAC mode button, fan, swing, Eco bar, status block, metrics, timer and all-off button individually
+- 🐛 Bug fixes and stability improvements
+
 ### v1.2
 - 🇵🇹 New language — Português (11 languages total)
 - 🌡️ Dynamic temperature colour on dial — blue (cold) → cyan → green → orange → red (hot)
 - ⏱️ Timer overhaul — 8 preset durations (30m · 1h · 1.5h · 2h · 3h · 4h · 6h · 8h) + free custom-minute input
 - 🔢 Room tabs enlarged — always shows 4 rooms, scrollable when more than 4
-- 🐛 Bug fixes and stability improvements
 
 ### v1.1
 - 🔢 Configurable room count — 1 to 8 rooms via editor slider

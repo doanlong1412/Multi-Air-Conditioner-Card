@@ -1,7 +1,7 @@
 # ❄️ Multi Air Conditioner Card
 
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/hacs/integration)
-![version](https://img.shields.io/badge/version-1.2-blue)
+![version](https://img.shields.io/badge/version-1.3-blue)
 ![HA](https://img.shields.io/badge/Home%20Assistant-2023.1+-green)
 ![license](https://img.shields.io/badge/license-MIT-lightgrey)
 
@@ -25,34 +25,43 @@ Card tùy chỉnh cho Home Assistant Lovelace — điều khiển điều hòa n
 
 ---
 
-## ✨ Tính năng (v1.2)
+## ✨ Tính năng (v1.3)
 
 ### 🎨 Hiển thị & Giao diện
-- ❄️ **Đồng hồ nhiệt độ** — vòng cung động hiển thị nhiệt độ phòng hiện tại với ánh sáng đổi màu theo chế độ
-- 🏠 **Ảnh phòng** — ảnh riêng từng phòng kèm badge ON/OFF và nhiệt độ trực tiếp
+- ❄️ **Đồng hồ nhiệt độ** — vòng cung động với màu sắc thay đổi theo nhiệt độ: xanh dương (lạnh) → xanh lơ → xanh lá → cam → đỏ (nóng)
+- 🏠 **Ảnh phòng** — ảnh riêng từng phòng kèm badge ON/OFF và nhiệt độ trực tiếp với màu tương ứng
 - 📊 **Khối trạng thái** — tình trạng hoạt động, chỉ số PM2.5, nhiệt độ ngoài trời, độ ẩm và điện năng tiêu thụ
 - 🕐 **Đồng hồ thực** — hiển thị ngày giờ theo thời gian thực với lời chào theo buổi trong ngày
 - 🌿 **Badge Eco** — bật/tắt chế độ Eco trực tiếp từ đầu card
 
+### 🖥️ Hai chế độ hiển thị
+- **Full** — bố cục đầy đủ với tất cả các panel hiển thị (mặc định)
+- **Lite** — bố cục gọn nhẹ, ẩn panel bên trái, chỉ hiển thị tab phòng, nút nguồn, hẹn giờ và nút tắt tất cả — phù hợp cho dashboard nhỏ hoặc điện thoại
+
+### 🎛️ Tùy chỉnh hiển thị từng thành phần
+Mỗi phần của card có thể bật/tắt riêng lẻ ngay trong editor:
+- Lời chào, nút chế độ HVAC (Cool / Heat / Dry / Fan từng nút riêng), bảng quạt, bảng hướng gió, thanh Eco/Fav/Clean, khối trạng thái & cảm biến, nhiệt độ ngoài trời, độ ẩm, công suất, nút hẹn giờ, nút tắt tất cả
+
 ### ❄️ Điều khiển nhiều phòng (tối đa 8 phòng)
-- **Tab chọn phòng** — hiển thị icon, tên, nhiệt độ hiện tại và badge ON/OFF; luôn hiện 4 phòng, cuộn để xem thêm
+- **Tab chọn phòng** — hiển thị icon, tên, nhiệt độ và badge ON/OFF; luôn hiện 4 phòng, cuộn để xem thêm
 - **Điều khiển HVAC từng phòng** — các nút chế độ Làm lạnh / Sưởi / Hút ẩm / Quạt với màu trạng thái
-- **Điều chỉnh nhiệt độ** — nút `+` / `−` để đặt nhiệt độ mong muốn; nhiệt độ hiện tại hiển thị trên đồng hồ
+- **Điều chỉnh nhiệt độ** — nút `+` / `−` để đặt nhiệt độ mong muốn
 - **Tốc độ quạt** — chuyển đổi Tự động / Thấp / Vừa / Cao với SVG cánh quạt động và biểu đồ cột
 - **Hướng gió** — chuyển đổi Cố định / Lên xuống / Trái phải / Tất cả với SVG sóng động
 
 ### 🌿 Eco & Tác vụ nhanh
 - **Bật/tắt Eco** — kích hoạt chế độ Eco/preset cho điều hòa phòng đang chọn
-- **Chip tác vụ nhanh** — nút tắt Eco, Fav, Clean ngay trên bảng điều khiển
+- **Chip tác vụ nhanh** — nút Eco, Fav, Clean
 
 ### ⏱️ Hẹn giờ
-- **Hẹn giờ từng phòng** — đặt timer 1 / 2 / 4 / 8 giờ để tự động bật hoặc tắt điều hòa
+- **Hẹn giờ từng phòng** — 8 mốc thời gian: `30p · 1h · 1.5h · 2h · 3h · 4h · 6h · 8h` + ô nhập số phút tùy ý
+- **Hẹn tắt hoặc hẹn bật** — chọn timer sẽ tắt hay bật điều hòa
 - **Đếm ngược trực tiếp** — thời gian còn lại hiển thị ngay trên nút hẹn giờ
-- **Timer bền vững** — trạng thái được lưu vào localStorage, khôi phục sau khi tải lại trang
+- **Timer bền vững** — lưu vào localStorage, khôi phục sau khi tải lại trang
 
-### 🌐 10 ngôn ngữ
+### 🌐 11 ngôn ngữ
 - 🇻🇳 Tiếng Việt / 🇬🇧 English / 🇩🇪 Deutsch / 🇫🇷 Français / 🇳🇱 Nederlands
-- 🇵🇱 Polski / 🇸🇪 Svenska / 🇭🇺 Magyar / 🇨🇿 Čeština / 🇮🇹 Italiano
+- 🇵🇱 Polski / 🇸🇪 Svenska / 🇭🇺 Magyar / 🇨🇿 Čeština / 🇮🇹 Italiano / 🇵🇹 Português
 - **Ảnh cờ quốc gia thật** qua flagcdn.com
 
 ### 🎨 Tùy chỉnh giao diện
@@ -106,12 +115,14 @@ Sau khi thêm, nhấn **✏️ Edit** để mở Config Editor.
 
 | # | Phần | Nội dung |
 |---|------|----------|
-| 1 | 🌐 **Ngôn ngữ** | 10 ngôn ngữ với ảnh cờ thật |
-| 2 | 🔢 **Số phòng** | Thanh trượt chọn 1–8 phòng |
-| 3 | ❄️ **Điều hòa** | Chọn entity, tên hiển thị và icon từng phòng |
-| 4 | 📡 **Cảm biến môi trường** | PM2.5, nhiệt độ ngoài trời, độ ẩm, điện năng |
-| 5 | 🎨 **Màu sắc** | Màu nhấn, màu chữ |
-| 6 | 🎨 **Màu nền** | 16 preset + bộ chọn hai màu tùy chỉnh |
+| 1 | 🌐 **Ngôn ngữ** | 11 ngôn ngữ với ảnh cờ thật |
+| 2 | 🖥️ **Chế độ hiển thị** | Full đầy đủ hoặc Lite gọn nhẹ |
+| 3 | 🔢 **Số phòng** | Thanh trượt chọn 1–8 phòng |
+| 4 | ❄️ **Điều hòa** | Chọn entity, tên hiển thị và icon từng phòng |
+| 5 | 📡 **Cảm biến môi trường** | PM2.5, nhiệt độ ngoài trời, độ ẩm, điện năng |
+| 6 | 👁️ **Hiển thị** | Bật/tắt từng thành phần riêng lẻ |
+| 7 | 🎨 **Màu sắc** | Màu nhấn, màu chữ |
+| 8 | 🎨 **Màu nền** | 16 preset + bộ chọn hai màu tùy chỉnh |
 
 ---
 
@@ -141,9 +152,24 @@ Sau khi thêm, nhấn **✏️ Edit** để mở Config Editor.
 
 | Config key | Kiểu | Mặc định | Mô tả |
 |---|---|---|---|
-| `language` | string | `vi` | `vi`/`en`/`de`/`fr`/`nl`/`pl`/`sv`/`hu`/`cs`/`it` |
+| `language` | string | `vi` | `vi`/`en`/`de`/`fr`/`nl`/`pl`/`sv`/`hu`/`cs`/`it`/`pt` |
+| `view_mode` | string | `full` | `full` = đầy đủ · `lite` = gọn nhẹ |
 | `room_count` | number | `4` | Số phòng hiển thị (1–8) |
 | `owner_name` | string | `Smart Home` | Tên chủ nhà hiển thị trong lời chào |
+| `show_greet` | boolean | `true` | Hiện lời chào |
+| `show_cool` | boolean | `true` | Hiện nút chế độ Làm lạnh |
+| `show_heat` | boolean | `true` | Hiện nút chế độ Sưởi |
+| `show_dry` | boolean | `true` | Hiện nút chế độ Hút ẩm |
+| `show_fan_only` | boolean | `true` | Hiện nút chế độ Quạt |
+| `show_fan` | boolean | `true` | Hiện bảng tốc độ quạt |
+| `show_swing` | boolean | `true` | Hiện bảng hướng gió |
+| `show_preset_bar` | boolean | `true` | Hiện thanh Eco / Fav / Clean |
+| `show_status` | boolean | `true` | Hiện khối trạng thái & cảm biến |
+| `show_outdoor_temp` | boolean | `true` | Hiện nhiệt độ ngoài trời |
+| `show_humidity` | boolean | `true` | Hiện độ ẩm |
+| `show_power` | boolean | `true` | Hiện điện năng tiêu thụ |
+| `show_all_off` | boolean | `true` | Hiện nút Tắt tất cả |
+| `show_timer` | boolean | `true` | Hiện nút Hẹn giờ |
 | `background_preset` | string | `default` | Tên preset gradient |
 | `bg_color1` | hex | `#001e2b` | Màu gradient tùy chỉnh 1 (trên trái) |
 | `bg_color2` | hex | `#12c6f3` | Màu gradient tùy chỉnh 2 (dưới phải) |
@@ -162,12 +188,28 @@ Sau khi thêm, nhấn **✏️ Edit** để mở Config Editor.
 ```yaml
 type: custom:multi-air-conditioner-card
 language: vi
+view_mode: full
 room_count: 4
 owner_name: Nhà Của Tôi
 
 background_preset: default
 accent_color: "#00ffcc"
 text_color: "#ffffff"
+
+show_greet: true
+show_cool: true
+show_heat: true
+show_dry: true
+show_fan_only: true
+show_fan: true
+show_swing: true
+show_preset_bar: true
+show_status: true
+show_outdoor_temp: true
+show_humidity: true
+show_power: true
+show_all_off: true
+show_timer: true
 
 entities:
   - entity_id: climate.dieu_hoa_living
@@ -193,12 +235,13 @@ humidity_entity: sensor.outdoor_humidity
 power_entity: sensor.ac_power_kwh
 ```
 
-### Ví dụ tối giản (2 phòng, không có cảm biến)
+### Ví dụ chế độ Lite
 
 ```yaml
 type: custom:multi-air-conditioner-card
 language: vi
-room_count: 2
+view_mode: lite
+room_count: 4
 entities:
   - entity_id: climate.dieu_hoa_living
     label: Phòng khách
@@ -223,6 +266,17 @@ entities:
 ---
 
 ## 📋 Lịch sử thay đổi
+
+### v1.3
+- 🖥️ Chế độ **Lite** mới — bố cục gọn nhẹ lý tưởng cho mobile hoặc sidebar
+- 👁️ **Tùy chỉnh hiển thị từng thành phần** — bật/tắt riêng lẻ lời chào, từng nút chế độ HVAC, quạt, hướng gió, thanh Eco, khối trạng thái, chỉ số, hẹn giờ và nút tắt tất cả
+- 🐛 Sửa lỗi và cải thiện độ ổn định
+
+### v1.2
+- 🇵🇹 Ngôn ngữ mới — Português (tổng 11 ngôn ngữ)
+- 🌡️ Màu nhiệt độ động trên đồng hồ — xanh dương (lạnh) → xanh lơ → xanh lá → cam → đỏ (nóng)
+- ⏱️ Nâng cấp hẹn giờ — 8 mốc thời gian (30p · 1h · 1.5h · 2h · 3h · 4h · 6h · 8h) + nhập phút tự do
+- 🔢 Tab phòng to hơn — luôn hiện 4 phòng, cuộn khi có nhiều hơn
 
 ### v1.1
 - 🔢 Số phòng có thể cấu hình — 1 đến 8 phòng qua thanh trượt trong editor
