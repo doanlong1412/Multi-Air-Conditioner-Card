@@ -3311,60 +3311,57 @@ class MultiAcCardEditor extends HTMLElement {
   // ── Inject hass vào mọi ha-entity-picker ───────────────────────────────────
   _syncPickers() {
     if (!this._hass || !this.shadowRoot) return;
+    const ents = this._config.entities || [];
     const apply = () => {
-      this.shadowRoot.querySelectorAll('ha-entity-picker').forEach(p => {
+      // Global sensor entity pickers (data-key)
+      this.shadowRoot.querySelectorAll('ha-entity-picker[data-key]').forEach(p => {
         p.hass = this._hass;
         const domain = p.dataset.domain;
         if (domain) p.includeDomains = [domain];
         const key   = p.dataset.key;
         const saved = this._config[key] || '';
-        if (saved && p.value !== saved) {
+        if (p.value !== saved) {
           p.value = saved;
           p.setAttribute('value', saved);
         }
       });
-      // entity pickers cho từng room
+      // entity pickers cho từng room (climate entity)
       this.shadowRoot.querySelectorAll('ha-entity-picker[data-room]').forEach(p => {
         p.hass = this._hass;
         p.includeDomains = ['climate'];
         const idx   = parseInt(p.dataset.room);
-        const ents  = this._config.entities || [];
         const saved = (ents[idx] && ents[idx].entity_id) || '';
-        if (saved && p.value !== saved) { p.value = saved; p.setAttribute('value', saved); }
+        if (p.value !== saved) { p.value = saved; p.setAttribute('value', saved); }
       });
       // room temp sensor pickers
       this.shadowRoot.querySelectorAll('ha-entity-picker[data-room-temp]').forEach(p => {
         p.hass = this._hass;
         p.includeDomains = ['sensor'];
         const idx   = parseInt(p.dataset.roomTemp);
-        const ents  = this._config.entities || [];
         const saved = (ents[idx] && ents[idx].temp_entity) || '';
-        if (saved && p.value !== saved) { p.value = saved; p.setAttribute('value', saved); }
+        if (p.value !== saved) { p.value = saved; p.setAttribute('value', saved); }
       });
       // room humidity sensor pickers
       this.shadowRoot.querySelectorAll('ha-entity-picker[data-room-hum]').forEach(p => {
         p.hass = this._hass;
         p.includeDomains = ['sensor'];
         const idx   = parseInt(p.dataset.roomHum);
-        const ents  = this._config.entities || [];
         const saved = (ents[idx] && ents[idx].humidity_entity) || '';
-        if (saved && p.value !== saved) { p.value = saved; p.setAttribute('value', saved); }
+        if (p.value !== saved) { p.value = saved; p.setAttribute('value', saved); }
       });
       // room vane vertical entity pickers
       this.shadowRoot.querySelectorAll('ha-entity-picker[data-room-vane-vert]').forEach(p => {
         p.hass = this._hass;
         const idx   = parseInt(p.dataset.roomVaneVert);
-        const ents  = this._config.entities || [];
         const saved = (ents[idx] && ents[idx].vane_vertical_entity) || '';
-        if (saved && p.value !== saved) { p.value = saved; p.setAttribute('value', saved); }
+        if (p.value !== saved) { p.value = saved; p.setAttribute('value', saved); }
       });
       // room vane horizontal entity pickers
       this.shadowRoot.querySelectorAll('ha-entity-picker[data-room-vane-horiz]').forEach(p => {
         p.hass = this._hass;
         const idx   = parseInt(p.dataset.roomVaneHoriz);
-        const ents  = this._config.entities || [];
         const saved = (ents[idx] && ents[idx].vane_horizontal_entity) || '';
-        if (saved && p.value !== saved) { p.value = saved; p.setAttribute('value', saved); }
+        if (p.value !== saved) { p.value = saved; p.setAttribute('value', saved); }
       });
     };
     apply();
@@ -3437,10 +3434,11 @@ class MultiAcCardEditor extends HTMLElement {
     for (let i = 0; i < roomCount; i++) {
       const ent   = entities[i] || {};
       const defLbl = (t.rooms && t.rooms[i]) || ('Room ' + (i+1));
+      const dispLbl = ent.label || defLbl;
       const defIco = (t.roomIcons && t.roomIcons[i]) || '❄';
       roomRows += `
 <div class="ac-row">
-  <div class="ac-row-title">❄ ${t.edRooms.replace(/^❄\s*/,'')} ${i+1} – ${defLbl}</div>
+  <div class="ac-row-title" id="ac-row-title-${i}">❄ ${t.edRooms.replace(/^❄\s*/,'')} ${i+1} – ${dispLbl}</div>
   <div class="row">
     <label>${t.edAcEntity}</label>
     <ha-entity-picker data-room="${i}" data-domain="climate" allow-custom-entity></ha-entity-picker>
@@ -3888,6 +3886,9 @@ class MultiAcCardEditor extends HTMLElement {
         while (ents.length <= i) ents.push({});
         ents[i] = { ...ents[i], label: val };
         this._config = { ...this._config, entities: ents };
+        // Live update title
+        const titleEl = sr.getElementById('ac-row-title-' + i);
+        if (titleEl) titleEl.textContent = '❄ ' + t.edRooms.replace(/^❄\s*/, '') + ' ' + (i+1) + ' – ' + (val || ((t.rooms && t.rooms[i]) || ('Room ' + (i+1))));
       });
       wireTextInput(iconEl, val => {
         const ents = (this._config.entities || []).slice();
