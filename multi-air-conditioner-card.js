@@ -104,10 +104,14 @@ const AC_TRANSLATIONS = {
     edAcImage: '🖼 Ảnh phòng (URL)',
     edRoomTempEntity: '🌡 Cảm biến nhiệt độ phòng (nếu điều hòa không có)',
     edRoomHumidityEntity: '💧 Cảm biến độ ẩm phòng (nếu điều hòa không có)',
+    edVaneVertical: '↕ Cánh gió dọc (input_select)',
+    edVaneHorizontal: '↔ Cánh gió ngang (input_select)',
     edPm25: '🌫 Bụi mịn PM2.5',
     edOutdoorTemp: '🌡 Nhiệt độ ngoài trời',
     edHumidity: '💧 Độ ẩm ngoài trời',
     edPower: '⚡ Tiêu thụ điện (kW)',
+    edVaneVerticalGlobal: '↕ Cánh gió dọc (mặc định)',
+    edVaneHorizontalGlobal: '↔ Cánh gió ngang (mặc định)',
     rooms: ['Phòng khách','Phòng ngủ','Phòng ăn','Văn phòng'],
     roomIcons: ['🛋','🛌','🍳','💼'],
   },
@@ -192,10 +196,14 @@ const AC_TRANSLATIONS = {
     edAcImage: '🖼 Ảnh phòng (URL)',
     edRoomTempEntity: '🌡 Room temperature sensor (if AC has none)',
     edRoomHumidityEntity: '💧 Room humidity sensor (if AC has none)',
+    edVaneVertical: '↕ Vertical vane (input_select)',
+    edVaneHorizontal: '↔ Horizontal vane (input_select)',
     edPm25: '🌫 Fine dust PM2.5',
     edOutdoorTemp: '🌡 Outdoor temperature',
     edHumidity: '💧 Outdoor humidity',
     edPower: '⚡ Power consumption (kW)',
+    edVaneVerticalGlobal: '↕ Vertical vane (default)',
+    edVaneHorizontalGlobal: '↔ Horizontal vane (default)',
     rooms: ['Living room','Bedroom','Dining room','Office'],
     roomIcons: ['🛋','🛌','🍳','💼'],
   },
@@ -1405,7 +1413,14 @@ button,a{touch-action:manipulation;-webkit-tap-highlight-color:transparent;user-
 .sl-temp-lbl{font-size:8px;letter-spacing:3px;text-transform:uppercase;color:rgba(255,255,255,0.5);font-weight:500}
 .sl-temp-val{font-family:'Orbitron',sans-serif;font-size:40px;font-weight:800;line-height:1;transition:color 0.6s ease}
 .sl-temp-feel{font-size:10px;color:rgba(255,255,255,0.55);margin-top:4px;font-weight:300;text-align:center;max-width:120px;line-height:1.4}
-.sl-temp-ctrl{display:flex;align-items:center;justify-content:center;gap:0}
+.sl-temp-ctrl{display:flex;align-items:center;justify-content:center;gap:6px}
+.sl-extra-btn{display:flex;flex-direction:column;align-items:center;gap:2px;
+  background:rgba(0,20,50,0.28);border:1px solid rgba(255,255,255,0.18);border-radius:12px;
+  padding:6px 8px;cursor:pointer;outline:none;min-width:54px;transition:all 0.15s;font-family:'Sora',sans-serif}
+.sl-extra-btn:hover{background:rgba(0,30,70,0.45);border-color:var(--accent)}
+.sl-extra-btn:active{transform:scale(0.92)}
+.sl-extra-lbl{font-size:8px;font-weight:600;color:rgba(255,255,255,0.7);white-space:nowrap;overflow:hidden;
+  text-overflow:ellipsis;max-width:56px;text-transform:capitalize}
 .sl-temp-btn{width:36px;height:36px;border-radius:50%;background:rgba(0,20,50,0.28);
   border:1px solid rgba(255,255,255,0.22);color:rgba(255,255,255,0.9);font-size:22px;
   display:flex;align-items:center;justify-content:center;cursor:pointer;outline:none;transition:all 0.15s;font-family:'Sora',sans-serif}
@@ -1701,16 +1716,39 @@ class AcControllerCardV2 extends HTMLElement {
     }
     var roomHumidityDisplay = roomHumidityRaw > 0 ? Math.round(roomHumidityRaw) + '%' : '--';
     var isLite  = this._config.view_mode === 'lite';
-    var fi  = Math.max(0, FAN_LEVELS.indexOf(fanMode));
+    // Đọc fan_modes từ entity, fallback FAN_LEVELS
+    var entityFanModes = this._a(room.id, 'fan_modes');
+    var actualFanModes = (Array.isArray(entityFanModes) && entityFanModes.length > 0) ? entityFanModes : FAN_LEVELS;
+    var fi  = Math.max(0, actualFanModes.indexOf(fanMode));
     var si  = Math.max(0, SWING_LEVELS.indexOf(swingMode));
     var mode    = MODE_CFG[hvac] || MODE_CFG.cool;
     // Localise mode labels and fan/swing labels
     mode = Object.assign({}, mode, { lbl: tr.modes[hvac] || mode.lbl });
     var fanLabels   = tr.fans   || ['Auto','Low','Medium','High'];
+    // Build fan mode label map: ưu tiên translation cho FAN_LEVELS, fallback capitalize tên mode
+    var fanModeToLabel = {};
+    for (var fli = 0; fli < FAN_LEVELS.length; fli++) {
+      fanModeToLabel[FAN_LEVELS[fli]] = fanLabels[fli] || FAN_LEVELS[fli];
+    }
+    // Thêm label cho các mode entity có mà không nằm trong FAN_LEVELS
+    for (var fli2 = 0; fli2 < actualFanModes.length; fli2++) {
+      if (!fanModeToLabel[actualFanModes[fli2]]) {
+        fanModeToLabel[actualFanModes[fli2]] = actualFanModes[fli2].charAt(0).toUpperCase() + actualFanModes[fli2].slice(1);
+      }
+    }
+    var currentFanLabel = fanModeToLabel[fanMode] || fanMode;
     var swingLabels = tr.swings || ['Fixed','Up/Down','Left/Right','Both'];
-    // Label cho swing hiện tại: map từ swing_mode string → label theo ngôn ngữ
+    // Label cho swing hiện tại: ưu tiên vane entity nếu có, fallback swing_mode
     var swingModeToLabel = { off: swingLabels[0], vertical: swingLabels[1], horizontal: swingLabels[2], both: swingLabels[3] };
     var swingCurrentLabel = swingModeToLabel[swingMode] || swingMode;
+    var roomEntCfgVane = (cfg.entities && cfg.entities[this._activeIdx]) || {};
+    var vaneVertEnt = roomEntCfgVane.vane_vertical_entity || cfg.vane_vertical_entity || null;
+    var vaneHorizEnt = roomEntCfgVane.vane_horizontal_entity || cfg.vane_horizontal_entity || null;
+    if (vaneVertEnt && this._hass && this._hass.states[vaneVertEnt]) {
+      swingCurrentLabel = this._hass.states[vaneVertEnt].state;
+    } else if (vaneHorizEnt && this._hass && this._hass.states[vaneHorizEnt]) {
+      swingCurrentLabel = this._hass.states[vaneHorizEnt].state;
+    }
 
     var pct    = Math.max(0, Math.min(1, (curTemp - 16) / 16));
     var arcEnd = -140 + pct * 280;
@@ -1754,9 +1792,11 @@ class AcControllerCardV2 extends HTMLElement {
       ticks += '<line x1="' + tx1 + '" y1="' + ty1 + '" x2="' + tx2 + '" y2="' + ty2 + '" stroke="rgba(255,255,255,0.12)" stroke-width="1.5" stroke-linecap="round"/>';
     }
 
-    // Fan bar chart
+    // Fan bar chart — dynamic based on actual fan modes count
     var barHeights = [7,10,13,16,19,22,26,30];
-    var fillCount  = [0, 2, 4, 8][fi] || 0;
+    var totalFanModes = actualFanModes.length;
+    // Map current index to fill count proportionally across 8 bars
+    var fillCount = totalFanModes > 1 ? Math.round((fi / (totalFanModes - 1)) * 8) : 0;
     var fanBarHtml = '';
     for (var i = 0; i < 8; i++) {
       var barOn = i < fillCount;
@@ -1792,7 +1832,10 @@ class AcControllerCardV2 extends HTMLElement {
           + ' C ' + c2x.toFixed(2) + ' ' + c2y.toFixed(2) + ' ' + c3x.toFixed(2) + ' ' + c3y.toFixed(2) + ' ' + bRx.toFixed(2) + ' ' + bRy.toFixed(2)
           + ' Z';
       }
-      var bladeCount = [4, 3, 4, 5][fi];
+      // Blade count scales with fan speed: min 3, max 6
+      var bladeCount = actualFanModes.length <= 4
+        ? ([4, 3, 4, 5][fi] || 4)
+        : Math.max(3, Math.min(6, 3 + Math.round(fi * 3 / (actualFanModes.length - 1))));
       var blades = '';
       for (var b = 0; b < bladeCount; b++) {
         var ang = b * (360 / bladeCount);
@@ -1800,7 +1843,8 @@ class AcControllerCardV2 extends HTMLElement {
         blades += '<path d="' + fatBlade(ang) + '" fill="' + color + '" fill-opacity="0.82"'
           + ' stroke="rgba(255,255,255,0.55)" stroke-width="0.8" stroke-linejoin="round"/>';
       }
-      var animStyle = fi === 0 ? 'style="transform-origin:21px 21px;animation:fanSpin 1.4s linear infinite"' : '';
+      var isAutoFan = fanMode === 'auto';
+      var animStyle = isAutoFan ? 'style="transform-origin:21px 21px;animation:fanSpin 1.4s linear infinite"' : '';
       return '<svg width="' + dim + '" height="' + dim + '" viewBox="0 0 42 42" ' + animStyle + '>'
         + '<defs><filter id="fanGlow" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="1.8" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>'
         + '<g filter="url(#fanGlow)">'
@@ -1810,7 +1854,13 @@ class AcControllerCardV2 extends HTMLElement {
         + '<circle cx="21" cy="21" r="2" fill="rgba(220,240,255,0.85)"/>'
         + '</svg>';
     })(fi);
+    // Swing active: true nếu swing_mode khác off, hoặc có vane entity đang active
     var swingActive = swingMode !== 'off';
+    if (vaneVertEnt && this._hass && this._hass.states[vaneVertEnt]) {
+      swingActive = this._hass.states[vaneVertEnt].state !== 'off';
+    } else if (vaneHorizEnt && this._hass && this._hass.states[vaneHorizEnt]) {
+      swingActive = this._hass.states[vaneHorizEnt].state !== 'off';
+    }
     var sColor = swingActive ? 'var(--accent)' : 'rgba(255,255,255,0.3)';
     var sOp    = swingActive ? '1' : '0.5';
     var swingSvg = '<svg width="38" height="28" viewBox="0 0 38 28" fill="none" xmlns="http://www.w3.org/2000/svg">'
@@ -1893,26 +1943,34 @@ class AcControllerCardV2 extends HTMLElement {
     var isSuperLite = this._config.view_mode === 'super_lite';
     if (isSuperLite) {
       var slModeKeys = ['cool','heat','dry','fan_only'];
+      var slModeShowMap = { cool: 'show_cool', heat: 'show_heat', dry: 'show_dry', fan_only: 'show_fan_only' };
       var slModeOptions = '<option value="off">' + (tr.modes['off'] || 'Tắt') + '</option>';
       for (var sm = 0; sm < slModeKeys.length; sm++) {
         var smk = slModeKeys[sm];
+        if (cfg[slModeShowMap[smk]] === false) continue;
         var smc = Object.assign({}, MODE_CFG[smk], { lbl: tr.modes[smk] || MODE_CFG[smk].lbl });
         slModeOptions += '<option value="' + smk + '"' + (hvac === smk ? ' selected' : '') + '>' + smc.icon + ' ' + smc.lbl + '</option>';
       }
       var slIsOn = hvac !== 'off';
       // Outdoor sensors for super lite
-      var slOutdoorTemp = cfg.outdoor_temp_entity && this._hass && this._hass.states[cfg.outdoor_temp_entity]
+      var slOutdoorTemp = (cfg.show_outdoor_temp !== false) && cfg.outdoor_temp_entity && this._hass && this._hass.states[cfg.outdoor_temp_entity]
         ? Math.round(parseFloat(this._hass.states[cfg.outdoor_temp_entity].state)) + '°'
         : null;
-      var slHumidity = cfg.humidity_entity && this._hass && this._hass.states[cfg.humidity_entity]
+      var slHumidity = (cfg.show_humidity !== false) && cfg.humidity_entity && this._hass && this._hass.states[cfg.humidity_entity]
         ? Math.round(parseFloat(this._hass.states[cfg.humidity_entity].state)) + '%'
+        : null;
+      var slPm25 = cfg.pm25_entity && this._hass && this._hass.states[cfg.pm25_entity]
+        ? parseFloat(this._hass.states[cfg.pm25_entity].state)
+        : null;
+      var slPower = (cfg.show_power !== false) && cfg.power_entity && this._hass && this._hass.states[cfg.power_entity]
+        ? parseFloat(this._hass.states[cfg.power_entity].state).toFixed(1) + ' kW'
         : null;
 
       // Room env override: nếu show_room_env bật → dùng nhiệt độ/độ ẩm phòng đang chọn
       var slShowRoomEnv = cfg.show_room_env === true;
       var slEnvTemp, slEnvHumidity, slEnvIsRoom;
       if (slShowRoomEnv) {
-        // Nhiệt độ phòng: ưu tiên cảm biến riêng, fallback current_temperature của entity
+        // Nhiệt độ phòng: luôn hiện khi show_room_env bật (không phụ thuộc show_outdoor_temp)
         var roomEntCfgSL = (cfg.entities && cfg.entities[this._activeIdx]) || {};
         var roomTempSL = curTemp; // curTemp đã tính từ sensor/entity bên trên
         var roomHumSL  = roomHumidityRaw; // roomHumidityRaw đã tính bên trên
@@ -1923,6 +1981,45 @@ class AcControllerCardV2 extends HTMLElement {
         slEnvTemp     = slOutdoorTemp;
         slEnvHumidity = slHumidity;
         slEnvIsRoom   = false;
+      }
+
+      // Fan speed and vane data for super lite
+      var slFanMode = fanMode;
+      var slFanModes = this._a(room.id, 'fan_modes');
+      slFanModes = (Array.isArray(slFanModes) && slFanModes.length > 0) ? slFanModes : FAN_LEVELS;
+      var slFanLabel = slFanMode;
+      // Map known fan modes to translated labels
+      var slFanLabelMap = {};
+      var slFanTr = tr.fans || [];
+      for (var fmi = 0; fmi < FAN_LEVELS.length; fmi++) {
+        slFanLabelMap[FAN_LEVELS[fmi]] = slFanTr[fmi] || FAN_LEVELS[fmi];
+      }
+      // Thêm label cho các mode entity có mà không nằm trong FAN_LEVELS
+      for (var fmi2 = 0; fmi2 < slFanModes.length; fmi2++) {
+        if (!slFanLabelMap[slFanModes[fmi2]]) {
+          slFanLabelMap[slFanModes[fmi2]] = slFanModes[fmi2].charAt(0).toUpperCase() + slFanModes[fmi2].slice(1);
+        }
+      }
+      slFanLabel = slFanLabelMap[slFanMode] || slFanMode;
+
+      // Vane entities for super lite
+      var slRoomEntCfg = (cfg.entities && cfg.entities[this._activeIdx]) || {};
+      var slVaneVertEntity = slRoomEntCfg.vane_vertical_entity || cfg.vane_vertical_entity || null;
+      var slVaneHorizEntity = slRoomEntCfg.vane_horizontal_entity || cfg.vane_horizontal_entity || null;
+      var slVaneVertVal = slVaneVertEntity && this._hass && this._hass.states[slVaneVertEntity]
+        ? this._hass.states[slVaneVertEntity].state : null;
+      var slVaneHorizVal = slVaneHorizEntity && this._hass && this._hass.states[slVaneHorizEntity]
+        ? this._hass.states[slVaneHorizEntity].state : null;
+      // Use configured vane entity, or fallback to swing_mode
+      var slVaneLabel = '';
+      var slHasVane = false;
+      if (slVaneVertEntity || slVaneHorizEntity) {
+        slHasVane = true;
+        // Ưu tiên entity nào có giá trị, nếu cả 2 đều có thì hiện entity đầu tiên được cấu hình
+        slVaneLabel = (slVaneVertEntity ? slVaneVertVal : null) || slVaneHorizVal || 'off';
+      } else if (cfg.show_swing !== false) {
+        slHasVane = true;
+        slVaneLabel = swingMode !== 'off' ? (swingLabels[SWING_LEVELS.indexOf(swingMode)] || swingMode) : swingLabels[0];
       }
       // Inner set-temp ring (same calc as main render)
       var slSetPct    = Math.max(0, Math.min(1, (setTemp - 16) / 16));
@@ -1957,10 +2054,12 @@ class AcControllerCardV2 extends HTMLElement {
         + '<div class="sl-hdr">'
         + '  <div style="display:flex;flex-direction:column;gap:2px">'
         + '    <span class="sl-title">' + tr.cardTitle + '</span>'
-        + (slEnvTemp || slEnvHumidity ? (
-            '    <span style="display:flex;gap:8px;align-items:center">'
+        + ((slEnvTemp || slEnvHumidity || slPm25 || slPower) ? (
+            '    <span style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">'
           + (slEnvTemp     ? '<span style="font-size:10px;color:rgba(255,255,255,' + (slEnvIsRoom ? '0.9' : '0.65') + ');font-family:\'Orbitron\',sans-serif;font-weight:600">' + (slEnvIsRoom ? '&#127968;' : '&#127777;') + ' ' + slEnvTemp + '</span>' : '')
           + (slEnvHumidity ? '<span style="font-size:10px;color:rgba(255,255,255,' + (slEnvIsRoom ? '0.75' : '0.55') + ');font-family:\'Orbitron\',sans-serif;font-weight:600">&#128167; ' + slEnvHumidity + '</span>' : '')
+          + (slPm25 !== null ? '<span style="font-size:10px;color:rgba(255,255,255,0.6);font-family:\'Orbitron\',sans-serif;font-weight:600">&#127787; ' + Math.round(slPm25) + '</span>' : '')
+          + (slPower        ? '<span style="font-size:10px;color:rgba(255,255,255,0.6);font-family:\'Orbitron\',sans-serif;font-weight:600">&#9889; ' + slPower + '</span>' : '')
           + '    </span>'
           ) : '')
         + '  </div>'
@@ -2004,11 +2103,23 @@ class AcControllerCardV2 extends HTMLElement {
         + '</div>'
         + '</div>'
 
-        // ── Temp control
+        // ── Temp control with fan speed (left) and vane (right)
         + '<div class="sl-temp-ctrl">'
+        + (cfg.show_fan !== false ? (
+          '  <button class="sl-extra-btn" id="sl-btn-fan" title="' + tr.fanLabel + '">'
+        + '    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><path d="M12 12m-2 0a2 2 0 104 0 2 2 0 10-4 0"/><path d="M12 2C12 2 12 8 12 10"/><path d="M12 14c0 2 0 8 0 8"/><path d="M2 12c0 0 6 0 8 0"/><path d="M14 12c2 0 8 0 8 0"/><path d="M4.93 4.93l4.24 4.24"/><path d="M14.83 14.83l4.24 4.24"/><path d="M4.93 19.07l4.24-4.24"/><path d="M14.83 9.17l4.24-4.24"/></svg>'
+        + '    <span class="sl-extra-lbl">' + slFanLabel + '</span>'
+        + '  </button>'
+        ) : '<div style="min-width:60px"></div>')
         + '  <button class="sl-temp-btn" id="sl-btn-temp-down">&#8722;</button>'
         + '  <span class="sl-temp-set">' + setTemp + '&#176;C</span>'
         + '  <button class="sl-temp-btn" id="sl-btn-temp-up">+</button>'
+        + (slHasVane ? (
+          '  <button class="sl-extra-btn" id="sl-btn-vane" title="' + tr.swingLabel + '">'
+        + '    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><path d="M2 8 Q8 4 12 8 Q16 12 22 8"/><path d="M2 16 Q8 12 12 16 Q16 20 22 16"/></svg>'
+        + '    <span class="sl-extra-lbl">' + slVaneLabel + '</span>'
+        + '  </button>'
+        ) : '<div style="min-width:60px"></div>')
         + '</div>'
 
         // ── Bottom controls: mode dropdown (30%) + room dropdown (70%)
@@ -2129,7 +2240,7 @@ class AcControllerCardV2 extends HTMLElement {
   '<div class="fan-swing-row">'
 + (cfg.show_fan !== false ? (
   '  <div class="fan-card">'
-+ '    <div class="fc-head"><span class="fc-label">' + tr.fanLabel + '</span><span class="fc-val">' + fanLabels[fi] + '</span></div>'
++ '    <div class="fc-head"><span class="fc-label">' + tr.fanLabel + '</span><span class="fc-val">' + currentFanLabel + '</span></div>'
 + '    <button class="fan-tap" id="btn-fan-cycle">'
 + '      <span class="fan-ico">' + fanIconSvg + '</span>'
 + '      <div class="fan-bars">' + fanBarHtml + '</div>'
@@ -2329,20 +2440,45 @@ class AcControllerCardV2 extends HTMLElement {
     onTap(r.getElementById('btn-fan-cycle'), function() {
       var id = ROOMS[self._activeIdx].id;
       var cur = self._a(id,'fan_mode') || 'auto';
-      var idx = FAN_LEVELS.indexOf(cur);
-      var next = FAN_LEVELS[(idx + 1) % FAN_LEVELS.length];
+      // Dùng fan_modes từ attribute (danh sách thực tế entity hỗ trợ), fallback về FAN_LEVELS
+      var supported = self._a(id,'fan_modes');
+      var levels = (Array.isArray(supported) && supported.length > 0) ? supported : FAN_LEVELS;
+      var idx = levels.indexOf(cur);
+      var next = levels[(idx + 1) % levels.length];
       self._call('climate','set_fan_mode',{entity_id:id, fan_mode:next});
     });
 
     onTap(r.getElementById('btn-swing'), function() {
       var id = ROOMS[self._activeIdx].id;
-      var cur = self._a(id,'swing_mode') || 'off';
-      // Dùng swing_modes từ attribute (danh sách thực tế entity hỗ trợ), fallback về SWING_LEVELS
-      var supported = self._a(id,'swing_modes');
-      var levels = (Array.isArray(supported) && supported.length > 0) ? supported : SWING_LEVELS;
-      var idx = levels.indexOf(cur);
-      var next = levels[(idx + 1) % levels.length];
-      self._call('climate','set_swing_mode',{entity_id:id, swing_mode:next});
+      var cfg2 = self._config || {};
+      var roomCfg = (cfg2.entities && cfg2.entities[self._activeIdx]) || {};
+      var vaneVertEntity = roomCfg.vane_vertical_entity || cfg2.vane_vertical_entity || null;
+      var vaneHorizEntity = roomCfg.vane_horizontal_entity || cfg2.vane_horizontal_entity || null;
+      if (vaneVertEntity && self._hass && self._hass.states[vaneVertEntity]) {
+        var vaneState = self._hass.states[vaneVertEntity];
+        var options = vaneState.attributes.options || [];
+        if (options.length > 0) {
+          var curIdx = options.indexOf(vaneState.state);
+          var nextOpt = options[(curIdx + 1) % options.length];
+          self._call('input_select','select_option',{entity_id:vaneVertEntity, option:nextOpt});
+        }
+      } else if (vaneHorizEntity && self._hass && self._hass.states[vaneHorizEntity]) {
+        var vaneState2 = self._hass.states[vaneHorizEntity];
+        var options2 = vaneState2.attributes.options || [];
+        if (options2.length > 0) {
+          var curIdx2 = options2.indexOf(vaneState2.state);
+          var nextOpt2 = options2[(curIdx2 + 1) % options2.length];
+          self._call('input_select','select_option',{entity_id:vaneHorizEntity, option:nextOpt2});
+        }
+      } else {
+        // Fallback: cycle swing_mode
+        var cur = self._a(id,'swing_mode') || 'off';
+        var supported = self._a(id,'swing_modes');
+        var levels = (Array.isArray(supported) && supported.length > 0) ? supported : SWING_LEVELS;
+        var idx = levels.indexOf(cur);
+        var next = levels[(idx + 1) % levels.length];
+        self._call('climate','set_swing_mode',{entity_id:id, swing_mode:next});
+      }
     });
 
     // btn-power-lite (lite mode) — same action as btn-power
@@ -2470,6 +2606,52 @@ class AcControllerCardV2 extends HTMLElement {
     onTapSL(r.getElementById('sl-btn-temp-down'), function() {
       var id = ROOMS[self._activeIdx].id;
       self._call('climate','set_temperature',{entity_id:id, temperature: Math.max(16, parseFloat(self._a(id,'temperature')||24)-1)});
+    });
+
+    // Fan speed cycle (super lite)
+    onTapSL(r.getElementById('sl-btn-fan'), function() {
+      var id = ROOMS[self._activeIdx].id;
+      var cur = self._a(id,'fan_mode') || 'auto';
+      var supported = self._a(id,'fan_modes');
+      var levels = (Array.isArray(supported) && supported.length > 0) ? supported : FAN_LEVELS;
+      var idx = levels.indexOf(cur);
+      var next = levels[(idx + 1) % levels.length];
+      self._call('climate','set_fan_mode',{entity_id:id, fan_mode:next});
+    });
+
+    // Vane cycle (super lite) — supports custom vane entities or fallback to swing_mode
+    onTapSL(r.getElementById('sl-btn-vane'), function() {
+      var id = ROOMS[self._activeIdx].id;
+      var cfg2 = self._config || {};
+      var roomCfg = (cfg2.entities && cfg2.entities[self._activeIdx]) || {};
+      var vaneVertEntity = roomCfg.vane_vertical_entity || cfg2.vane_vertical_entity || null;
+      var vaneHorizEntity = roomCfg.vane_horizontal_entity || cfg2.vane_horizontal_entity || null;
+      if (vaneVertEntity && self._hass && self._hass.states[vaneVertEntity]) {
+        // Cycle through input_select options
+        var vaneState = self._hass.states[vaneVertEntity];
+        var options = vaneState.attributes.options || [];
+        if (options.length > 0) {
+          var curIdx = options.indexOf(vaneState.state);
+          var nextOpt = options[(curIdx + 1) % options.length];
+          self._call('input_select','select_option',{entity_id:vaneVertEntity, option:nextOpt});
+        }
+      } else if (vaneHorizEntity && self._hass && self._hass.states[vaneHorizEntity]) {
+        var vaneState2 = self._hass.states[vaneHorizEntity];
+        var options2 = vaneState2.attributes.options || [];
+        if (options2.length > 0) {
+          var curIdx2 = options2.indexOf(vaneState2.state);
+          var nextOpt2 = options2[(curIdx2 + 1) % options2.length];
+          self._call('input_select','select_option',{entity_id:vaneHorizEntity, option:nextOpt2});
+        }
+      } else {
+        // Fallback: cycle swing_mode
+        var cur = self._a(id,'swing_mode') || 'off';
+        var supported = self._a(id,'swing_modes');
+        var levels = (Array.isArray(supported) && supported.length > 0) ? supported : SWING_LEVELS;
+        var idx = levels.indexOf(cur);
+        var next = levels[(idx + 1) % levels.length];
+        self._call('climate','set_swing_mode',{entity_id:id, swing_mode:next});
+      }
     });
 
     // Gear → more-info
@@ -3151,44 +3333,57 @@ class MultiAcCardEditor extends HTMLElement {
   // ── Inject hass vào mọi ha-entity-picker ───────────────────────────────────
   _syncPickers() {
     if (!this._hass || !this.shadowRoot) return;
+    const ents = this._config.entities || [];
     const apply = () => {
-      this.shadowRoot.querySelectorAll('ha-entity-picker').forEach(p => {
+      // Global sensor entity pickers (data-key)
+      this.shadowRoot.querySelectorAll('ha-entity-picker[data-key]').forEach(p => {
         p.hass = this._hass;
         const domain = p.dataset.domain;
         if (domain) p.includeDomains = [domain];
         const key   = p.dataset.key;
         const saved = this._config[key] || '';
-        if (saved && p.value !== saved) {
+        if (p.value !== saved) {
           p.value = saved;
           p.setAttribute('value', saved);
         }
       });
-      // entity pickers cho từng room
+      // entity pickers cho từng room (climate entity)
       this.shadowRoot.querySelectorAll('ha-entity-picker[data-room]').forEach(p => {
         p.hass = this._hass;
         p.includeDomains = ['climate'];
         const idx   = parseInt(p.dataset.room);
-        const ents  = this._config.entities || [];
         const saved = (ents[idx] && ents[idx].entity_id) || '';
-        if (saved && p.value !== saved) { p.value = saved; p.setAttribute('value', saved); }
+        if (p.value !== saved) { p.value = saved; p.setAttribute('value', saved); }
       });
       // room temp sensor pickers
       this.shadowRoot.querySelectorAll('ha-entity-picker[data-room-temp]').forEach(p => {
         p.hass = this._hass;
         p.includeDomains = ['sensor'];
         const idx   = parseInt(p.dataset.roomTemp);
-        const ents  = this._config.entities || [];
         const saved = (ents[idx] && ents[idx].temp_entity) || '';
-        if (saved && p.value !== saved) { p.value = saved; p.setAttribute('value', saved); }
+        if (p.value !== saved) { p.value = saved; p.setAttribute('value', saved); }
       });
       // room humidity sensor pickers
       this.shadowRoot.querySelectorAll('ha-entity-picker[data-room-hum]').forEach(p => {
         p.hass = this._hass;
         p.includeDomains = ['sensor'];
         const idx   = parseInt(p.dataset.roomHum);
-        const ents  = this._config.entities || [];
         const saved = (ents[idx] && ents[idx].humidity_entity) || '';
-        if (saved && p.value !== saved) { p.value = saved; p.setAttribute('value', saved); }
+        if (p.value !== saved) { p.value = saved; p.setAttribute('value', saved); }
+      });
+      // room vane vertical entity pickers
+      this.shadowRoot.querySelectorAll('ha-entity-picker[data-room-vane-vert]').forEach(p => {
+        p.hass = this._hass;
+        const idx   = parseInt(p.dataset.roomVaneVert);
+        const saved = (ents[idx] && ents[idx].vane_vertical_entity) || '';
+        if (p.value !== saved) { p.value = saved; p.setAttribute('value', saved); }
+      });
+      // room vane horizontal entity pickers
+      this.shadowRoot.querySelectorAll('ha-entity-picker[data-room-vane-horiz]').forEach(p => {
+        p.hass = this._hass;
+        const idx   = parseInt(p.dataset.roomVaneHoriz);
+        const saved = (ents[idx] && ents[idx].vane_horizontal_entity) || '';
+        if (p.value !== saved) { p.value = saved; p.setAttribute('value', saved); }
       });
     };
     apply();
@@ -3261,10 +3456,11 @@ class MultiAcCardEditor extends HTMLElement {
     for (let i = 0; i < roomCount; i++) {
       const ent   = entities[i] || {};
       const defLbl = (t.rooms && t.rooms[i]) || ('Room ' + (i+1));
+      const dispLbl = ent.label || defLbl;
       const defIco = (t.roomIcons && t.roomIcons[i]) || '❄';
       roomRows += `
 <div class="ac-row">
-  <div class="ac-row-title">❄ ${t.edRooms.replace(/^❄\s*/,'')} ${i+1} – ${defLbl}</div>
+  <div class="ac-row-title" id="ac-row-title-${i}">❄ ${t.edRooms.replace(/^❄\s*/,'')} ${i+1} – ${dispLbl}</div>
   <div class="row">
     <label>${t.edAcEntity}</label>
     <ha-entity-picker data-room="${i}" data-domain="climate" allow-custom-entity></ha-entity-picker>
@@ -3276,6 +3472,14 @@ class MultiAcCardEditor extends HTMLElement {
   <div class="row">
     <label>${t.edRoomHumidityEntity || '💧 Room humidity sensor'}</label>
     <ha-entity-picker data-room-hum="${i}" data-domain="sensor" allow-custom-entity></ha-entity-picker>
+  </div>
+  <div class="row">
+    <label>${t.edVaneVertical || '↕ Vertical vane (input_select)'}</label>
+    <ha-entity-picker data-room-vane-vert="${i}" allow-custom-entity></ha-entity-picker>
+  </div>
+  <div class="row">
+    <label>${t.edVaneHorizontal || '↔ Horizontal vane (input_select)'}</label>
+    <ha-entity-picker data-room-vane-horiz="${i}" allow-custom-entity></ha-entity-picker>
   </div>
   <div class="row">
     <label>${t.edAcName}</label>
@@ -3544,6 +3748,9 @@ class MultiAcCardEditor extends HTMLElement {
       ${this._entityField('outdoor_temp_entity',   t.edOutdoorTemp, 'sensor')}
       ${this._entityField('humidity_entity',       t.edHumidity,    'sensor')}
       ${this._entityField('power_entity',          t.edPower,       'sensor')}
+      <div style="height:1px;background:var(--divider-color,rgba(0,0,0,0.08));margin:8px 0;"></div>
+      ${this._entityField('vane_vertical_entity',   t.edVaneVerticalGlobal || '↕ Vertical vane (default)', '')}
+      ${this._entityField('vane_horizontal_entity', t.edVaneHorizontalGlobal || '↔ Horizontal vane (default)', '')}
     </div>
   </div>
 
@@ -3701,6 +3908,9 @@ class MultiAcCardEditor extends HTMLElement {
         while (ents.length <= i) ents.push({});
         ents[i] = { ...ents[i], label: val };
         this._config = { ...this._config, entities: ents };
+        // Live update title
+        const titleEl = sr.getElementById('ac-row-title-' + i);
+        if (titleEl) titleEl.textContent = '❄ ' + t.edRooms.replace(/^❄\s*/, '') + ' ' + (i+1) + ' – ' + (val || ((t.rooms && t.rooms[i]) || ('Room ' + (i+1))));
       });
       wireTextInput(iconEl, val => {
         const ents = (this._config.entities || []).slice();
@@ -3768,6 +3978,32 @@ class MultiAcCardEditor extends HTMLElement {
         while (ents.length <= idx) ents.push({});
         if (val) ents[idx] = { ...ents[idx], humidity_entity: val };
         else delete ents[idx].humidity_entity;
+        this._config = { ...this._config, entities: ents };
+        this._fire();
+      }));
+
+    // ha-entity-picker: room vane vertical entity
+    sr.querySelectorAll('ha-entity-picker[data-room-vane-vert]').forEach(picker =>
+      picker.addEventListener('value-changed', e => {
+        const idx = parseInt(picker.dataset.roomVaneVert);
+        const val = e.detail.value;
+        const ents = (this._config.entities || []).slice();
+        while (ents.length <= idx) ents.push({});
+        if (val) ents[idx] = { ...ents[idx], vane_vertical_entity: val };
+        else delete ents[idx].vane_vertical_entity;
+        this._config = { ...this._config, entities: ents };
+        this._fire();
+      }));
+
+    // ha-entity-picker: room vane horizontal entity
+    sr.querySelectorAll('ha-entity-picker[data-room-vane-horiz]').forEach(picker =>
+      picker.addEventListener('value-changed', e => {
+        const idx = parseInt(picker.dataset.roomVaneHoriz);
+        const val = e.detail.value;
+        const ents = (this._config.entities || []).slice();
+        while (ents.length <= idx) ents.push({});
+        if (val) ents[idx] = { ...ents[idx], vane_horizontal_entity: val };
+        else delete ents[idx].vane_horizontal_entity;
         this._config = { ...this._config, entities: ents };
         this._fire();
       }));
