@@ -1,7 +1,7 @@
 # ❄️ Multi Air Conditioner Card
 
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/hacs/integration)
-![version](https://img.shields.io/badge/version-1.7-blue)
+![version](https://img.shields.io/badge/version-1.6-blue)
 ![HA](https://img.shields.io/badge/Home%20Assistant-2023.1+-green)
 ![license](https://img.shields.io/badge/license-MIT-lightgrey)
 
@@ -25,7 +25,7 @@ A custom Home Assistant Lovelace card for multi-room air conditioner control —
 
 ---
 
-## ✨ Features (v1.5)
+## ✨ Features (v1.6)
 
 ### 🎨 Display & Interface
 - ❄️ **Temperature dial** — animated arc gauge with dynamic colour glow: blue (cold) → cyan → green → orange → red (hot)
@@ -40,6 +40,9 @@ A custom Home Assistant Lovelace card for multi-room air conditioner control —
 - **Lite** — compact two-column layout, room photo hidden, ideal for smaller dashboards or mobile
 - **Super Lite** ⚡ — ultra-compact single-column layout featuring a large dial, temperature control, HVAC mode selector and room selector; perfect for widgets, sidebars or very narrow spaces
 
+### 🔀 Inline View Switcher
+Switch between Full / Lite / Super Lite **directly on the card** without opening the editor — a compact dot-icon switcher is embedded in the header of every view mode. The active mode is highlighted; tapping any dot instantly re-renders the card and saves the preference.
+
 ### ✨ Super Lite Popup Style
 When using **Super Lite** mode, the HVAC mode and room selectors support three interaction styles — configurable in the editor:
 - **Normal** — native `<select>` dropdown (most compatible, consistent on iOS/Android)
@@ -47,7 +50,7 @@ When using **Super Lite** mode, the HVAC mode and room selectors support three i
 - **Wave** — same glass popup with a wave-ripple entrance animation
 
 ### 🎛️ Super Lite Layout
-In **Super Lite** mode the temperature control row now has dedicated **Fan speed** and **Airflow** shortcut buttons:
+In **Super Lite** mode the temperature control row has dedicated **Fan speed** and **Airflow** shortcut buttons:
 - **Fan speed button** — sits to the left of the `−` (decrease) button; tap to cycle fan levels
 - **Airflow button** — sits to the right of the `+` (increase) button; tap to cycle swing modes
 - **Mode and Room selectors** scale to full card width for maximum legibility on narrow screens
@@ -60,7 +63,7 @@ Every section of the card can be individually shown or hidden directly from the 
 - **Fan speed / Airflow buttons** (Super Lite) — show or hide individually
 
 ### ❄️ Multi-Room Control (up to 8 rooms)
-- **Room selector tabs** (Full / Lite) — shows MDI icon, name, current temperature and ON/OFF badge; always displays 4 rows, scrollable for more
+- **Room selector tabs** (Full / Lite) — shows MDI icon, name, current temperature and ON/OFF badge; always displays 4 rows, scrollable for more. Tapping a tab shows a **smart tooltip** with temperature, humidity and running state
 - **Room selector dropdown** (Super Lite) — compact dropdown / glass popup listing all rooms with live temperature and ON/OFF badge; icons render as `ha-icon` MDI icons
 - **Per-room HVAC control** — Cool / Heat / Dry / Fan Only mode buttons with colour-coded active state
 - **Temperature set** — `+` / `−` buttons to adjust set-point
@@ -69,23 +72,23 @@ Every section of the card can be individually shown or hidden directly from the 
 - **Custom room image** — each room supports a custom photo URL, falling back to built-in defaults
 
 ### 🌡️ Per-Room Environment Sensors
-Each room supports dedicated temperature, humidity and **power** sensors independent of the AC entity:
+Each room supports dedicated temperature, humidity and power sensors independent of the AC entity:
 - `entities[n].temp_entity` — override the room's displayed temperature (useful when the AC reports no `current_temperature`)
 - `entities[n].humidity_entity` — override the room's displayed humidity
-- `entities[n].power_entity` — **new** per-room power consumption sensor; automatically switches when changing rooms in all three view modes
+- `entities[n].power_entity` — per-room power consumption sensor; value updates automatically when switching rooms in all three view modes
 - Displayed in the room photo badge (Full/Lite) and in the Super Lite header
 
 ### ⚡ Power Consumption — Per-Room & Unit Toggle
 - Each room has its own power entity (`entities[n].power_entity`) — displayed value updates automatically when switching rooms in Full, Lite and Super Lite modes
+- Global `power_entity` acts as fallback when a room has no dedicated sensor
 - **Unit selector** in the editor: choose **kW** (sensor value used as-is) or **W** (auto-converts — values ≥ 1000 W display as kW)
-- Super Lite: power value shown inline next to humidity in the top-left header area
-- `show_sl_room_power` toggle to enable/disable this indicator
+- Super Lite: power value shown inline next to humidity in the top-left header area; toggle with `show_sl_room_power`
 
 ### 🎨 MDI Room Icons
 Room icons now use the **Material Design Icons** system (`mdi:*`) instead of emoji, matching the native Home Assistant icon style:
 - Default icons: `mdi:sofa`, `mdi:bed`, `mdi:silverware-fork-knife`, `mdi:briefcase`, `mdi:shower`, `mdi:teddy-bear`, `mdi:dumbbell`, `mdi:archive`
-- Rendered as `<ha-icon>` throughout the card — tabs (Full/Lite), button label (Super Lite), popup items (Effect & Wave), and native select (label-only)
-- Users can enter any `mdi:icon-name` in the **MDI Icon** field of the visual editor; emoji still accepted as fallback
+- Rendered as `<ha-icon>` throughout — tabs (Full/Lite), room button (Super Lite), popup items (Effect & Wave), native select (label only)
+- Any `mdi:icon-name` can be entered in the **MDI Icon** field of the visual editor; emoji still accepted as fallback
 
 ### 🌿 Eco & Quick Actions
 - **Eco toggle** — activates eco/preset mode on the selected room's AC unit
@@ -159,7 +162,7 @@ After adding the card, click **✏️ Edit** to open the Config Editor.
 | 4 | 👁️ **Visibility** | Toggle individual sections on or off; power unit selector (kW / W) |
 | 5 | 🔢 **Room count** | Slider to set 1–8 rooms |
 | 6 | ❄️ **Air Conditioners** | Entity picker, display name, MDI icon, custom image URL, per-room temperature / humidity / power sensors |
-| 7 | 📡 **Environment Sensors** | PM2.5, outdoor temperature, humidity, power |
+| 7 | 📡 **Environment Sensors** | PM2.5, outdoor temperature, humidity, power (global fallback) |
 | 8 | 🎨 **Colors** | Accent, text colours |
 | 9 | 🎨 **Background** | 16 gradient presets + custom two-colour picker |
 
@@ -178,7 +181,7 @@ After adding the card, click **✏️ Edit** to open the Config Editor.
 | `entities[n].image` | string | Custom room photo URL (optional) |
 | `entities[n].temp_entity` | `sensor` | Room temperature sensor (if AC has none) |
 | `entities[n].humidity_entity` | `sensor` | Room humidity sensor (if AC has none) |
-| `entities[n].power_entity` | `sensor` | **New** — per-room power consumption sensor |
+| `entities[n].power_entity` | `sensor` | Per-room power consumption sensor |
 
 ### Environment sensors (optional)
 
@@ -187,7 +190,7 @@ After adding the card, click **✏️ Edit** to open the Config Editor.
 | `pm25_entity` | `sensor` | PM2.5 fine dust sensor |
 | `outdoor_temp_entity` | `sensor` | Outdoor temperature sensor |
 | `humidity_entity` | `sensor` | Outdoor humidity sensor |
-| `power_entity` | `sensor` | Global AC power consumption sensor (fallback) |
+| `power_entity` | `sensor` | Global AC power sensor (fallback when room has none) |
 
 ---
 
@@ -214,7 +217,7 @@ After adding the card, click **✏️ Edit** to open the Config Editor.
 | `show_power` | boolean | `true` | Show power consumption metric |
 | `show_all_off` | boolean | `true` | Show turn-all-off button |
 | `show_timer` | boolean | `true` | Show timer button |
-| `show_room_env` | boolean | `false` | Super Lite: show selected room temp & humidity in header |
+| `show_room_env` | boolean | `false` | Super Lite: show selected room temp & humidity in header (instead of outdoor) |
 | `show_sl_fan` | boolean | `true` | Super Lite: show fan speed shortcut button |
 | `show_sl_swing` | boolean | `true` | Super Lite: show airflow shortcut button |
 | `show_sl_room_power` | boolean | `true` | Super Lite: show per-room power in header |
@@ -228,7 +231,7 @@ After adding the card, click **✏️ Edit** to open the Config Editor.
 | `pm25_entity` | entity | — | PM2.5 sensor |
 | `outdoor_temp_entity` | entity | — | Outdoor temperature sensor |
 | `humidity_entity` | entity | — | Outdoor humidity sensor |
-| `power_entity` | entity | — | Global power consumption sensor (fallback) |
+| `power_entity` | entity | — | Global power sensor (fallback) |
 
 ---
 
@@ -348,15 +351,18 @@ entities:
 
 ## 📋 Changelog
 
-### v1.5
-- 🎨 **MDI room icons** — all room icons now use `mdi:*` strings and render as native `<ha-icon>` elements throughout the card (tabs, popups, button labels); emoji still accepted as fallback; users can enter any MDI icon in the editor
-- 🐛 **Fan blade fix** — fixed an issue where the fan blade SVG would not render when the fan level index was ≥ 4 (Low-Mid and above), caused by an undersized blade-count array
-
+### v1.6
+- 🔀 **Inline view switcher** — switch between Full / Lite / Super Lite directly on the card header without opening the editor; dot-icon buttons highlight the active mode
+- 🎨 **MDI room icons** — all room icons now use `mdi:*` strings and render as native `<ha-icon>` elements throughout the card (tabs, popups, button labels); emoji still accepted as fallback
 - ⚡ **Per-room power sensor** — each room has its own `entities[n].power_entity`; the displayed value updates automatically when switching rooms in all three view modes
 - 🔢 **Power unit selector** — choose **kW** or **W** in the editor; values ≥ 1000 W auto-convert to kW
 - 📍 **Super Lite power indicator** — power reading shown inline next to humidity in the header top-left; toggle with `show_sl_room_power`
+- 🐛 **Fan blade fix** — fixed missing fan blade SVG at fan levels Low-Mid and above (index ≥ 4), caused by an undersized blade-count lookup array
+- 🐛 **Scale flicker fix** — debounced ResizeObserver with double-rAF and change-only style updates; removed CSS transition on `transform` to prevent layout feedback loops on mobile
+- 🐛 **Tooltip flicker fix** — room tab tooltips now auto-dismiss after 5 s on mobile; tap-reset timer prevents stale positions; cleanup on `disconnectedCallback` prevents memory leaks
 
-- 🎛️ **Super Lite layout redesign** — fan speed button moved to the left of `−`; airflow button moved to the right of `+`; mode and room selectors now scale to full card width
+### v1.5
+- 🎛️ **Super Lite layout redesign** — fan speed button moved to the left of `−`; airflow button moved to the right of `+`; Mode and Room selectors now scale to full card width
 
 ### v1.4
 - ⚡ New **Super Lite** view mode — ultra-compact single-column layout with large dial, temperature control, HVAC mode selector and room selector
@@ -364,10 +370,10 @@ entities:
 - 🌡️ **Per-room temperature sensor** — set a dedicated `temp_entity` per room to override `current_temperature` when the AC entity doesn't provide it
 - 💧 **Per-room humidity sensor** — set a dedicated `humidity_entity` per room for accurate indoor humidity display
 - 🏠 **Custom room photo** — set a custom image URL per room via `entities[n].image`
-- 🔵 **Set-point inner ring** — thin arc inside the temperature dial shows the target set-point temperature, coloured by active HVAC mode
-- 💧 **Room humidity in photo badge** — humidity value now displayed alongside temperature in the room photo corner (Full/Lite modes)
-- 👁️ **show_room_env** toggle — Super Lite header can show selected room's own temperature & humidity instead of outdoor sensor data
-- 🔧 **Swing mode fix** — swing cycle now reads `swing_modes` attribute from the entity, preventing "invalid swing mode" errors on ACs with limited swing options
+- 🔵 **Set-point inner ring** — thin arc inside the temperature dial shows the target set-point, coloured by active HVAC mode
+- 💧 **Room humidity in photo badge** — humidity value displayed alongside temperature in the room photo corner (Full/Lite modes)
+- 👁️ **show_room_env** toggle — Super Lite header can show selected room's temperature & humidity instead of outdoor sensor data
+- 🔧 **Swing mode fix** — swing cycle now reads `swing_modes` attribute from the entity, preventing errors on ACs with limited swing options
 - 🐛 Bug fixes and layout improvements
 
 ### v1.3
