@@ -1155,6 +1155,12 @@ button,a{touch-action:manipulation;-webkit-tap-highlight-color:transparent;user-
 .eco-on{background:rgba(52,211,153,0.38);border:1px solid rgba(52,211,153,0.7)!important;color:#ffffff}
 .eco-off{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.09)!important;color:rgba(255,255,255,0.55)}
 .eco-badge:hover{filter:brightness(1.25);transform:scale(1.04)}
+.view-switch-row{display:flex;align-items:center;justify-content:center;gap:6px;margin:6px 0 2px}
+.view-switch-btn{padding:4px 14px;border-radius:16px;font-size:10px;font-weight:600;cursor:pointer;
+  outline:none;font-family:inherit;transition:all 0.2s;border:1px solid rgba(255,255,255,0.15);
+  background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.55);letter-spacing:0.3px}
+.view-switch-btn:hover{background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.8);transform:scale(1.04)}
+.view-switch-btn.vs-active{background:var(--accent);border-color:var(--accent);color:#fff;box-shadow:0 2px 10px var(--glow)}
 .dial-wrap{display:flex;justify-content:center;position:relative;margin:-2px 0 -14px}
 .dial-center{position:absolute;top:50%;left:50%;transform:translate(-50%,-26%);
   display:flex;flex-direction:column;align-items:center;pointer-events:none;user-select:none;width:150px;height:150px}
@@ -2088,6 +2094,12 @@ class AcControllerCardV2 extends HTMLElement {
         + '  </div>'
         + '</div>'
 
+        + '<div class="view-switch-row" style="margin:4px 0 0">'
+        + '  <button class="view-switch-btn" id="vs-full">Full</button>'
+        + '  <button class="view-switch-btn" id="vs-lite">Lite</button>'
+        + '  <button class="view-switch-btn vs-active" id="vs-superlite">&#9889; Super Lite</button>'
+        + '</div>'
+
         // ── Dial — larger (240px), with inner set-temp ring
         + '<div class="sl-dial-wrap">'
         + '<svg width="240" height="240" viewBox="0 0 220 220" style="overflow:visible">'
@@ -2220,6 +2232,12 @@ class AcControllerCardV2 extends HTMLElement {
 + '    <div class="greet-name">' + (cfg.owner_name || 'Smart Home') + '</div>'
 + '  </div>'
 + '  <button id="btn-eco" class="eco-badge ' + (ecoOn ? 'eco-on' : 'eco-off') + '">&#127807; ' + (ecoOn ? 'ECO ON' : 'ECO') + '</button>'
++ '</div>'
+
++ '<div class="view-switch-row">'
++ '  <button class="view-switch-btn' + (!isLite ? ' vs-active' : '') + '" id="vs-full">Full</button>'
++ '  <button class="view-switch-btn' + (isLite ? ' vs-active' : '') + '" id="vs-lite">Lite</button>'
++ '  <button class="view-switch-btn" id="vs-superlite">&#9889; Super Lite</button>'
 + '</div>'
 
 + '<div class="dial-wrap">'
@@ -2424,6 +2442,23 @@ class AcControllerCardV2 extends HTMLElement {
       els.forEach(function(b) { onTap(b, function(e) { fn(b, e); }); });
     }
 
+    // View mode switcher
+    onTap(r.getElementById('vs-full'), function() {
+      self._config = Object.assign({}, self._config, { view_mode: 'full' });
+      self._initialized = false;
+      self._renderFull();
+    });
+    onTap(r.getElementById('vs-lite'), function() {
+      self._config = Object.assign({}, self._config, { view_mode: 'lite' });
+      self._initialized = false;
+      self._renderFull();
+    });
+    onTap(r.getElementById('vs-superlite'), function() {
+      self._config = Object.assign({}, self._config, { view_mode: 'super_lite' });
+      self._initialized = false;
+      self._renderFull();
+    });
+
     onTap(r.getElementById('btn-temp-up'), function() {
       var id = ROOMS[self._activeIdx].id;
       self._call('climate','set_temperature',{entity_id:id, temperature: parseFloat(self._a(id,'temperature')||24)+1});
@@ -2622,6 +2657,23 @@ class AcControllerCardV2 extends HTMLElement {
       el.addEventListener('touchstart', function(e) { e.preventDefault(); tapped = true; fn(e); }, { passive: false });
       el.addEventListener('click', function(e) { e.stopPropagation(); if (tapped) { tapped = false; return; } fn(e); });
     }
+
+    // View mode switcher
+    onTapSL(r.getElementById('vs-full'), function() {
+      self._config = Object.assign({}, self._config, { view_mode: 'full' });
+      self._initialized = false;
+      self._renderFull();
+    });
+    onTapSL(r.getElementById('vs-lite'), function() {
+      self._config = Object.assign({}, self._config, { view_mode: 'lite' });
+      self._initialized = false;
+      self._renderFull();
+    });
+    onTapSL(r.getElementById('vs-superlite'), function() {
+      self._config = Object.assign({}, self._config, { view_mode: 'super_lite' });
+      self._initialized = false;
+      self._renderFull();
+    });
 
     // Temp up/down
     onTapSL(r.getElementById('sl-btn-temp-up'), function() {
