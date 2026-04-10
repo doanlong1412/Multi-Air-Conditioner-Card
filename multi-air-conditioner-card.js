@@ -4434,8 +4434,20 @@ class MultiAcCardEditor extends HTMLElement {
   }
 
   set hass(h) {
+    const firstHass = !this._hass;
     this._hass = h;
     this._syncPickers();
+    // Lần đầu nhận hass → trigger load entity picker nếu chưa load
+    if (firstHass && !customElements.get('ha-entity-picker')) {
+      this._ensureEntityPicker().then(() => {
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            this._syncPickers();
+            this._bindEvents();
+          });
+        });
+      });
+    }
   }
 
   get t() { return AC_TRANSLATIONS[this._config.language || 'vi'] || AC_TRANSLATIONS.vi; }
@@ -4453,10 +4465,25 @@ class MultiAcCardEditor extends HTMLElement {
       const helpers = await (window.loadCardHelpers ? window.loadCardHelpers() : Promise.resolve());
       if (helpers) {
         const el = await helpers.createCardElement({ type: 'entities', entities: [] });
-        if (el) el.hass = this._hass;
+        if (el) {
+          el.hass = this._hass;
+          // Thêm vào DOM tạm thời để trigger HA load component
+          if (!el.parentElement) {
+            el.style.display = 'none';
+            document.body.appendChild(el);
+            await new Promise(r => setTimeout(r, 100));
+            el.remove();
+          }
+        }
       }
     } catch (_) { /* ignore */ }
-    try { await customElements.whenDefined('ha-entity-picker'); } catch (_) { /* ignore */ }
+    // Đợi ha-entity-picker được defined với timeout 5s
+    try {
+      await Promise.race([
+        customElements.whenDefined('ha-entity-picker'),
+        new Promise(r => setTimeout(r, 5000))
+      ]);
+    } catch (_) { /* ignore */ }
   }
 
   // ── Inject hass vào mọi ha-entity-picker ───────────────────────────────────
@@ -4503,6 +4530,15 @@ class MultiAcCardEditor extends HTMLElement {
         const idx   = parseInt(p.dataset.roomHum);
         const ents  = this._config.entities || [];
         const saved = (ents[idx] && ents[idx].humidity_entity) || '';
+        if (saved && p.value !== saved) { p.value = saved; p.setAttribute('value', saved); }
+      });
+      // room power sensor pickers
+      this.shadowRoot.querySelectorAll('ha-entity-picker[data-room-power]').forEach(p => {
+        p.hass = this._hass;
+        p.includeDomains = ['sensor'];
+        const idx   = parseInt(p.dataset.roomPower);
+        const ents  = this._config.entities || [];
+        const saved = (ents[idx] && ents[idx].power_entity) || '';
         if (saved && p.value !== saved) { p.value = saved; p.setAttribute('value', saved); }
       });
     };
@@ -4940,8 +4976,15 @@ class MultiAcCardEditor extends HTMLElement {
     // Nếu ha-entity-picker chưa defined, đợi load xong rồi rebind events + sync
     if (!customElements.get('ha-entity-picker')) {
       this._ensureEntityPicker().then(() => {
-        this._bindEvents();
-        this._syncPickers();
+        // Đợi browser upgrade các element đã có trong DOM
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            this._bindEvents();
+            this._syncPickers();
+            // Retry sync thêm lần nữa sau 500ms để đảm bảo
+            setTimeout(() => this._syncPickers(), 500);
+          });
+        });
       });
     }
   }
