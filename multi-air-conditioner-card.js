@@ -1,9 +1,9 @@
 /**
  * Multi Air Conditioner Card
- * v1.7.2 Designed by @doanlong1412 from 🇻🇳 Vietnam
+ * v1.7.3 Designed by @doanlong1412 from 🇻🇳 Vietnam
  * HACS-compatible Web Component
  *
- * ─── What's new in v1.7.2 ─────────────────────────────────────────────────
+ * ─── What's new in v1.7.3 ─────────────────────────────────────────────────
  * 📐 Long-label overflow fix — fc-label (VENTILATORSNELHEID / LUCHTRICHTING)
  *    nay tự xuống dòng thay vì tràn ra ngoài card; letter-spacing giảm nhẹ;
  *    fan-card/swing-card có overflow:hidden; hdr-title, rt-header, sl-title
@@ -3602,8 +3602,9 @@ class AcControllerCardV2 extends HTMLElement {
     var roomHumidityDisplay = roomHumidityRaw > 0 ? Math.round(roomHumidityRaw) + '%' : '--';
     var isLite  = this._config.view_mode === 'lite';
     var tUnit   = cfg.temp_unit || 'C';   // 'C' | 'F' — đơn vị hiển thị người dùng chọn
-    // Tự động nhận diện đơn vị HA entity trả về (temperature_unit attribute)
-    var haUnit  = this._a(room.id, 'temperature_unit') || 'C'; // 'C' hoặc 'F'
+    // Tự động nhận diện đơn vị HA trả về: nếu giá trị > 50 → °F, ngược lại → °C
+    // (nhiệt độ phòng °C luôn 16–45, °F luôn 60–113 — không bao giờ chồng lên nhau)
+    var haUnit  = curTemp > 50 ? 'F' : 'C';
     var curTempDisp = acFmtTemp(curTemp, tUnit, haUnit);
     var setTempDisp = acFmtSetTemp(setTemp, tUnit, haUnit);
     var degSym      = tUnit === 'F' ? '°F' : '°C';
@@ -3756,7 +3757,8 @@ class AcControllerCardV2 extends HTMLElement {
       var rState = this._s(ROOMS[j].id);
       var ron = rState !== 'off';
       var rTemp = parseFloat(this._a(ROOMS[j].id, 'current_temperature') || 0);
-      var rTempDisp = rTemp > 0 ? acFmtTemp(rTemp, tUnit, haUnit) + (tUnit === 'F' ? '°F' : '°') : '--';
+      var rHaUnit = rTemp > 50 ? 'F' : 'C';
+      var rTempDisp = rTemp > 0 ? acFmtTemp(rTemp, tUnit, rHaUnit) + (tUnit === 'F' ? '°F' : '°') : '--';
       var rTempStr = rTempDisp;
 
       // ── Đọc độ ẩm phòng (per-room sensor hoặc global) ──
@@ -3772,7 +3774,7 @@ class AcControllerCardV2 extends HTMLElement {
       var tipMsg = '';
       var tipColor = 'rgba(255,255,255,0.88)';
       var tipEmoji = '';
-      var rTD = rTemp > 0 ? acFmtTemp(rTemp, tUnit, haUnit) + (tUnit === 'F' ? '°F' : '°') : '';
+      var rTD = rTemp > 0 ? acFmtTemp(rTemp, tUnit, rHaUnit) + (tUnit === 'F' ? '°F' : '°') : '';
       if (rTemp > 0) {
         // Thresholds: convert to compare in °C always (rTemp is always °C from HA)
         var tHot  = 32, tWarm = 29, tCool = 24, tCold = 18;
@@ -3943,7 +3945,7 @@ class AcControllerCardV2 extends HTMLElement {
       ? parseFloat(this._hass.states[cfg.outdoor_temp_entity].state)
       : (curTemp > 0 ? curTemp : null);
     var outdoorTempVal = outdoorTempRaw !== null && !isNaN(outdoorTempRaw)
-      ? acFmtTemp(outdoorTempRaw, tUnit, haUnit) + (tUnit === 'F' ? '°F' : '°')
+      ? acFmtTemp(outdoorTempRaw, tUnit, outdoorTempRaw > 50 ? 'F' : 'C') + (tUnit === 'F' ? '°F' : '°')
       : '--°';
     // Độ ẩm ngoài: ưu tiên outdoor sensor config, fallback roomHumidityRaw (đã tính từ phòng/cảm biến)
     var humidityVal = cfg.humidity_entity && this._hass && this._hass.states[cfg.humidity_entity]
@@ -3988,7 +3990,7 @@ class AcControllerCardV2 extends HTMLElement {
       var slIsOn = hvac !== 'off';
       // Outdoor sensors for super lite
       var slOutdoorTemp = cfg.outdoor_temp_entity && this._hass && this._hass.states[cfg.outdoor_temp_entity]
-        ? acFmtTemp(parseFloat(this._hass.states[cfg.outdoor_temp_entity].state), tUnit, haUnit) + (tUnit === 'F' ? '°F' : '°')
+        ? (function() { var v = parseFloat(this._hass.states[cfg.outdoor_temp_entity].state); return acFmtTemp(v, tUnit, v > 50 ? 'F' : 'C') + (tUnit === 'F' ? '°F' : '°'); }).call(this)
         : null;
       var slHumidity = cfg.humidity_entity && this._hass && this._hass.states[cfg.humidity_entity]
         ? Math.round(parseFloat(this._hass.states[cfg.humidity_entity].state)) + '%'
@@ -4002,7 +4004,7 @@ class AcControllerCardV2 extends HTMLElement {
         var roomEntCfgSL = (cfg.entities && cfg.entities[this._activeIdx]) || {};
         var roomTempSL = curTemp; // curTemp đã tính từ sensor/entity bên trên
         var roomHumSL  = roomHumidityRaw; // roomHumidityRaw đã tính bên trên
-        slEnvTemp     = roomTempSL > 0 ? acFmtTemp(roomTempSL, tUnit, haUnit) + (tUnit === 'F' ? '°F' : '°') : null;
+        slEnvTemp     = roomTempSL > 0 ? acFmtTemp(roomTempSL, tUnit, roomTempSL > 50 ? 'F' : 'C') + (tUnit === 'F' ? '°F' : '°') : null;
         slEnvHumidity = roomHumSL  > 0 ? Math.round(roomHumSL) + '%'  : null;
         slEnvIsRoom   = true;
       } else {
@@ -4026,7 +4028,8 @@ class AcControllerCardV2 extends HTMLElement {
         var sriState = this._s(ROOMS[sri].id);
         var sriOn    = sriState !== 'off';
         var sriTemp  = parseFloat(this._a(ROOMS[sri].id, 'current_temperature') || 0);
-        var sriTempStr = sriTemp > 0 ? ' · ' + acFmtTemp(sriTemp, tUnit, haUnit) + (tUnit === 'F' ? '°F' : '°') : '';
+        var sriHaUnit = sriTemp > 50 ? 'F' : 'C';
+        var sriTempStr = sriTemp > 0 ? ' · ' + acFmtTemp(sriTemp, tUnit, sriHaUnit) + (tUnit === 'F' ? '°F' : '°') : '';
         var sriHumRaw = parseFloat(this._a(ROOMS[sri].id, 'current_humidity') || this._a(ROOMS[sri].id, 'humidity') || 0);
         var sriEntCfgH = (cfg.entities && cfg.entities[sri]) || {};
         if (sriEntCfgH.humidity_entity && this._hass && this._hass.states[sriEntCfgH.humidity_entity]) {
@@ -4204,7 +4207,8 @@ class AcControllerCardV2 extends HTMLElement {
                    var opts = '';
                    for (var ri = 0; ri < ROOMS.length; ri++) {
                      var riTemp = parseFloat(this._a(ROOMS[ri].id, 'current_temperature') || 0);
-                     var riTempStr = riTemp > 0 ? ' · ' + acFmtTemp(riTemp, tUnit, haUnit) + (tUnit === 'F' ? '°F' : '°') : '';
+                     var riHaUnit = riTemp > 50 ? 'F' : 'C';
+                     var riTempStr = riTemp > 0 ? ' · ' + acFmtTemp(riTemp, tUnit, riHaUnit) + (tUnit === 'F' ? '°F' : '°') : '';
                      var riHumRaw = parseFloat(this._a(ROOMS[ri].id, 'current_humidity') || this._a(ROOMS[ri].id, 'humidity') || 0);
                      var riEntCfgH = (cfg.entities && cfg.entities[ri]) || {};
                      if (riEntCfgH.humidity_entity && this._hass && this._hass.states[riEntCfgH.humidity_entity]) { var riHumS = parseFloat(this._hass.states[riEntCfgH.humidity_entity].state); if (!isNaN(riHumS)) riHumRaw = riHumS; }
@@ -5306,7 +5310,7 @@ class AcControllerCardV2 extends HTMLElement {
         var ri2On = ri2State !== 'off';
         var ri2Temp = parseFloat(self._a(ROOMS[ri2].id, 'current_temperature') || 0);
         var ri2TUnit = (self._config && self._config.temp_unit) || 'C';
-        var ri2HaUnit = self._a(ROOMS[ri2].id, 'temperature_unit') || 'C';
+        var ri2HaUnit = ri2Temp > 50 ? 'F' : 'C';
         var ri2TempStr = ri2Temp > 0 ? ' · ' + acFmtTemp(ri2Temp, ri2TUnit, ri2HaUnit) + (ri2TUnit === 'F' ? '°F' : '°') : '';
         var ri2HumRaw = parseFloat(self._a(ROOMS[ri2].id, 'current_humidity') || self._a(ROOMS[ri2].id, 'humidity') || 0);
         var ri2EntH = (self._config && self._config.entities && self._config.entities[ri2]) || {};
@@ -5450,7 +5454,7 @@ class AcControllerCardV2 extends HTMLElement {
 
     // ── Patch nhiệt độ hiển thị ──────────────────────────────────────────
     var tUnit2  = cfg.temp_unit || 'C';
-    var haUnit2 = this._a(room.id, 'temperature_unit') || 'C';
+    var haUnit2 = curTemp > 50 ? 'F' : 'C';
     var tempEl = sr.getElementById('live-cur-temp');
     if (tempEl) {
       var color = acTempColor(curTemp);
@@ -5511,7 +5515,8 @@ class AcControllerCardV2 extends HTMLElement {
     // ── Patch sensor values (outdoor temp, humidity, power) ──────────────
     var outdoorEl = sr.getElementById('met-outdoor-temp');
     if (outdoorEl && cfg.outdoor_temp_entity && this._hass.states[cfg.outdoor_temp_entity]) {
-      var ov = acFmtTemp(parseFloat(this._hass.states[cfg.outdoor_temp_entity].state), tUnit2, haUnit2) + (tUnit2 === 'F' ? '°F' : '°');
+      var ovRaw = parseFloat(this._hass.states[cfg.outdoor_temp_entity].state);
+      var ov = acFmtTemp(ovRaw, tUnit2, ovRaw > 50 ? 'F' : 'C') + (tUnit2 === 'F' ? '°F' : '°');
       if (outdoorEl.textContent !== ov) outdoorEl.textContent = ov;
     }
     var humEl = sr.getElementById('met-humidity');
@@ -6102,7 +6107,7 @@ class MultiAcCardEditor extends HTMLElement {
 </style>
 <div class="editor">
   <div class="credit">❄️ <strong>Multi Air Conditioner Card</strong>
-    <span style="color:var(--secondary-text-color);font-weight:400;">v1.7.2 Designed by @doanlong1412 from 🇻🇳 Vietnam</span>
+    <span style="color:var(--secondary-text-color);font-weight:400;">v1.7.3 Designed by @doanlong1412 from 🇻🇳 Vietnam</span>
   </div>
   <a href="https://www.tiktok.com/@long.1412" target="_blank" rel="noopener noreferrer"
     style="display:flex;align-items:center;gap:8px;margin:6px 0 10px;padding:8px 14px;
