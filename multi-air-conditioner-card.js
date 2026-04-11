@@ -2912,14 +2912,14 @@ class AcControllerCardV2 extends HTMLElement {
         slEnvHumidity = slHumidity;
         slEnvIsRoom   = false;
       }
-      // Inner set-temp ring (same calc as main render)
-      var slSetPct    = Math.max(0, Math.min(1, (setTemp - 16) / 16));
-      var slSetArcEnd = -140 + slSetPct * 280;
+      // Inner room-temp ring (r=76) — shows current room temperature
+      var slRoomPct    = Math.max(0, Math.min(1, (curTemp - 16) / 16));
+      var slRoomArcEnd = -140 + slRoomPct * 280;
       var slInnerTrack   = this._arc(110,110,76,-140,140);
-      var slInnerArcFill = slSetPct > 0.02 ? this._arc(110,110,76,-140,slSetArcEnd) : '';
-      var slSetDotRad = (slSetArcEnd - 90) * Math.PI / 180;
-      var slSetDotX   = (110 + 76 * Math.cos(slSetDotRad)).toFixed(1);
-      var slSetDotY   = (110 + 76 * Math.sin(slSetDotRad)).toFixed(1);
+      var slInnerArcFill = slRoomPct > 0.02 ? this._arc(110,110,76,-140,slRoomArcEnd) : '';
+      var slRoomDotRad = (slRoomArcEnd - 90) * Math.PI / 180;
+      var slRoomDotX   = (110 + 76 * Math.cos(slRoomDotRad)).toFixed(1);
+      var slRoomDotY   = (110 + 76 * Math.sin(slRoomDotRad)).toFixed(1);
 
       // Build room dropdown button label + popup items
       var slRoomBtnLabel = '';
@@ -3041,8 +3041,8 @@ class AcControllerCardV2 extends HTMLElement {
         + dotSvg
         // inner set-temp ring
         + '<path d="' + slInnerTrack + '" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="4" stroke-linecap="round"/>'
-        + (slSetPct > 0.02 ? '<path d="' + slInnerArcFill + '" fill="none" stroke="' + mode.color + '" stroke-width="4" stroke-linecap="round" filter="url(#innerArcGlow)" opacity="0.85"/>' : '')
-        + (slSetPct > 0.02 ? '<circle cx="' + slSetDotX + '" cy="' + slSetDotY + '" r="4" fill="' + mode.color + '" filter="url(#innerArcGlow)"/><circle cx="' + slSetDotX + '" cy="' + slSetDotY + '" r="2" fill="white" opacity="0.9"/>' : '')
+        + (slRoomPct > 0.02 ? '<path d="' + slInnerArcFill + '" fill="none" stroke="' + mode.color + '" stroke-width="4" stroke-linecap="round" filter="url(#innerArcGlow)" opacity="0.85"/>' : '')
+        + (slRoomPct > 0.02 ? '<circle cx="' + slRoomDotX + '" cy="' + slRoomDotY + '" r="4" fill="' + mode.color + '" filter="url(#innerArcGlow)"/><circle cx="' + slRoomDotX + '" cy="' + slRoomDotY + '" r="2" fill="white" opacity="0.9"/>' : '')
         + '</svg>'
         + '<div class="sl-dial-center">'
         + '  <div class="sl-temp-lbl">' + tr.tempLabel + '</div>'
