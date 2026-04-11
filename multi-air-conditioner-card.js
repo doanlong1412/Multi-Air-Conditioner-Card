@@ -1927,8 +1927,8 @@ button,a{touch-action:manipulation;-webkit-tap-highlight-color:transparent;user-
   animation:slBubblePop 0.35s cubic-bezier(0.34,1.56,0.64,1) both}
 /* Bubble burst: scale vượt qua 1 rồi settle — giống iOS spring */
 @keyframes slBubblePop{
-  0%  {opacity:0;transform:scale(0.5) translateY(-10px);filter:blur(8px)}
-  60% {opacity:1;transform:scale(1.04) translateY(2px);filter:blur(0)}
+  0%  {opacity:0;transform:scale(0.5) translateY(10px);filter:blur(8px)}
+  60% {opacity:1;transform:scale(1.04) translateY(-2px);filter:blur(0)}
   80% {transform:scale(0.98) translateY(0)}
   100%{transform:scale(1)   translateY(0)}
 }
@@ -3435,15 +3435,15 @@ class AcControllerCardV2 extends HTMLElement {
       '-webkit-backdrop-filter:blur(48px) saturate(2) brightness(1.1)',
       'box-shadow:0 2px 0 rgba(255,255,255,0.15) inset,0 24px 64px rgba(0,0,0,0.55)',
       'overflow:hidden','padding:8px','min-width:160px','font-family:Sora,sans-serif',
-      'transform-origin:top center',
-      'animation:slBubblePop 0.4s cubic-bezier(0.22,1,0.36,1) both',
+      'transform-origin:bottom center',
+      'animation:slBubblePopUp 0.4s cubic-bezier(0.22,1,0.36,1) both',
     ].join(';');
 
     // Inject animation keyframe if needed
     if (!document.getElementById('ac-sel-popup-style')) {
       var st = document.createElement('style');
       st.id = 'ac-sel-popup-style';
-      st.textContent = '@keyframes slBubblePop{0%{opacity:0;transform:scale(0.85) translateY(-8px)}100%{opacity:1;transform:scale(1) translateY(0)}}';
+      st.textContent = '@keyframes slBubblePopUp{0%{opacity:0;transform:scale(0.85) translateY(8px)}100%{opacity:1;transform:scale(1) translateY(0)}}';
       document.head.appendChild(st);
     }
 
@@ -3465,9 +3465,9 @@ class AcControllerCardV2 extends HTMLElement {
     }
     pop.innerHTML = html;
 
-    // Position relative to anchor
+    // Position relative to anchor — always open ABOVE
     var rect = anchor ? anchor.getBoundingClientRect() : {left:100,top:100,bottom:140,width:160};
-    pop.style.top = (rect.bottom + 6) + 'px';
+    pop.style.bottom = (window.innerHeight - rect.top + 6) + 'px';
     pop.style.left = Math.max(8, rect.left) + 'px';
     pop.style.width = Math.max(rect.width, 160) + 'px';
     document.body.appendChild(pop);
@@ -4082,7 +4082,7 @@ class AcControllerCardV2 extends HTMLElement {
         '-webkit-backdrop-filter:blur(48px) saturate(2) brightness(1.1)',
         'box-shadow:0 2px 0 rgba(255,255,255,0.15) inset,0 24px 64px rgba(0,0,0,0.55)',
         'overflow:hidden','padding:8px','min-width:160px','font-family:Sora,sans-serif',
-        'transform-origin:' + (isWave ? 'bottom center' : 'top center'),
+        'transform-origin:bottom center',
         isWave ? 'animation:slWaveSlideUp 0.45s cubic-bezier(0.22,1,0.36,1) both'
                : 'animation:slBubblePop 0.45s cubic-bezier(0.22,1,0.36,1) both',
       ].join(';');
@@ -4114,8 +4114,7 @@ class AcControllerCardV2 extends HTMLElement {
       var popWidth = Math.max(btnRect.width, 160);
       var popLeft  = btnRect.left;
       if (popLeft + popWidth > window.innerWidth - 8) popLeft = window.innerWidth - popWidth - 8;
-      if (isWave) { pop.style.bottom = (window.innerHeight - btnRect.top + 6) + 'px'; pop.style.top = 'auto'; }
-      else        { pop.style.top    = (btnRect.bottom + 6) + 'px'; }
+      pop.style.bottom = (window.innerHeight - btnRect.top + 6) + 'px';
       pop.style.left = popLeft + 'px';
       pop.style.width = popWidth + 'px';
       document.body.appendChild(pop);
@@ -4195,7 +4194,7 @@ class AcControllerCardV2 extends HTMLElement {
         '-webkit-backdrop-filter:blur(48px) saturate(2) brightness(1.1)',
         'box-shadow:0 2px 0 rgba(255,255,255,0.15) inset,0 24px 64px rgba(0,0,0,0.55)',
         'overflow:hidden','padding:8px','min-width:140px','font-family:Sora,sans-serif',
-        'transform-origin:' + (isWave ? 'bottom center' : 'top center'),
+        'transform-origin:bottom center',
         isWave ? 'animation:slWaveSlideUp 0.45s cubic-bezier(0.22,1,0.36,1) both'
                : 'animation:slBubblePop 0.45s cubic-bezier(0.22,1,0.36,1) both',
       ].join(';');
@@ -4225,8 +4224,7 @@ class AcControllerCardV2 extends HTMLElement {
       var swPopWidth = Math.max(swRect.width, 140);
       var swPopLeft  = swRect.right - swPopWidth;
       if (swPopLeft < 8) swPopLeft = 8;
-      if (isWave) { pop.style.bottom = (window.innerHeight - swRect.top + 6) + 'px'; pop.style.top = 'auto'; }
-      else        { pop.style.top    = (swRect.bottom + 6) + 'px'; }
+      pop.style.bottom = (window.innerHeight - swRect.top + 6) + 'px';
       pop.style.left = swPopLeft + 'px';
       pop.style.width = swPopWidth + 'px';
       document.body.appendChild(pop);
@@ -4457,7 +4455,7 @@ class AcControllerCardV2 extends HTMLElement {
         'padding:8px',
         'min-width:180px',
         'font-family:Sora,sans-serif',
-        'transform-origin:' + (isWave ? 'bottom center' : 'top center'),
+        'transform-origin:bottom center',
         isWave
           ? 'animation:slWaveSlideUp 0.45s cubic-bezier(0.22,1,0.36,1) both'
           : 'animation:slBubblePop 0.45s cubic-bezier(0.22,1,0.36,1) both',
@@ -4501,12 +4499,7 @@ class AcControllerCardV2 extends HTMLElement {
       var popWidth2 = Math.max(btnRect2.width, 180);
       var popLeft2 = btnRect2.left;
       if (popLeft2 + popWidth2 > window.innerWidth - 8) popLeft2 = window.innerWidth - popWidth2 - 8;
-      if (isWave) {
-        pop.style.bottom = (window.innerHeight - btnRect2.top + 6) + 'px';
-        pop.style.top = 'auto';
-      } else {
-        pop.style.top  = (btnRect2.bottom + 6) + 'px';
-      }
+      pop.style.bottom = (window.innerHeight - btnRect2.top + 6) + 'px';
       pop.style.left  = popLeft2 + 'px';
       pop.style.width = popWidth2 + 'px';
 
@@ -4596,7 +4589,7 @@ class AcControllerCardV2 extends HTMLElement {
         'padding:8px',
         'min-width:220px',
         'font-family:Sora,sans-serif',
-        'transform-origin:' + (isWave ? 'bottom center' : 'top center'),
+        'transform-origin:bottom center',
         isWave
           ? 'animation:slWaveSlideUp 0.45s cubic-bezier(0.22,1,0.36,1) both'
           : 'animation:slBubblePop 0.45s cubic-bezier(0.22,1,0.36,1) both',
@@ -4646,12 +4639,7 @@ class AcControllerCardV2 extends HTMLElement {
       var popWidth = Math.max(btnRect.width, 220);
       var popLeft  = btnRect.left;
       if (popLeft + popWidth > window.innerWidth - 8) popLeft = window.innerWidth - popWidth - 8;
-      if (isWave) {
-        pop.style.bottom = (window.innerHeight - btnRect.top + 6) + 'px';
-        pop.style.top = 'auto';
-      } else {
-        pop.style.top = (btnRect.bottom + 6) + 'px';
-      }
+      pop.style.bottom = (window.innerHeight - btnRect.top + 6) + 'px';
       pop.style.left  = popLeft + 'px';
       pop.style.width = popWidth + 'px';
 
