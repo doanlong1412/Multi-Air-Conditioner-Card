@@ -2192,6 +2192,7 @@ class AcControllerCardV2 extends HTMLElement {
           ents[ei] && ents[ei].temp_entity,
           ents[ei] && ents[ei].humidity_entity,
           ents[ei] && ents[ei].power_entity,
+          ents[ei] && ents[ei].vane_vertical_entity,
         ];
         for (var si = 0; si < roomSensors.length; si++) {
           var sEnt = roomSensors[si];
@@ -2508,7 +2509,8 @@ class AcControllerCardV2 extends HTMLElement {
     var curTemp = parseFloat(this._a(room.id,'current_temperature') || 26);
     var setTemp = parseFloat(this._a(room.id,'temperature')         || 24);
     var fanMode  = this._a(room.id,'fan_mode')     || 'auto';
-    var _vaneEnt = cfg.vane_vertical_entity;
+    var roomEntCfg = (cfg.entities && cfg.entities[this._activeIdx]) || {};
+    var _vaneEnt = roomEntCfg.vane_vertical_entity || cfg.vane_vertical_entity;
     var swingMode= (_vaneEnt && this._hass && this._hass.states[_vaneEnt]) ? this._hass.states[_vaneEnt].state : (this._a(room.id,'swing_mode') || 'off');
     var supportedFanModes = (function() {
       var raw = this._a(room.id,'fan_modes');
@@ -2516,7 +2518,6 @@ class AcControllerCardV2 extends HTMLElement {
     }).call(this);
     var ecoOn   = this._a(room.id,'preset_mode') === 'eco';
     // Override curTemp từ cảm biến phòng nếu được cấu hình
-    var roomEntCfg = (cfg.entities && cfg.entities[this._activeIdx]) || {};
     if (roomEntCfg.temp_entity && this._hass && this._hass.states[roomEntCfg.temp_entity]) {
       var sensorTemp = parseFloat(this._hass.states[roomEntCfg.temp_entity].state);
       if (!isNaN(sensorTemp)) curTemp = sensorTemp;
@@ -3713,7 +3714,8 @@ class AcControllerCardV2 extends HTMLElement {
 
     onTap(r.getElementById('btn-swing'), function() {
       var id = ROOMS[self._activeIdx].id;
-      var vaneEntity = self._config && self._config.vane_vertical_entity;
+      var _roomCfg = (self._config.entities && self._config.entities[self._activeIdx]) || {};
+      var vaneEntity = _roomCfg.vane_vertical_entity || (self._config && self._config.vane_vertical_entity);
       if (vaneEntity && self._hass && self._hass.states[vaneEntity]) {
         var vaneState = self._hass.states[vaneEntity];
         var vaneCur = vaneState.state || '';
@@ -4155,7 +4157,8 @@ class AcControllerCardV2 extends HTMLElement {
       var isWave  = (self._config && self._config.popup_style) === 'wave';
       var id      = ROOMS[self._activeIdx].id;
 
-      var vaneEntity = self._config && self._config.vane_vertical_entity;
+      var _roomCfgSw = (self._config.entities && self._config.entities[self._activeIdx]) || {};
+      var vaneEntity = _roomCfgSw.vane_vertical_entity || (self._config && self._config.vane_vertical_entity);
       var useVane = vaneEntity && self._hass && self._hass.states[vaneEntity];
       var curSwing, modes, swMap, swIcons;
 
@@ -5159,6 +5162,27 @@ class MultiAcCardEditor extends HTMLElement {
     this._hass   = null;
     this._open   = { lang: true, rooms: true, sensors: true, colors: false, bg: true, display: false };
     this._picker = null;
+    // Đảm bảo ha-entity-picker đã được load
+    this._ensureEntityPicker();
+  }
+
+  async _ensureEntityPicker() {
+    if (customElements.get('ha-entity-picker')) return;
+    // Load qua loadCardHelpers (cách phổ biến nhất cho custom card editors)
+    try {
+      var helpers = await (window.loadCardHelpers ? window.loadCardHelpers() : null);
+      if (helpers) {
+        // Tạo tạm 1 entities-card để trigger load ha-entity-picker
+        var tempCard = await helpers.createCardElement({ type: 'entities', entities: [] });
+        if (tempCard) tempCard.hass = this._hass;
+      }
+    } catch(e) { /* ignore */ }
+    // Chờ custom element upgrade xong rồi sync lại
+    if (customElements.get('ha-entity-picker')) {
+      this._syncPickers();
+    } else {
+      customElements.whenDefined('ha-entity-picker').then(() => this._syncPickers());
+    }
   }
 
   setConfig(c) {
@@ -5219,6 +5243,24 @@ class MultiAcCardEditor extends HTMLElement {
         const idx   = parseInt(p.dataset.roomHum);
         const ents  = this._config.entities || [];
         const saved = (ents[idx] && ents[idx].humidity_entity) || '';
+        if (saved && p.value !== saved) { p.value = saved; p.setAttribute('value', saved); }
+      });
+      // room power sensor pickers
+      this.shadowRoot.querySelectorAll('ha-entity-picker[data-room-power]').forEach(p => {
+        p.hass = this._hass;
+        p.includeDomains = ['sensor'];
+        const idx   = parseInt(p.dataset.roomPower);
+        const ents  = this._config.entities || [];
+        const saved = (ents[idx] && ents[idx].power_entity) || '';
+        if (saved && p.value !== saved) { p.value = saved; p.setAttribute('value', saved); }
+      });
+      // room vane vertical entity pickers
+      this.shadowRoot.querySelectorAll('ha-entity-picker[data-room-vane]').forEach(p => {
+        p.hass = this._hass;
+        p.includeDomains = ['input_select'];
+        const idx   = parseInt(p.dataset.roomVane);
+        const ents  = this._config.entities || [];
+        const saved = (ents[idx] && ents[idx].vane_vertical_entity) || '';
         if (saved && p.value !== saved) { p.value = saved; p.setAttribute('value', saved); }
       });
     };
@@ -5311,6 +5353,10 @@ class MultiAcCardEditor extends HTMLElement {
   <div class="row">
     <label>${t.edRoomPowerEntity || '⚡ Room power sensor (sensor.*)'}</label>
     <ha-entity-picker data-room-power="${i}" data-domain="sensor" allow-custom-entity></ha-entity-picker>
+  </div>
+  <div class="row">
+    <label>${t.edVaneVertical}</label>
+    <ha-entity-picker data-room-vane="${i}" data-domain="input_select" allow-custom-entity></ha-entity-picker>
   </div>
   <div class="row">
     <label>${t.edAcName}</label>
@@ -5646,7 +5692,6 @@ class MultiAcCardEditor extends HTMLElement {
       ${this._entityField('outdoor_temp_entity',   t.edOutdoorTemp, 'sensor')}
       ${this._entityField('humidity_entity',       t.edHumidity,    'sensor')}
       ${this._entityField('power_entity',          t.edPower,       'sensor')}
-      ${this._entityField('vane_vertical_entity',  t.edVaneVertical,'input_select')}
     </div>
   </div>
 
@@ -5954,6 +5999,19 @@ class MultiAcCardEditor extends HTMLElement {
         while (ents.length <= idx) ents.push({});
         if (val) ents[idx] = { ...ents[idx], power_entity: val };
         else delete ents[idx].power_entity;
+        this._config = { ...this._config, entities: ents };
+        this._fire();
+      }));
+
+    // ha-entity-picker: room vane vertical entity
+    sr.querySelectorAll('ha-entity-picker[data-room-vane]').forEach(picker =>
+      picker.addEventListener('value-changed', e => {
+        const idx = parseInt(picker.dataset.roomVane);
+        const val = e.detail.value;
+        const ents = (this._config.entities || []).slice();
+        while (ents.length <= idx) ents.push({});
+        if (val) ents[idx] = { ...ents[idx], vane_vertical_entity: val };
+        else delete ents[idx].vane_vertical_entity;
         this._config = { ...this._config, entities: ents };
         this._fire();
       }));
