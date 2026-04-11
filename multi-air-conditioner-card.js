@@ -1,9 +1,9 @@
 /**
  * Multi Air Conditioner Card
- * v1.7 Designed by @doanlong1412 from 🇻🇳 Vietnam
+ * v1.7.2 Designed by @doanlong1412 from 🇻🇳 Vietnam
  * HACS-compatible Web Component
  *
- * ─── What's new in v1.7 ─────────────────────────────────────────────────
+ * ─── What's new in v1.7.2 ─────────────────────────────────────────────────
  * 📐 Long-label overflow fix — fc-label (VENTILATORSNELHEID / LUCHTRICHTING)
  *    nay tự xuống dòng thay vì tràn ra ngoài card; letter-spacing giảm nhẹ;
  *    fan-card/swing-card có overflow:hidden; hdr-title, rt-header, sl-title
@@ -1302,22 +1302,32 @@ const AC_DEFAULT_CONFIG = {
 };
 
 // ─── Temperature unit helpers ─────────────────────────────────────────────────
-// Convert Celsius → display value + symbol based on config temp_unit
+// haUnit: đơn vị HA entity thực sự trả về ('C' hoặc 'F')
+// tUnit:  đơn vị người dùng muốn hiển thị ('C' hoặc 'F')
+// Chỉ convert khi haUnit ≠ tUnit
 function acCtoF(c) { return Math.round(c * 9/5 + 32 * 10) / 10; }
-function acFmtTemp(celsius, unit) {
-  if (unit === 'F') {
-    var f = celsius * 9/5 + 32;
-    return f.toFixed(1);
-  }
-  return parseFloat(celsius).toFixed(1);
+function acFmtTemp(val, tUnit, haUnit) {
+  // haUnit mặc định 'C' nếu không truyền (backward compat)
+  var hu = haUnit || 'C';
+  if (isNaN(parseFloat(val))) return '--';
+  val = parseFloat(val);
+  if (hu === tUnit) return val.toFixed(1);                        // đơn vị khớp, không convert
+  if (hu === 'C' && tUnit === 'F') return (val * 9/5 + 32).toFixed(1);  // C→F
+  if (hu === 'F' && tUnit === 'C') return ((val - 32) * 5/9).toFixed(1); // F→C
+  return val.toFixed(1);
 }
 function acTempUnit(unit) { return unit === 'F' ? '°F' : '°C'; }
-// For set temperature (integer steps in °C → whole number in °F)
-function acFmtSetTemp(celsius, unit) {
-  if (unit === 'F') return Math.round(celsius * 9/5 + 32);
-  return celsius;
+// For set temperature (integer steps)
+function acFmtSetTemp(val, tUnit, haUnit) {
+  var hu = haUnit || 'C';
+  if (isNaN(parseFloat(val))) return val;
+  val = parseFloat(val);
+  if (hu === tUnit) return val;
+  if (hu === 'C' && tUnit === 'F') return Math.round(val * 9/5 + 32);
+  if (hu === 'F' && tUnit === 'C') return Math.round((val - 32) * 5/9);
+  return val;
 }
-// Reverse: F slider value → C for HA service call
+// Reverse: F display value → C for HA service call
 function acFtoC(f) { return Math.round((f - 32) * 5/9 * 2) / 2; }
 
 const ROOM_IMAGES = [
@@ -3591,10 +3601,12 @@ class AcControllerCardV2 extends HTMLElement {
     }
     var roomHumidityDisplay = roomHumidityRaw > 0 ? Math.round(roomHumidityRaw) + '%' : '--';
     var isLite  = this._config.view_mode === 'lite';
-    var tUnit   = cfg.temp_unit || 'C';   // 'C' | 'F'
-    var curTempDisp = acFmtTemp(curTemp, tUnit);   // display string e.g. "26.0" or "78.8"
-    var setTempDisp = acFmtSetTemp(setTemp, tUnit); // display value e.g. 24 or 75
-    var degSym      = tUnit === 'F' ? '°F' : '°C';  // full symbol for labels
+    var tUnit   = cfg.temp_unit || 'C';   // 'C' | 'F' — đơn vị hiển thị người dùng chọn
+    // Tự động nhận diện đơn vị HA entity trả về (temperature_unit attribute)
+    var haUnit  = this._a(room.id, 'temperature_unit') || 'C'; // 'C' hoặc 'F'
+    var curTempDisp = acFmtTemp(curTemp, tUnit, haUnit);
+    var setTempDisp = acFmtSetTemp(setTemp, tUnit, haUnit);
+    var degSym      = tUnit === 'F' ? '°F' : '°C';
     var fi  = Math.max(0, FAN_LEVELS.indexOf(fanMode));
     // Dùng supported fan_modes thực tế của entity; fallback về FAN_LEVELS
     var activeFanModes = supportedFanModes || FAN_LEVELS;
@@ -3744,7 +3756,7 @@ class AcControllerCardV2 extends HTMLElement {
       var rState = this._s(ROOMS[j].id);
       var ron = rState !== 'off';
       var rTemp = parseFloat(this._a(ROOMS[j].id, 'current_temperature') || 0);
-      var rTempDisp = rTemp > 0 ? acFmtTemp(rTemp, tUnit) + (tUnit === 'F' ? '°F' : '°') : '--';
+      var rTempDisp = rTemp > 0 ? acFmtTemp(rTemp, tUnit, haUnit) + (tUnit === 'F' ? '°F' : '°') : '--';
       var rTempStr = rTempDisp;
 
       // ── Đọc độ ẩm phòng (per-room sensor hoặc global) ──
@@ -3760,7 +3772,7 @@ class AcControllerCardV2 extends HTMLElement {
       var tipMsg = '';
       var tipColor = 'rgba(255,255,255,0.88)';
       var tipEmoji = '';
-      var rTD = rTemp > 0 ? acFmtTemp(rTemp, tUnit) + (tUnit === 'F' ? '°F' : '°') : '';
+      var rTD = rTemp > 0 ? acFmtTemp(rTemp, tUnit, haUnit) + (tUnit === 'F' ? '°F' : '°') : '';
       if (rTemp > 0) {
         // Thresholds: convert to compare in °C always (rTemp is always °C from HA)
         var tHot  = 32, tWarm = 29, tCool = 24, tCold = 18;
@@ -3931,7 +3943,7 @@ class AcControllerCardV2 extends HTMLElement {
       ? parseFloat(this._hass.states[cfg.outdoor_temp_entity].state)
       : (curTemp > 0 ? curTemp : null);
     var outdoorTempVal = outdoorTempRaw !== null && !isNaN(outdoorTempRaw)
-      ? acFmtTemp(outdoorTempRaw, tUnit) + (tUnit === 'F' ? '°F' : '°')
+      ? acFmtTemp(outdoorTempRaw, tUnit, haUnit) + (tUnit === 'F' ? '°F' : '°')
       : '--°';
     // Độ ẩm ngoài: ưu tiên outdoor sensor config, fallback roomHumidityRaw (đã tính từ phòng/cảm biến)
     var humidityVal = cfg.humidity_entity && this._hass && this._hass.states[cfg.humidity_entity]
@@ -3976,7 +3988,7 @@ class AcControllerCardV2 extends HTMLElement {
       var slIsOn = hvac !== 'off';
       // Outdoor sensors for super lite
       var slOutdoorTemp = cfg.outdoor_temp_entity && this._hass && this._hass.states[cfg.outdoor_temp_entity]
-        ? acFmtTemp(parseFloat(this._hass.states[cfg.outdoor_temp_entity].state), tUnit) + (tUnit === 'F' ? '°F' : '°')
+        ? acFmtTemp(parseFloat(this._hass.states[cfg.outdoor_temp_entity].state), tUnit, haUnit) + (tUnit === 'F' ? '°F' : '°')
         : null;
       var slHumidity = cfg.humidity_entity && this._hass && this._hass.states[cfg.humidity_entity]
         ? Math.round(parseFloat(this._hass.states[cfg.humidity_entity].state)) + '%'
@@ -3990,7 +4002,7 @@ class AcControllerCardV2 extends HTMLElement {
         var roomEntCfgSL = (cfg.entities && cfg.entities[this._activeIdx]) || {};
         var roomTempSL = curTemp; // curTemp đã tính từ sensor/entity bên trên
         var roomHumSL  = roomHumidityRaw; // roomHumidityRaw đã tính bên trên
-        slEnvTemp     = roomTempSL > 0 ? acFmtTemp(roomTempSL, tUnit) + (tUnit === 'F' ? '°F' : '°') : null;
+        slEnvTemp     = roomTempSL > 0 ? acFmtTemp(roomTempSL, tUnit, haUnit) + (tUnit === 'F' ? '°F' : '°') : null;
         slEnvHumidity = roomHumSL  > 0 ? Math.round(roomHumSL) + '%'  : null;
         slEnvIsRoom   = true;
       } else {
@@ -4014,7 +4026,7 @@ class AcControllerCardV2 extends HTMLElement {
         var sriState = this._s(ROOMS[sri].id);
         var sriOn    = sriState !== 'off';
         var sriTemp  = parseFloat(this._a(ROOMS[sri].id, 'current_temperature') || 0);
-        var sriTempStr = sriTemp > 0 ? ' · ' + acFmtTemp(sriTemp, tUnit) + (tUnit === 'F' ? '°F' : '°') : '';
+        var sriTempStr = sriTemp > 0 ? ' · ' + acFmtTemp(sriTemp, tUnit, haUnit) + (tUnit === 'F' ? '°F' : '°') : '';
         var sriHumRaw = parseFloat(this._a(ROOMS[sri].id, 'current_humidity') || this._a(ROOMS[sri].id, 'humidity') || 0);
         var sriEntCfgH = (cfg.entities && cfg.entities[sri]) || {};
         if (sriEntCfgH.humidity_entity && this._hass && this._hass.states[sriEntCfgH.humidity_entity]) {
@@ -4192,7 +4204,7 @@ class AcControllerCardV2 extends HTMLElement {
                    var opts = '';
                    for (var ri = 0; ri < ROOMS.length; ri++) {
                      var riTemp = parseFloat(this._a(ROOMS[ri].id, 'current_temperature') || 0);
-                     var riTempStr = riTemp > 0 ? ' · ' + acFmtTemp(riTemp, tUnit) + (tUnit === 'F' ? '°F' : '°') : '';
+                     var riTempStr = riTemp > 0 ? ' · ' + acFmtTemp(riTemp, tUnit, haUnit) + (tUnit === 'F' ? '°F' : '°') : '';
                      var riHumRaw = parseFloat(this._a(ROOMS[ri].id, 'current_humidity') || this._a(ROOMS[ri].id, 'humidity') || 0);
                      var riEntCfgH = (cfg.entities && cfg.entities[ri]) || {};
                      if (riEntCfgH.humidity_entity && this._hass && this._hass.states[riEntCfgH.humidity_entity]) { var riHumS = parseFloat(this._hass.states[riEntCfgH.humidity_entity].state); if (!isNaN(riHumS)) riHumRaw = riHumS; }
@@ -5293,7 +5305,9 @@ class AcControllerCardV2 extends HTMLElement {
         var ri2State = self._s(ROOMS[ri2].id);
         var ri2On = ri2State !== 'off';
         var ri2Temp = parseFloat(self._a(ROOMS[ri2].id, 'current_temperature') || 0);
-        var ri2TempStr = ri2Temp > 0 ? ' · ' + acFmtTemp(ri2Temp, (self._config && self._config.temp_unit) || 'C') + ((self._config && self._config.temp_unit) === 'F' ? '°F' : '°') : '';
+        var ri2TUnit = (self._config && self._config.temp_unit) || 'C';
+        var ri2HaUnit = self._a(ROOMS[ri2].id, 'temperature_unit') || 'C';
+        var ri2TempStr = ri2Temp > 0 ? ' · ' + acFmtTemp(ri2Temp, ri2TUnit, ri2HaUnit) + (ri2TUnit === 'F' ? '°F' : '°') : '';
         var ri2HumRaw = parseFloat(self._a(ROOMS[ri2].id, 'current_humidity') || self._a(ROOMS[ri2].id, 'humidity') || 0);
         var ri2EntH = (self._config && self._config.entities && self._config.entities[ri2]) || {};
         if (ri2EntH.humidity_entity && self._hass && self._hass.states[ri2EntH.humidity_entity]) { var ri2HS = parseFloat(self._hass.states[ri2EntH.humidity_entity].state); if (!isNaN(ri2HS)) ri2HumRaw = ri2HS; }
@@ -5436,13 +5450,14 @@ class AcControllerCardV2 extends HTMLElement {
 
     // ── Patch nhiệt độ hiển thị ──────────────────────────────────────────
     var tUnit2  = cfg.temp_unit || 'C';
+    var haUnit2 = this._a(room.id, 'temperature_unit') || 'C';
     var tempEl = sr.getElementById('live-cur-temp');
     if (tempEl) {
       var color = acTempColor(curTemp);
       tempEl.style.color = color;
       tempEl.style.textShadow = '0 0 30px ' + color + ',0 0 60px ' + color;
       var firstNode = tempEl.firstChild;
-      var tempStr = acFmtTemp(curTemp, tUnit2);
+      var tempStr = acFmtTemp(curTemp, tUnit2, haUnit2);
       if (firstNode && firstNode.nodeType === 3) {
         if (firstNode.textContent !== tempStr) firstNode.textContent = tempStr;
       }
@@ -5451,7 +5466,7 @@ class AcControllerCardV2 extends HTMLElement {
     // ── Patch set-temp display ───────────────────────────────────────────
     var setTempEl = sr.getElementById('live-set-temp');
     if (setTempEl) {
-      var setTempVal = String(acFmtSetTemp(setTemp, tUnit2));
+      var setTempVal = String(acFmtSetTemp(setTemp, tUnit2, haUnit2));
       var setTempNode = setTempEl.firstChild;
       if (setTempNode && setTempNode.nodeType === 3) {
         if (setTempNode.textContent !== setTempVal) setTempNode.textContent = setTempVal;
@@ -5470,7 +5485,7 @@ class AcControllerCardV2 extends HTMLElement {
     }
 
     // ── Patch ETA bar ─────────────────────────────────────────────────────
-    var setTempDisp2 = acFmtSetTemp(setTemp, tUnit2);
+    var setTempDisp2 = acFmtSetTemp(setTemp, tUnit2, haUnit2);
     var degSym2 = tUnit2 === 'F' ? '°F' : '°C';
     var etaEl = sr.getElementById('live-eta');
     if (hvac === 'cool' && isOn) {
@@ -5496,7 +5511,7 @@ class AcControllerCardV2 extends HTMLElement {
     // ── Patch sensor values (outdoor temp, humidity, power) ──────────────
     var outdoorEl = sr.getElementById('met-outdoor-temp');
     if (outdoorEl && cfg.outdoor_temp_entity && this._hass.states[cfg.outdoor_temp_entity]) {
-      var ov = acFmtTemp(parseFloat(this._hass.states[cfg.outdoor_temp_entity].state), tUnit2) + (tUnit2 === 'F' ? '°F' : '°');
+      var ov = acFmtTemp(parseFloat(this._hass.states[cfg.outdoor_temp_entity].state), tUnit2, haUnit2) + (tUnit2 === 'F' ? '°F' : '°');
       if (outdoorEl.textContent !== ov) outdoorEl.textContent = ov;
     }
     var humEl = sr.getElementById('met-humidity');
@@ -6087,7 +6102,7 @@ class MultiAcCardEditor extends HTMLElement {
 </style>
 <div class="editor">
   <div class="credit">❄️ <strong>Multi Air Conditioner Card</strong>
-    <span style="color:var(--secondary-text-color);font-weight:400;">v1.7 Designed by @doanlong1412 from 🇻🇳 Vietnam</span>
+    <span style="color:var(--secondary-text-color);font-weight:400;">v1.7.2 Designed by @doanlong1412 from 🇻🇳 Vietnam</span>
   </div>
   <a href="https://www.tiktok.com/@long.1412" target="_blank" rel="noopener noreferrer"
     style="display:flex;align-items:center;gap:8px;margin:6px 0 10px;padding:8px 14px;
