@@ -1,7 +1,7 @@
 # ❄️ Multi Air Conditioner Card
 
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/hacs/integration)
-![version](https://img.shields.io/badge/version-1.6-blue)
+![version](https://img.shields.io/badge/version-1.7-blue)
 ![HA](https://img.shields.io/badge/Home%20Assistant-2023.1+-green)
 ![license](https://img.shields.io/badge/license-MIT-lightgrey)
 
@@ -25,7 +25,7 @@ A custom Home Assistant Lovelace card for multi-room air conditioner control —
 
 ---
 
-## ✨ Features (v1.6)
+## ✨ Features (v1.7)
 
 ### 🎨 Display & Interface
 - ❄️ **Temperature dial** — animated arc gauge with dynamic colour glow: blue (cold) → cyan → green → orange → red (hot)
@@ -41,7 +41,7 @@ A custom Home Assistant Lovelace card for multi-room air conditioner control —
 - **Super Lite** ⚡ — ultra-compact single-column layout featuring a large dial, temperature control, HVAC mode selector and room selector; perfect for widgets, sidebars or very narrow spaces
 
 ### 🔀 Inline View Switcher
-Switch between Full / Lite / Super Lite **directly on the card** without opening the editor — a compact dot-icon switcher is embedded in the header of every view mode. The active mode is highlighted; tapping any dot instantly re-renders the card and saves the preference.
+Switch between Full / Lite / Super Lite **directly on the card** without opening the editor. The active mode dot-icons now **bounce in a staggered wave** — Full shows 3 dots bouncing left-to-right, Lite shows 2, Super Lite shows 1 — making the active mode instantly recognisable at a glance.
 
 ### ✨ Super Lite Popup Style
 When using **Super Lite** mode, the HVAC mode and room selectors support three interaction styles — configurable in the editor:
@@ -73,7 +73,7 @@ Every section of the card can be individually shown or hidden directly from the 
 
 ### 🌡️ Per-Room Environment Sensors
 Each room supports dedicated temperature, humidity and power sensors independent of the AC entity:
-- `entities[n].temp_entity` — override the room's displayed temperature (useful when the AC reports no `current_temperature`)
+- `entities[n].temp_entity` — override the room's displayed temperature
 - `entities[n].humidity_entity` — override the room's displayed humidity
 - `entities[n].power_entity` — per-room power consumption sensor; value updates automatically when switching rooms in all three view modes
 - Displayed in the room photo badge (Full/Lite) and in the Super Lite header
@@ -85,10 +85,32 @@ Each room supports dedicated temperature, humidity and power sensors independent
 - Super Lite: power value shown inline next to humidity in the top-left header area; toggle with `show_sl_room_power`
 
 ### 🎨 MDI Room Icons
-Room icons now use the **Material Design Icons** system (`mdi:*`) instead of emoji, matching the native Home Assistant icon style:
+Room icons use the **Material Design Icons** system (`mdi:*`) matching the native Home Assistant icon style:
 - Default icons: `mdi:sofa`, `mdi:bed`, `mdi:silverware-fork-knife`, `mdi:briefcase`, `mdi:shower`, `mdi:teddy-bear`, `mdi:dumbbell`, `mdi:archive`
 - Rendered as `<ha-icon>` throughout — tabs (Full/Lite), room button (Super Lite), popup items (Effect & Wave), native select (label only)
 - Any `mdi:icon-name` can be entered in the **MDI Icon** field of the visual editor; emoji still accepted as fallback
+
+### 🎇 HVAC Mode Animations (New in v1.7)
+Each HVAC mode button now plays a **canvas-rendered particle animation** that travels from the mode button to the centre of the temperature dial — looping every 10 seconds (configurable) while the mode is active:
+
+| Mode | Trail | Burst / Effect |
+|------|-------|----------------|
+| ❄️ **Cool** | 5 snowflakes + light beam | Ice crystal burst + water droplets |
+| 🔥 **Heat** | 4 heat-shimmer rays (zigzag) | Ember particles + expanding halo rings |
+| 💧 **Dry** | 18 mist droplets in wavy paths | Mist cloud expands then spirals inward (absorbed) |
+| 🌀 **Fan** | 5 offset wind streams (curved) | Triple spiral vortex grows then fades |
+
+All four modes also **keep their icon animation running** after selection (spin, flicker, bounce, blow) — previously only Auto mode did this.
+
+**Repeat interval** is configurable in the editor via the *Snowflake repeat (seconds)* slider (2–15 s, default 10 s) — applies to all four modes.
+
+### ⚡ Turn-All-Off Button — Redesigned (New in v1.7)
+The Turn-All-Off button now stands out clearly from all other controls:
+- **Vibrant red gradient** — `rgba(220,38,38)` replacing the previous barely-visible translucent style
+- **3D raised effect** — multi-layer `box-shadow` simulates a physical button sitting above the surface
+- **Hover:** lifts higher with deeper shadow; **Active/tap:** presses down physically
+- **Breathing pulse animation** — a soft red glow breathes in and out continuously to draw attention
+- The Lite view version receives the same treatment
 
 ### 🌿 Eco & Quick Actions
 - **Eco toggle** — activates eco/preset mode on the selected room's AC unit
@@ -203,6 +225,7 @@ After adding the card, click **✏️ Edit** to open the Config Editor.
 | `popup_style` | string | `normal` | Super Lite selector style: `normal` · `effect` · `wave` |
 | `room_count` | number | `4` | Number of rooms to display (1–8) |
 | `owner_name` | string | `Smart Home` | Owner name shown in greeting |
+| `cool_anim_speed` | number | `10000` | HVAC animation repeat interval in ms (2000–15000) |
 | `show_greet` | boolean | `true` | Show greeting row |
 | `show_cool` | boolean | `true` | Show Cool mode button |
 | `show_heat` | boolean | `true` | Show Heat mode button |
@@ -217,7 +240,7 @@ After adding the card, click **✏️ Edit** to open the Config Editor.
 | `show_power` | boolean | `true` | Show power consumption metric |
 | `show_all_off` | boolean | `true` | Show turn-all-off button |
 | `show_timer` | boolean | `true` | Show timer button |
-| `show_room_env` | boolean | `false` | Super Lite: show selected room temp & humidity in header (instead of outdoor) |
+| `show_room_env` | boolean | `false` | Super Lite: show selected room temp & humidity in header |
 | `show_sl_fan` | boolean | `true` | Super Lite: show fan speed shortcut button |
 | `show_sl_swing` | boolean | `true` | Super Lite: show airflow shortcut button |
 | `show_sl_room_power` | boolean | `true` | Super Lite: show per-room power in header |
@@ -244,6 +267,7 @@ view_mode: full
 room_count: 4
 owner_name: My Home
 power_unit: kw          # kw | w
+cool_anim_speed: 10000  # ms between HVAC animations (2000–15000)
 
 background_preset: default
 accent_color: "#00ffcc"
@@ -351,47 +375,57 @@ entities:
 
 ## 📋 Changelog
 
+### v1.7
+- 🎇 **HVAC mode canvas animations** — each active mode plays a looping canvas animation from its button to the temperature dial centre:
+  - ❄️ Cool: snowflake trail + ice crystal burst with water droplet splash
+  - 🔥 Heat: zigzag heat-shimmer rays + ember particles + expanding halo rings
+  - 💧 Dry: wavy mist droplet trail + mist cloud expands then spirals inward (absorbed)
+  - 🌀 Fan Only: curved wind streams + triple spiral vortex that grows and fades
+- ✨ **Persistent mode icon animations** — Cool, Heat, Dry and Fan icons continue animating (spin / flicker / bounce / blow) after selection, not just on hover; each mode has its own animation style and speed
+- 🎯 **Staggered dot bounce on view switcher** — the active view mode's dots now bounce in a wave sequence (left-to-right, staggered 180 ms apart) so the selected layout is immediately obvious
+- 🟥 **Turn-All-Off button redesign** — vibrant red gradient, multi-layer 3D raised `box-shadow`, physical press-down on tap, and a continuous breathing-pulse glow; Lite variant updated to match
+- 🐛 **Snowflake trail clip fix** — added frame-delta guard to prevent the animation phase from skipping when the browser tab is hidden and then re-focused (causing the trail to disappear mid-flight)
+
 ### v1.6
 - 🔀 **Inline view switcher** — switch between Full / Lite / Super Lite directly on the card header without opening the editor; dot-icon buttons highlight the active mode
 - 🎨 **MDI room icons** — all room icons now use `mdi:*` strings and render as native `<ha-icon>` elements throughout the card (tabs, popups, button labels); emoji still accepted as fallback
 - ⚡ **Per-room power sensor** — each room has its own `entities[n].power_entity`; the displayed value updates automatically when switching rooms in all three view modes
 - 🔢 **Power unit selector** — choose **kW** or **W** in the editor; values ≥ 1000 W auto-convert to kW
 - 📍 **Super Lite power indicator** — power reading shown inline next to humidity in the header top-left; toggle with `show_sl_room_power`
-- 🐛 **Fan blade fix** — fixed missing fan blade SVG at fan levels Low-Mid and above (index ≥ 4), caused by an undersized blade-count lookup array
-- 🐛 **Scale flicker fix** — debounced ResizeObserver with double-rAF and change-only style updates; removed CSS transition on `transform` to prevent layout feedback loops on mobile
-- 🐛 **Tooltip flicker fix** — room tab tooltips now auto-dismiss after 5 s on mobile; tap-reset timer prevents stale positions; cleanup on `disconnectedCallback` prevents memory leaks
+- 🐛 **Fan blade fix** — fixed missing fan blade SVG at fan levels Low-Mid and above (index ≥ 4)
+- 🐛 **Scale flicker fix** — debounced ResizeObserver with double-rAF and change-only style updates
+- 🐛 **Tooltip flicker fix** — room tab tooltips now auto-dismiss after 5 s on mobile
 
 ### v1.5
 - 🎛️ **Super Lite layout redesign** — fan speed button moved to the left of `−`; airflow button moved to the right of `+`; Mode and Room selectors now scale to full card width
 
 ### v1.4
-- ⚡ New **Super Lite** view mode — ultra-compact single-column layout with large dial, temperature control, HVAC mode selector and room selector
-- ✨ **Popup style selector** (Super Lite) — choose between Normal (native), Effect (glass + spring animation) or Wave (glass + wave animation) for mode and room dropdowns
-- 🌡️ **Per-room temperature sensor** — set a dedicated `temp_entity` per room to override `current_temperature` when the AC entity doesn't provide it
-- 💧 **Per-room humidity sensor** — set a dedicated `humidity_entity` per room for accurate indoor humidity display
-- 🏠 **Custom room photo** — set a custom image URL per room via `entities[n].image`
-- 🔵 **Set-point inner ring** — thin arc inside the temperature dial shows the target set-point, coloured by active HVAC mode
-- 💧 **Room humidity in photo badge** — humidity value displayed alongside temperature in the room photo corner (Full/Lite modes)
-- 👁️ **show_room_env** toggle — Super Lite header can show selected room's temperature & humidity instead of outdoor sensor data
-- 🔧 **Swing mode fix** — swing cycle now reads `swing_modes` attribute from the entity, preventing errors on ACs with limited swing options
-- 🐛 Bug fixes and layout improvements
+- ⚡ New **Super Lite** view mode — ultra-compact single-column layout
+- ✨ **Popup style selector** (Super Lite) — Normal / Effect / Wave
+- 🌡️ **Per-room temperature sensor** — `temp_entity` per room
+- 💧 **Per-room humidity sensor** — `humidity_entity` per room
+- 🏠 **Custom room photo** — `entities[n].image`
+- 🔵 **Set-point inner ring** — thin arc inside the temperature dial
+- 💧 **Room humidity in photo badge**
+- 👁️ **show_room_env** toggle
+- 🔧 **Swing mode fix**
 
 ### v1.3
-- 🖥️ New **Lite view mode** — compact layout ideal for mobile or sidebar dashboards
-- 👁️ **Per-element visibility toggles** — show/hide greeting, each HVAC mode button, fan, swing, Eco bar, status block, metrics, timer and all-off button individually
+- 🖥️ New **Lite view mode**
+- 👁️ **Per-element visibility toggles**
 - 🐛 Bug fixes and stability improvements
 
 ### v1.2
 - 🇵🇹 New language — Português (11 languages total)
-- 🌡️ Dynamic temperature colour on dial — blue (cold) → cyan → green → orange → red (hot)
-- ⏱️ Timer overhaul — 8 preset durations (30m · 1h · 1.5h · 2h · 3h · 4h · 6h · 8h) + free custom-minute input
-- 🔢 Room tabs enlarged — always shows 4 rooms, scrollable when more than 4
+- 🌡️ Dynamic temperature colour on dial
+- ⏱️ Timer overhaul — 8 preset durations + free custom-minute input
+- 🔢 Room tabs enlarged — always shows 4, scrollable for more
 
 ### v1.1
 - 🔢 Configurable room count — 1 to 8 rooms via editor slider
 - 🌐 10-language support with real flag images
 - 🎨 16 background gradient presets
-- 🎛️ Full visual editor — entity pickers, accordion sections, 3-layer colour picker
+- 🎛️ Full visual editor
 - 🐛 Focus fix — text inputs no longer lose focus while typing
 
 ### v1.0
