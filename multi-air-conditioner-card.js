@@ -2237,25 +2237,29 @@ class AcControllerCardV2 extends HTMLElement {
     var dateStr = now.toLocaleDateString('vi-VN', {weekday:'long', day:'2-digit', month:'2-digit'});
 
     var arcTrack = this._arc(110,110,88,-140,140);
-    var arcFill  = pct > 0.02 ? this._arc(110,110,88,-140,arcEnd) : '';
-
-    // Inner set-temperature ring (r=76) — color by mode, length by setTemp
+    // Outer arc (r=88) = SET temperature (draggable)
     var setPct    = Math.max(0, Math.min(1, (setTemp - 16) / 16));
     var setArcEnd = -140 + setPct * 280;
+    var setArcFill = setPct > 0.02 ? this._arc(110,110,88,-140,setArcEnd) : '';
+    var setDotRad = (setArcEnd - 90) * Math.PI / 180;
+    var setDotX   = (110 + 88 * Math.cos(setDotRad)).toFixed(1);
+    var setDotY   = (110 + 88 * Math.sin(setDotRad)).toFixed(1);
+
+    // Inner arc (r=76) = ROOM temperature (current)
     var innerTrack   = this._arc(110,110,76,-140,140);
-    var innerArcFill = setPct > 0.02 ? this._arc(110,110,76,-140,setArcEnd) : '';
-    var innerSetDotRad = (setArcEnd - 90) * Math.PI / 180;
-    var innerSetDotX   = (110 + 76 * Math.cos(innerSetDotRad)).toFixed(1);
-    var innerSetDotY   = (110 + 76 * Math.sin(innerSetDotRad)).toFixed(1);
+    var innerArcFill = pct > 0.02 ? this._arc(110,110,76,-140,arcEnd) : '';
+    var innerDotRad = (arcEnd - 90) * Math.PI / 180;
+    var innerDotX   = (110 + 76 * Math.cos(innerDotRad)).toFixed(1);
+    var innerDotY   = (110 + 76 * Math.sin(innerDotRad)).toFixed(1);
 
     var arcFillSvg = '';
-    if (pct > 0.02) {
-      arcFillSvg = '<path d="' + arcFill + '" fill="none" stroke="url(#arcGrad)" stroke-width="12" stroke-linecap="round" filter="url(#arcGlow)" opacity="0.95"/>';
+    if (setPct > 0.02) {
+      arcFillSvg = '<path d="' + setArcFill + '" fill="none" stroke="url(#arcGrad)" stroke-width="12" stroke-linecap="round" filter="url(#arcGlow)" opacity="0.95"/>';
     }
     var dotSvg = '';
-    if (pct > 0.02) {
-      dotSvg = '<circle cx="' + dotX + '" cy="' + dotY + '" r="8" fill="' + mode.color + '" filter="url(#dotGlow)"/>'
-             + '<circle cx="' + dotX + '" cy="' + dotY + '" r="4" fill="white" opacity="0.9"/>';
+    if (setPct > 0.02) {
+      dotSvg = '<circle cx="' + setDotX + '" cy="' + setDotY + '" r="8" fill="' + mode.color + '" filter="url(#dotGlow)" style="cursor:grab"/>'
+             + '<circle cx="' + setDotX + '" cy="' + setDotY + '" r="4" fill="white" opacity="0.9" style="cursor:grab"/>';
     }
 
     // Tick marks
@@ -2584,14 +2588,14 @@ class AcControllerCardV2 extends HTMLElement {
           ? (swingLabels[curSwingIdx !== -1 ? curSwingIdx : 0] || swingMode)
           : swingLabels[0];
       }
-      // Inner set-temp ring (same calc as main render)
-      var slSetPct    = Math.max(0, Math.min(1, (setTemp - 16) / 16));
-      var slSetArcEnd = -140 + slSetPct * 280;
+      // Inner arc (r=76) = ROOM temperature (current) — same swap as main render
+      var slRoomPct    = Math.max(0, Math.min(1, (curTemp - 16) / 16));
+      var slRoomArcEnd = -140 + slRoomPct * 280;
       var slInnerTrack   = this._arc(110,110,76,-140,140);
-      var slInnerArcFill = slSetPct > 0.02 ? this._arc(110,110,76,-140,slSetArcEnd) : '';
-      var slSetDotRad = (slSetArcEnd - 90) * Math.PI / 180;
-      var slSetDotX   = (110 + 76 * Math.cos(slSetDotRad)).toFixed(1);
-      var slSetDotY   = (110 + 76 * Math.sin(slSetDotRad)).toFixed(1);
+      var slInnerArcFill = slRoomPct > 0.02 ? this._arc(110,110,76,-140,slRoomArcEnd) : '';
+      var slRoomDotRad = (slRoomArcEnd - 90) * Math.PI / 180;
+      var slRoomDotX   = (110 + 76 * Math.cos(slRoomDotRad)).toFixed(1);
+      var slRoomDotY   = (110 + 76 * Math.sin(slRoomDotRad)).toFixed(1);
 
       // Build room dropdown button label + popup items
       var slRoomBtnLabel = '';
@@ -2692,10 +2696,10 @@ class AcControllerCardV2 extends HTMLElement {
         + ticks
         + arcFillSvg
         + dotSvg
-        // inner set-temp ring
+        // inner room-temp ring
         + '<path d="' + slInnerTrack + '" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="4" stroke-linecap="round"/>'
-        + (slSetPct > 0.02 ? '<path d="' + slInnerArcFill + '" fill="none" stroke="' + mode.color + '" stroke-width="4" stroke-linecap="round" filter="url(#innerArcGlow)" opacity="0.85"/>' : '')
-        + (slSetPct > 0.02 ? '<circle cx="' + slSetDotX + '" cy="' + slSetDotY + '" r="4" fill="' + mode.color + '" filter="url(#innerArcGlow)"/><circle cx="' + slSetDotX + '" cy="' + slSetDotY + '" r="2" fill="white" opacity="0.9"/>' : '')
+        + (slRoomPct > 0.02 ? '<path d="' + slInnerArcFill + '" fill="none" stroke="' + mode.color + '" stroke-width="4" stroke-linecap="round" filter="url(#innerArcGlow)" opacity="0.85"/>' : '')
+        + (slRoomPct > 0.02 ? '<circle cx="' + slRoomDotX + '" cy="' + slRoomDotY + '" r="4" fill="' + mode.color + '" filter="url(#innerArcGlow)"/><circle cx="' + slRoomDotX + '" cy="' + slRoomDotY + '" r="2" fill="white" opacity="0.9"/>' : '')
         + '</svg>'
         + '<div class="sl-dial-center">'
         + '  <div class="sl-temp-lbl">' + tr.tempLabel + '</div>'
@@ -2855,8 +2859,8 @@ class AcControllerCardV2 extends HTMLElement {
 + arcFillSvg
 + dotSvg
 + '<path d="' + innerTrack + '" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="4" stroke-linecap="round"/>'
-+ (setPct > 0.02 ? '<path d="' + innerArcFill + '" fill="none" stroke="' + mode.color + '" stroke-width="4" stroke-linecap="round" filter="url(#innerArcGlow)" opacity="0.85"/>' : '')
-+ (setPct > 0.02 ? '<circle cx="' + innerSetDotX + '" cy="' + innerSetDotY + '" r="4" fill="' + mode.color + '" filter="url(#innerArcGlow)"/><circle cx="' + innerSetDotX + '" cy="' + innerSetDotY + '" r="2" fill="white" opacity="0.9"/>' : '')
++ (pct > 0.02 ? '<path d="' + innerArcFill + '" fill="none" stroke="' + mode.color + '" stroke-width="4" stroke-linecap="round" filter="url(#innerArcGlow)" opacity="0.85"/>' : '')
++ (pct > 0.02 ? '<circle cx="' + innerDotX + '" cy="' + innerDotY + '" r="4" fill="' + mode.color + '" filter="url(#innerArcGlow)"/><circle cx="' + innerDotX + '" cy="' + innerDotY + '" r="2" fill="white" opacity="0.9"/>' : '')
 + '</svg>'
 + '<div class="dial-center">'
 + '  <div class="dial-lbl">' + tr.tempLabel + '</div>'
@@ -2883,7 +2887,12 @@ class AcControllerCardV2 extends HTMLElement {
     return '<div class="eta-bar" id="live-eta" ' + tipTxt + '>' + etaTxt + '</div>';
   }).call(this)
 
-+ (modeBtns ? '<div class="mode-grid">' + modeBtns + '</div>' : '')
++ '<div style="display:flex;justify-content:center;margin:4px 0">'
++ '  <button class="mode-btn mode-btn--active" id="btn-mode-popup" style="--bc:' + mode.color + ';--bg:' + mode.glow + ';padding:8px 22px;border-radius:20px;min-width:120px">'
++ '    <span class="mode-icon">' + (mode.icon && mode.icon.indexOf('mdi:') === 0 ? '<ha-icon icon="' + mode.icon + '" style="--mdc-icon-size:18px;color:' + mode.color + ';width:18px;height:18px;display:inline-flex;align-items:center"></ha-icon>' : '<span style="font-size:16px">' + mode.icon + '</span>') + '</span>'
++ '    <span class="mode-lbl">' + mode.lbl + '</span>'
++ '  </button>'
++ '</div>'
 
 + ((cfg.show_fan !== false || cfg.show_swing !== false) ? (
   '<div class="fan-swing-row">'
@@ -3140,12 +3149,119 @@ class AcControllerCardV2 extends HTMLElement {
       self._call('climate','set_temperature',{entity_id:id, temperature: Math.max(16, parseFloat(self._a(id,'temperature')||24)-1)});
     });
 
-    onTapAll(r.querySelectorAll('[data-hvac]'), function(b) {
-      self._call('climate','set_hvac_mode',{entity_id:ROOMS[self._activeIdx].id, hvac_mode:b.dataset.hvac});
-    });
+    // ── Drag-to-adjust temperature on outer arc ─────────────────────
+    (function() {
+      var dialSvg = r.querySelector('.dial-wrap svg');
+      if (!dialSvg) return;
+      var dragging = false;
+      var dragTimer = null;
+      var lastTemp = null;
 
-    onTapAll(r.querySelectorAll('[data-fan]'), function(b) {
-      self._call('climate','set_fan_mode',{entity_id:ROOMS[self._activeIdx].id, fan_mode:b.dataset.fan});
+      function angleTo(e) {
+        var rect = dialSvg.getBoundingClientRect();
+        var cx = rect.left + rect.width / 2;
+        var cy = rect.top + rect.height / 2;
+        var pt = e.touches ? e.touches[0] : e;
+        var dx = pt.clientX - cx;
+        var dy = pt.clientY - cy;
+        // atan2 gives angle from center; convert to arc degrees (-140 to +140)
+        var angleDeg = Math.atan2(dy, dx) * 180 / Math.PI + 90; // +90 to rotate so top = 0
+        if (angleDeg > 180) angleDeg -= 360;
+        // Clamp to -140..140
+        if (angleDeg < -140) angleDeg = -140;
+        if (angleDeg > 140) angleDeg = 140;
+        // Map -140..140 to 16..32
+        var temp = 16 + (angleDeg + 140) / 280 * 16;
+        return Math.round(temp * 2) / 2; // round to 0.5
+      }
+
+      function onDragMove(e) {
+        if (!dragging) return;
+        e.preventDefault();
+        var temp = angleTo(e);
+        temp = Math.max(16, Math.min(32, temp));
+        if (temp === lastTemp) return;
+        lastTemp = temp;
+        // Update UI immediately
+        var setEl = r.querySelector('.temp-set');
+        if (setEl) setEl.innerHTML = temp + '&#176;C';
+        // Debounce the service call
+        if (dragTimer) clearTimeout(dragTimer);
+        dragTimer = setTimeout(function() {
+          var id = ROOMS[self._activeIdx].id;
+          self._call('climate','set_temperature',{entity_id:id, temperature: temp});
+        }, 300);
+      }
+
+      function onDragEnd(e) {
+        if (!dragging) return;
+        dragging = false;
+        document.removeEventListener('mousemove', onDragMove);
+        document.removeEventListener('mouseup', onDragEnd);
+        document.removeEventListener('touchmove', onDragMove);
+        document.removeEventListener('touchend', onDragEnd);
+        // Final service call
+        if (lastTemp !== null) {
+          if (dragTimer) clearTimeout(dragTimer);
+          var id = ROOMS[self._activeIdx].id;
+          self._call('climate','set_temperature',{entity_id:id, temperature: Math.max(16, Math.min(32, lastTemp))});
+        }
+      }
+
+      function onDragStart(e) {
+        // Only start drag on the outer arc area (check distance from center)
+        var rect = dialSvg.getBoundingClientRect();
+        var cx = rect.left + rect.width / 2;
+        var cy = rect.top + rect.height / 2;
+        var pt = e.touches ? e.touches[0] : e;
+        var dx = pt.clientX - cx;
+        var dy = pt.clientY - cy;
+        var dist = Math.sqrt(dx * dx + dy * dy);
+        var scale = rect.width / 220; // SVG viewBox is 220x220
+        var distSvg = dist / scale;
+        // Only trigger for outer arc region (r=88, stroke=12 → ~76 to 100)
+        if (distSvg < 70 || distSvg > 105) return;
+        e.preventDefault();
+        dragging = true;
+        lastTemp = angleTo(e);
+        document.addEventListener('mousemove', onDragMove, { passive: false });
+        document.addEventListener('mouseup', onDragEnd);
+        document.addEventListener('touchmove', onDragMove, { passive: false });
+        document.addEventListener('touchend', onDragEnd);
+      }
+
+      dialSvg.addEventListener('mousedown', onDragStart);
+      dialSvg.addEventListener('touchstart', onDragStart, { passive: false });
+    })();
+
+    // ── Mode popup (thay thế grid mode buttons) ──────────────────────
+    onTap(r.getElementById('btn-mode-popup'), function() {
+      var id = ROOMS[self._activeIdx].id;
+      var curMode = self._s(id) || 'off';
+      var cfg2 = self._config || {};
+      var modeKeys2 = ['cool','heat','dry','fan_only'];
+      var modeShow2 = { cool:'show_cool', heat:'show_heat', dry:'show_dry', fan_only:'show_fan_only' };
+      var lang2 = (cfg2.language || 'vi');
+      var tr2 = AC_TRANSLATIONS[lang2] || AC_TRANSLATIONS.vi;
+      var items = [];
+      for (var mi = 0; mi < modeKeys2.length; mi++) {
+        var mk2 = modeKeys2[mi];
+        if (cfg2[modeShow2[mk2]] === false) continue;
+        items.push({ val: mk2, label: (tr2.modes[mk2] || MODE_CFG[mk2].lbl) });
+      }
+      var labels = items.map(function(it) { return it.label; });
+      var curLabel = '';
+      for (var ml = 0; ml < items.length; ml++) {
+        if (items[ml].val === curMode) { curLabel = items[ml].label; break; }
+      }
+      self._openSelectPopup(r.getElementById('btn-mode-popup'), labels, curLabel, function(val) {
+        for (var ms = 0; ms < items.length; ms++) {
+          if (items[ms].label === val) {
+            self._call('climate','set_hvac_mode',{entity_id:id, hvac_mode:items[ms].val});
+            break;
+          }
+        }
+      });
     });
 
     onTap(r.getElementById('btn-power'), function() {
@@ -3422,6 +3538,82 @@ class AcControllerCardV2 extends HTMLElement {
       var id = ROOMS[self._activeIdx].id;
       self._call('climate','set_temperature',{entity_id:id, temperature: Math.max(16, parseFloat(self._a(id,'temperature')||24)-1)});
     });
+
+    // ── SL: Drag-to-adjust temperature on outer arc ────────────────────
+    (function() {
+      var slDialSvg = r.querySelector('.sl-dial-wrap svg');
+      if (!slDialSvg) return;
+      var slDragging = false;
+      var slDragTimer = null;
+      var slLastTemp = null;
+
+      function slAngleTo(e) {
+        var rect = slDialSvg.getBoundingClientRect();
+        var cx = rect.left + rect.width / 2;
+        var cy = rect.top + rect.height / 2;
+        var pt = e.touches ? e.touches[0] : e;
+        var dx = pt.clientX - cx;
+        var dy = pt.clientY - cy;
+        var angleDeg = Math.atan2(dy, dx) * 180 / Math.PI + 90;
+        if (angleDeg > 180) angleDeg -= 360;
+        if (angleDeg < -140) angleDeg = -140;
+        if (angleDeg > 140) angleDeg = 140;
+        var temp = 16 + (angleDeg + 140) / 280 * 16;
+        return Math.round(temp * 2) / 2;
+      }
+
+      function slDragMove(e) {
+        if (!slDragging) return;
+        e.preventDefault();
+        var temp = Math.max(16, Math.min(32, slAngleTo(e)));
+        if (temp === slLastTemp) return;
+        slLastTemp = temp;
+        var setEl = r.querySelector('.sl-temp-set');
+        if (setEl) setEl.innerHTML = temp + '&#176;C';
+        if (slDragTimer) clearTimeout(slDragTimer);
+        slDragTimer = setTimeout(function() {
+          var id = ROOMS[self._activeIdx].id;
+          self._call('climate','set_temperature',{entity_id:id, temperature: temp});
+        }, 300);
+      }
+
+      function slDragEnd() {
+        if (!slDragging) return;
+        slDragging = false;
+        document.removeEventListener('mousemove', slDragMove);
+        document.removeEventListener('mouseup', slDragEnd);
+        document.removeEventListener('touchmove', slDragMove);
+        document.removeEventListener('touchend', slDragEnd);
+        if (slLastTemp !== null) {
+          if (slDragTimer) clearTimeout(slDragTimer);
+          var id = ROOMS[self._activeIdx].id;
+          self._call('climate','set_temperature',{entity_id:id, temperature: Math.max(16, Math.min(32, slLastTemp))});
+        }
+      }
+
+      function slDragStart(e) {
+        var rect = slDialSvg.getBoundingClientRect();
+        var cx = rect.left + rect.width / 2;
+        var cy = rect.top + rect.height / 2;
+        var pt = e.touches ? e.touches[0] : e;
+        var dx = pt.clientX - cx;
+        var dy = pt.clientY - cy;
+        var dist = Math.sqrt(dx * dx + dy * dy);
+        var scale = rect.width / 220;
+        var distSvg = dist / scale;
+        if (distSvg < 70 || distSvg > 105) return;
+        e.preventDefault();
+        slDragging = true;
+        slLastTemp = slAngleTo(e);
+        document.addEventListener('mousemove', slDragMove, { passive: false });
+        document.addEventListener('mouseup', slDragEnd);
+        document.addEventListener('touchmove', slDragMove, { passive: false });
+        document.addEventListener('touchend', slDragEnd);
+      }
+
+      slDialSvg.addEventListener('mousedown', slDragStart);
+      slDialSvg.addEventListener('touchstart', slDragStart, { passive: false });
+    })();
 
     // ── Generic popup helper ─────────────────────────────────────────────────
     function openSlPopup(opts) {
