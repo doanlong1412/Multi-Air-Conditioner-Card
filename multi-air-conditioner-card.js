@@ -5203,69 +5203,116 @@ class MultiAcCardEditor extends HTMLElement {
     }));
   }
 
-  // ── Inject hass vào mọi ha-entity-picker ───────────────────────────────────
+  // ── Tạo ha-entity-picker bằng createElement (không dùng innerHTML) ────────
   _syncPickers() {
     if (!this._hass || !this.shadowRoot) return;
-    const apply = () => {
-      this.shadowRoot.querySelectorAll('ha-entity-picker').forEach(p => {
-        p.hass = this._hass;
-        const domain = p.dataset.domain;
-        if (domain) p.includeDomains = [domain];
-        const key   = p.dataset.key;
-        const saved = this._config[key] || '';
-        if (saved && p.value !== saved) {
-          p.value = saved;
-          p.setAttribute('value', saved);
-        }
+    const self = this;
+
+    function createPicker(slot, domain, value, onChange) {
+      // Nếu slot đã có picker rồi, chỉ update hass + value
+      var existing = slot.querySelector('ha-entity-picker');
+      if (existing) {
+        existing.hass = self._hass;
+        if (value && existing.value !== value) existing.value = value;
+        return;
+      }
+      // Tạo mới bằng createElement
+      var picker = document.createElement('ha-entity-picker');
+      picker.hass = self._hass;
+      picker.allowCustomEntity = true;
+      if (domain) picker.includeDomains = [domain];
+      if (value) picker.value = value;
+      picker.addEventListener('value-changed', function(e) {
+        onChange(e.detail.value || '');
       });
-      // entity pickers cho từng room
-      this.shadowRoot.querySelectorAll('ha-entity-picker[data-room]').forEach(p => {
-        p.hass = this._hass;
-        p.includeDomains = ['climate'];
-        const idx   = parseInt(p.dataset.room);
-        const ents  = this._config.entities || [];
-        const saved = (ents[idx] && ents[idx].entity_id) || '';
-        if (saved && p.value !== saved) { p.value = saved; p.setAttribute('value', saved); }
+      slot.appendChild(picker);
+    }
+
+    // Global entity pickers (data-ep-key)
+    this.shadowRoot.querySelectorAll('.ep-slot[data-ep-key]').forEach(function(slot) {
+      var key = slot.dataset.epKey;
+      var domain = slot.dataset.epDomain;
+      var saved = self._config[key] || '';
+      createPicker(slot, domain, saved, function(val) {
+        var c = Object.assign({}, self._config);
+        if (val) c[key] = val; else delete c[key];
+        self._config = c;
+        self._fire();
       });
-      // room temp sensor pickers
-      this.shadowRoot.querySelectorAll('ha-entity-picker[data-room-temp]').forEach(p => {
-        p.hass = this._hass;
-        p.includeDomains = ['sensor'];
-        const idx   = parseInt(p.dataset.roomTemp);
-        const ents  = this._config.entities || [];
-        const saved = (ents[idx] && ents[idx].temp_entity) || '';
-        if (saved && p.value !== saved) { p.value = saved; p.setAttribute('value', saved); }
+    });
+
+    // Per-room pickers
+    var ents = (this._config.entities || []).slice();
+
+    // Room climate entity (data-ep-room)
+    this.shadowRoot.querySelectorAll('.ep-slot[data-ep-room]').forEach(function(slot) {
+      var idx = parseInt(slot.dataset.epRoom);
+      var saved = (ents[idx] && ents[idx].entity_id) || '';
+      createPicker(slot, 'climate', saved, function(val) {
+        var e2 = (self._config.entities || []).slice();
+        while (e2.length <= idx) e2.push({});
+        if (val) e2[idx] = Object.assign({}, e2[idx], { entity_id: val });
+        else delete e2[idx].entity_id;
+        self._config = Object.assign({}, self._config, { entities: e2 });
+        self._fire();
       });
-      // room humidity sensor pickers
-      this.shadowRoot.querySelectorAll('ha-entity-picker[data-room-hum]').forEach(p => {
-        p.hass = this._hass;
-        p.includeDomains = ['sensor'];
-        const idx   = parseInt(p.dataset.roomHum);
-        const ents  = this._config.entities || [];
-        const saved = (ents[idx] && ents[idx].humidity_entity) || '';
-        if (saved && p.value !== saved) { p.value = saved; p.setAttribute('value', saved); }
+    });
+
+    // Room temp sensor (data-ep-room-temp)
+    this.shadowRoot.querySelectorAll('.ep-slot[data-ep-room-temp]').forEach(function(slot) {
+      var idx = parseInt(slot.dataset.epRoomTemp);
+      var saved = (ents[idx] && ents[idx].temp_entity) || '';
+      createPicker(slot, 'sensor', saved, function(val) {
+        var e2 = (self._config.entities || []).slice();
+        while (e2.length <= idx) e2.push({});
+        if (val) e2[idx] = Object.assign({}, e2[idx], { temp_entity: val });
+        else delete e2[idx].temp_entity;
+        self._config = Object.assign({}, self._config, { entities: e2 });
+        self._fire();
       });
-      // room power sensor pickers
-      this.shadowRoot.querySelectorAll('ha-entity-picker[data-room-power]').forEach(p => {
-        p.hass = this._hass;
-        p.includeDomains = ['sensor'];
-        const idx   = parseInt(p.dataset.roomPower);
-        const ents  = this._config.entities || [];
-        const saved = (ents[idx] && ents[idx].power_entity) || '';
-        if (saved && p.value !== saved) { p.value = saved; p.setAttribute('value', saved); }
+    });
+
+    // Room humidity sensor (data-ep-room-hum)
+    this.shadowRoot.querySelectorAll('.ep-slot[data-ep-room-hum]').forEach(function(slot) {
+      var idx = parseInt(slot.dataset.epRoomHum);
+      var saved = (ents[idx] && ents[idx].humidity_entity) || '';
+      createPicker(slot, 'sensor', saved, function(val) {
+        var e2 = (self._config.entities || []).slice();
+        while (e2.length <= idx) e2.push({});
+        if (val) e2[idx] = Object.assign({}, e2[idx], { humidity_entity: val });
+        else delete e2[idx].humidity_entity;
+        self._config = Object.assign({}, self._config, { entities: e2 });
+        self._fire();
       });
-      // room vane vertical entity pickers
-      this.shadowRoot.querySelectorAll('ha-entity-picker[data-room-vane]').forEach(p => {
-        p.hass = this._hass;
-        p.includeDomains = ['input_select'];
-        const idx   = parseInt(p.dataset.roomVane);
-        const ents  = this._config.entities || [];
-        const saved = (ents[idx] && ents[idx].vane_vertical_entity) || '';
-        if (saved && p.value !== saved) { p.value = saved; p.setAttribute('value', saved); }
+    });
+
+    // Room power sensor (data-ep-room-power)
+    this.shadowRoot.querySelectorAll('.ep-slot[data-ep-room-power]').forEach(function(slot) {
+      var idx = parseInt(slot.dataset.epRoomPower);
+      var saved = (ents[idx] && ents[idx].power_entity) || '';
+      createPicker(slot, 'sensor', saved, function(val) {
+        var e2 = (self._config.entities || []).slice();
+        while (e2.length <= idx) e2.push({});
+        if (val) e2[idx] = Object.assign({}, e2[idx], { power_entity: val });
+        else delete e2[idx].power_entity;
+        self._config = Object.assign({}, self._config, { entities: e2 });
+        self._fire();
       });
-    };
-    apply();
-    requestAnimationFrame(() => requestAnimationFrame(apply));
+    });
+
+    // Room vane vertical entity (data-ep-room-vane)
+    this.shadowRoot.querySelectorAll('.ep-slot[data-ep-room-vane]').forEach(function(slot) {
+      var idx = parseInt(slot.dataset.epRoomVane);
+      var saved = (ents[idx] && ents[idx].vane_vertical_entity) || '';
+      createPicker(slot, 'input_select', saved, function(val) {
+        var e2 = (self._config.entities || []).slice();
+        while (e2.length <= idx) e2.push({});
+        if (val) e2[idx] = Object.assign({}, e2[idx], { vane_vertical_entity: val });
+        else delete e2[idx].vane_vertical_entity;
+        self._config = Object.assign({}, self._config, { entities: e2 });
+        self._fire();
+      });
+    });
   }
 
   // ── Toggle accordion mà không full re-render (giữ picker state) ────────────
@@ -5316,7 +5363,7 @@ class MultiAcCardEditor extends HTMLElement {
     return `
 <div class="row">
   <label>${label}</label>
-  <ha-entity-picker data-key="${key}" data-domain="${domain}" allow-custom-entity></ha-entity-picker>
+  <div class="ep-slot" data-ep-key="${key}" data-ep-domain="${domain}"></div>
 </div>`;
   }
 
@@ -5340,23 +5387,23 @@ class MultiAcCardEditor extends HTMLElement {
   <div class="ac-row-title">❄ ${t.edRooms.replace(/^❄\s*/,'')} ${i+1} – ${defLbl}</div>
   <div class="row">
     <label>${t.edAcEntity}</label>
-    <ha-entity-picker data-room="${i}" data-domain="climate" allow-custom-entity></ha-entity-picker>
+    <div class="ep-slot" data-ep-room="${i}" data-ep-domain="climate"></div>
   </div>
   <div class="row">
     <label>${t.edRoomTempEntity || '🌡 Room temperature sensor'}</label>
-    <ha-entity-picker data-room-temp="${i}" data-domain="sensor" allow-custom-entity></ha-entity-picker>
+    <div class="ep-slot" data-ep-room-temp="${i}" data-ep-domain="sensor"></div>
   </div>
   <div class="row">
     <label>${t.edRoomHumidityEntity || '💧 Room humidity sensor'}</label>
-    <ha-entity-picker data-room-hum="${i}" data-domain="sensor" allow-custom-entity></ha-entity-picker>
+    <div class="ep-slot" data-ep-room-hum="${i}" data-ep-domain="sensor"></div>
   </div>
   <div class="row">
     <label>${t.edRoomPowerEntity || '⚡ Room power sensor (sensor.*)'}</label>
-    <ha-entity-picker data-room-power="${i}" data-domain="sensor" allow-custom-entity></ha-entity-picker>
+    <div class="ep-slot" data-ep-room-power="${i}" data-ep-domain="sensor"></div>
   </div>
   <div class="row">
     <label>${t.edVaneVertical}</label>
-    <ha-entity-picker data-room-vane="${i}" data-domain="input_select" allow-custom-entity></ha-entity-picker>
+    <div class="ep-slot" data-ep-room-vane="${i}" data-ep-domain="input_select"></div>
   </div>
   <div class="row">
     <label>${t.edAcName}</label>
@@ -5402,6 +5449,8 @@ class MultiAcCardEditor extends HTMLElement {
   .row:last-child { margin-bottom:0; }
   .row label { font-size:12px;color:var(--secondary-text-color);margin-bottom:4px;font-weight:600; }
   ha-entity-picker { display:block;width:100%; }
+  .ep-slot { display:block;width:100%;min-height:40px; }
+  .ep-slot ha-entity-picker { display:block;width:100%; }
   /* language */
   .lang-grid { display:flex;flex-wrap:wrap;gap:6px; }
   .lang-btn { display:flex;align-items:center;gap:5px;padding:7px 10px;border-radius:8px;
@@ -5950,72 +5999,6 @@ class MultiAcCardEditor extends HTMLElement {
       }
     }
 
-    // ha-entity-picker: room entities
-    sr.querySelectorAll('ha-entity-picker[data-room]').forEach(picker =>
-      picker.addEventListener('value-changed', e => {
-        const idx  = parseInt(picker.dataset.room);
-        const val  = e.detail.value;
-        const rcMax = Math.max(1, Math.min(8, parseInt(this._config.room_count) || 4));
-        const ents = (this._config.entities || []).slice();
-        while (ents.length <= idx) ents.push({});
-        if (val) ents[idx] = { ...ents[idx], entity_id: val };
-        else delete ents[idx].entity_id;
-        this._config = { ...this._config, entities: ents };
-        this._fire();
-      }));
-
-    // ha-entity-picker: room temp sensor
-    sr.querySelectorAll('ha-entity-picker[data-room-temp]').forEach(picker =>
-      picker.addEventListener('value-changed', e => {
-        const idx = parseInt(picker.dataset.roomTemp);
-        const val = e.detail.value;
-        const ents = (this._config.entities || []).slice();
-        while (ents.length <= idx) ents.push({});
-        if (val) ents[idx] = { ...ents[idx], temp_entity: val };
-        else delete ents[idx].temp_entity;
-        this._config = { ...this._config, entities: ents };
-        this._fire();
-      }));
-
-    // ha-entity-picker: room humidity sensor
-    sr.querySelectorAll('ha-entity-picker[data-room-hum]').forEach(picker =>
-      picker.addEventListener('value-changed', e => {
-        const idx = parseInt(picker.dataset.roomHum);
-        const val = e.detail.value;
-        const ents = (this._config.entities || []).slice();
-        while (ents.length <= idx) ents.push({});
-        if (val) ents[idx] = { ...ents[idx], humidity_entity: val };
-        else delete ents[idx].humidity_entity;
-        this._config = { ...this._config, entities: ents };
-        this._fire();
-      }));
-
-    // ha-entity-picker: room power sensor
-    sr.querySelectorAll('ha-entity-picker[data-room-power]').forEach(picker =>
-      picker.addEventListener('value-changed', e => {
-        const idx = parseInt(picker.dataset.roomPower);
-        const val = e.detail.value;
-        const ents = (this._config.entities || []).slice();
-        while (ents.length <= idx) ents.push({});
-        if (val) ents[idx] = { ...ents[idx], power_entity: val };
-        else delete ents[idx].power_entity;
-        this._config = { ...this._config, entities: ents };
-        this._fire();
-      }));
-
-    // ha-entity-picker: room vane vertical entity
-    sr.querySelectorAll('ha-entity-picker[data-room-vane]').forEach(picker =>
-      picker.addEventListener('value-changed', e => {
-        const idx = parseInt(picker.dataset.roomVane);
-        const val = e.detail.value;
-        const ents = (this._config.entities || []).slice();
-        while (ents.length <= idx) ents.push({});
-        if (val) ents[idx] = { ...ents[idx], vane_vertical_entity: val };
-        else delete ents[idx].vane_vertical_entity;
-        this._config = { ...this._config, entities: ents };
-        this._fire();
-      }));
-
     // power unit select
     const selPowerUnit = sr.getElementById('sel-power-unit');
     if (selPowerUnit) selPowerUnit.addEventListener('change', () => {
@@ -6035,17 +6018,6 @@ class MultiAcCardEditor extends HTMLElement {
       this._fire(); this._render();
     });
 
-
-    // ha-entity-picker: sensor entities
-    sr.querySelectorAll('ha-entity-picker[data-key]').forEach(picker =>
-      picker.addEventListener('value-changed', e => {
-        const k = picker.dataset.key;
-        const v = e.detail.value;
-        const c = { ...this._config };
-        if (v) c[k] = v; else delete c[k];
-        this._config = c;
-        this._fire();
-      }));
 
     // opacity slider
     const bgAlphaSlider = sr.getElementById('inp-bg-alpha');
