@@ -5473,22 +5473,6 @@ class MultiAcCardEditor extends HTMLElement {
           <button id="tu-f" style="padding:4px 12px;border-radius:8px;border:1px solid ${(this._config.temp_unit||'C')==='F'?'var(--primary-color,#03a9f4)':'var(--divider-color)'};background:${(this._config.temp_unit||'C')==='F'?'rgba(3,169,244,0.15)':'transparent'};color:${(this._config.temp_unit||'C')==='F'?'var(--primary-color,#03a9f4)':'var(--secondary-text-color)'};font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;transition:all .15s;">°F</button>
         </div>
       </div>
-      <div style="height:1px;background:var(--divider-color,rgba(0,0,0,0.08));margin:6px 0;"></div>
-      <div style="padding:8px 2px;">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
-          <div>
-            <div style="font-size:12.5px;font-weight:500;color:var(--primary-text-color);">${t.edCoolAnimSpeed||'❄ Snowflake repeat (s)'}</div>
-            <div style="font-size:10.5px;color:var(--secondary-text-color);margin-top:1px;">${t.edCoolAnimSpeedDesc||'Wait between animations (2–15s)'}</div>
-          </div>
-          <span id="cool-anim-speed-val" style="font-size:13px;font-weight:700;color:var(--primary-color,#03a9f4);min-width:28px;text-align:right;">${Math.round((this._config.cool_anim_speed||10000)/1000)}s</span>
-        </div>
-        <div style="display:flex;align-items:center;gap:8px;">
-          <span style="font-size:10px;color:var(--secondary-text-color);">2s</span>
-            value="${this._config.cool_anim_speed||10000}"
-            style="flex:1;accent-color:var(--primary-color,#03a9f4);height:4px;cursor:pointer;">
-          <span style="font-size:10px;color:var(--secondary-text-color);">15s</span>
-        </div>
-      </div>
     </div>
   </div>
   <div class="acc-wrap">
@@ -5863,46 +5847,6 @@ class MultiAcCardEditor extends HTMLElement {
       this._fire(); this._render();
     });
 
-    // cool anim speed slider
-    if (sliderCoolSpeed) {
-      // Helper: tìm card element anh em trong cùng hui-card-element và restart animation
-      const _restartCardAnim = (val) => {
-        try {
-          // Editor nằm trong ha-more-info-dialog hoặc lovelace editor — leo ngược DOM
-          let node = this.getRootNode();
-          // Tìm card element qua document hoặc shadowRoot chain
-          const findCard = (root) => {
-            if (!root) return null;
-            const c = root.querySelector && root.querySelector('multi-air-conditioner-card');
-            if (c) return c;
-            if (root.host) return findCard(root.host.getRootNode());
-            return null;
-          };
-          const card = findCard(node) || findCard(node && node.host && node.host.getRootNode());
-          if (card && card._cas) {
-            if (card._cas.phase === 'wait') {
-              card._cas = null;  // restart ngay
-            } else {
-              card._cas.repeatMs = Math.min(15000, Math.max(2000, val));
-            }
-          }
-        } catch(e) { /* silent */ }
-      };
-      sliderCoolSpeed.addEventListener('input', () => {
-        const val = parseInt(sliderCoolSpeed.value);
-        const lbl = sr.getElementById('cool-anim-speed-val');
-        if (lbl) lbl.textContent = Math.round(val/1000) + 's';
-        this._config = { ...this._config, cool_anim_speed: val };
-        this._fire();
-        _restartCardAnim(val);
-      });
-      sliderCoolSpeed.addEventListener('change', () => {
-        const val = parseInt(sliderCoolSpeed.value);
-        this._config = { ...this._config, cool_anim_speed: val };
-        this._fire();
-        _restartCardAnim(val);
-      });
-    }
 
     // ha-entity-picker: sensor entities
     sr.querySelectorAll('ha-entity-picker[data-key]').forEach(picker =>
