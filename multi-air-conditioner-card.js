@@ -136,6 +136,7 @@ const AC_TRANSLATIONS = {
     edShowSlSwing: '🔄 Hướng gió (Super Lite)', edShowSlSwingDesc: 'Hiện nút hướng gió trong Super Lite',
     edShowSlRoomPower: '⚡ Tiêu thụ điện phòng (Super Lite)', edShowSlRoomPowerDesc: 'Hiện mức tiêu thụ điện phòng đang chọn',
     edPowerUnit: '⚡ Đơn vị công suất', edPowerUnitKw: 'kW', edPowerUnitW: 'W',
+    edTempUnit: '🌡 Đơn vị nhiệt độ', edTempUnitC: '°C — Celsius', edTempUnitF: '°F — Fahrenheit',
     edCoolAnimSpeed: '❄ Lặp lại bông tuyết (giây)', edCoolAnimSpeedDesc: 'Thời gian chờ giữa các lần bông tuyết bay (2–15s)',
     edShowOutdoorTemp: 'Nhiệt độ ngoài trời', edShowHumidity: 'Độ ẩm', edShowPower: 'Công suất (kW)',
     edRoomCountLabel: function(n) { return '🏠 Số lượng phòng (1–8, mặc định 4)'; },
@@ -238,6 +239,7 @@ const AC_TRANSLATIONS = {
     edShowSlSwing: '🔄 Airflow (Super Lite)', edShowSlSwingDesc: 'Show airflow button in Super Lite',
     edShowSlRoomPower: '⚡ Room power (Super Lite)', edShowSlRoomPowerDesc: 'Show selected room power consumption',
     edPowerUnit: '⚡ Power unit', edPowerUnitKw: 'kW', edPowerUnitW: 'W',
+    edTempUnit: '🌡 Temperature unit', edTempUnitC: '°C — Celsius', edTempUnitF: '°F — Fahrenheit',
     edCoolAnimSpeed: '❄ Snowflake repeat (seconds)', edCoolAnimSpeedDesc: 'Wait time between snowflake animations (2–15s)',
     edShowOutdoorTemp: 'Outdoor temperature', edShowHumidity: 'Humidity', edShowPower: 'Power (kW)',
     edRoomCountLabel: function(n) { return '🏠 Number of rooms (1–8, default 4)'; },
@@ -340,6 +342,7 @@ const AC_TRANSLATIONS = {
     edShowSlSwing: '🔄 Luftrichtung (Super Lite)', edShowSlSwingDesc: 'Luftrichtungstaste in Super Lite anzeigen',
     edShowSlRoomPower: '⚡ Raumleistung (Super Lite)', edShowSlRoomPowerDesc: 'Raumverbrauch der gewählten Zone anzeigen',
     edPowerUnit: '⚡ Leistungseinheit', edPowerUnitKw: 'kW', edPowerUnitW: 'W',
+    edTempUnit: '🌡 Temperatureinheit', edTempUnitC: '°C — Celsius', edTempUnitF: '°F — Fahrenheit',
     edCoolAnimSpeed: '❄ Schneeflocke wiederholen (s)', edCoolAnimSpeedDesc: 'Wartezeit zwischen Animationen (2–15s)',
     edShowOutdoorTemp: 'Außentemperatur', edShowHumidity: 'Luftfeuchtigkeit', edShowPower: 'Leistung (kW)',
     edRoomCountLabel: function(n) { return '🏠 Anzahl der Räume (1–8, Standard 4)'; },
@@ -442,6 +445,7 @@ const AC_TRANSLATIONS = {
     edShowSlSwing: '🔄 Direction air (Super Lite)', edShowSlSwingDesc: 'Afficher bouton direction en Super Lite',
     edShowSlRoomPower: '⚡ Consommation pièce (Super Lite)', edShowSlRoomPowerDesc: 'Afficher la consommation de la pièce sélectionnée',
     edPowerUnit: '⚡ Unité puissance', edPowerUnitKw: 'kW', edPowerUnitW: 'W',
+    edTempUnit: '🌡 Unité de température', edTempUnitC: '°C — Celsius', edTempUnitF: '°F — Fahrenheit',
     edCoolAnimSpeed: '❄ Répétition flocon (s)', edCoolAnimSpeedDesc: 'Délai entre les animations (2–15s)',
     edShowOutdoorTemp: 'Température extérieure', edShowHumidity: 'Humidité', edShowPower: 'Puissance (kW)',
     edRoomCountLabel: function(n) { return '🏠 Nombre de pièces (1–8, défaut 4)'; },
@@ -544,6 +548,7 @@ const AC_TRANSLATIONS = {
     edShowSlSwing: '🔄 Luchtrichting (Super Lite)', edShowSlSwingDesc: 'Luchtrichtingsknop tonen in Super Lite',
     edShowSlRoomPower: '⚡ Kamerverbruik (Super Lite)', edShowSlRoomPowerDesc: 'Verbruik geselecteerde kamer tonen',
     edPowerUnit: '⚡ Vermogenseenheid', edPowerUnitKw: 'kW', edPowerUnitW: 'W',
+    edTempUnit: '🌡 Temperatuureenheid', edTempUnitC: '°C — Celsius', edTempUnitF: '°F — Fahrenheit',
     edCoolAnimSpeed: '❄ Sneeuwvlok herhalen (s)', edCoolAnimSpeedDesc: 'Wachttijd tussen animaties (2–15s)',
     edShowOutdoorTemp: 'Buitentemperatuur', edShowHumidity: 'Vochtigheid', edShowPower: 'Vermogen (kW)',
     edRoomCountLabel: function(n) { return '🏠 Aantal kamers (1–8, standaard 4)'; },
@@ -646,6 +651,7 @@ const AC_TRANSLATIONS = {
     edShowSlSwing: '🔄 Kierunek powietrza (Super Lite)', edShowSlSwingDesc: 'Pokaż przycisk kierunku w Super Lite',
     edShowSlRoomPower: '⚡ Moc pokoju (Super Lite)', edShowSlRoomPowerDesc: 'Pokaż zużycie wybranego pokoju',
     edPowerUnit: '⚡ Jednostka mocy', edPowerUnitKw: 'kW', edPowerUnitW: 'W',
+    edTempUnit: '🌡 Jednostka temperatury', edTempUnitC: '°C — Celsius', edTempUnitF: '°F — Fahrenheit',
     edCoolAnimSpeed: '❄ Powtarzanie płatka śniegu (s)', edCoolAnimSpeedDesc: 'Czas oczekiwania między animacjami (2–15s)',
     edShowOutdoorTemp: 'Temperatura zewnętrzna', edShowHumidity: 'Wilgotność', edShowPower: 'Moc (kW)',
     edRoomCountLabel: function(n) { return '🏠 Liczba pokojów (1–8, domyślnie 4)'; },
@@ -748,6 +754,7 @@ const AC_TRANSLATIONS = {
     edShowSlSwing: '🔄 Luftriktning (Super Lite)', edShowSlSwingDesc: 'Visa luftriktningsknapp i Super Lite',
     edShowSlRoomPower: '⚡ Rumseffekt (Super Lite)', edShowSlRoomPowerDesc: 'Visa elförbrukning för valt rum',
     edPowerUnit: '⚡ Effektenhet', edPowerUnitKw: 'kW', edPowerUnitW: 'W',
+    edTempUnit: '🌡 Temperaturenhet', edTempUnitC: '°C — Celsius', edTempUnitF: '°F — Fahrenheit',
     edCoolAnimSpeed: '❄ Upprepa snöflingan (s)', edCoolAnimSpeedDesc: 'Väntetid mellan animationer (2–15s)',
     edShowOutdoorTemp: 'Utomhustemperatur', edShowHumidity: 'Luftfuktighet', edShowPower: 'Effekt (kW)',
     edRoomCountLabel: function(n) { return '🏠 Antal rum (1–8, standard 4)'; },
@@ -850,6 +857,7 @@ const AC_TRANSLATIONS = {
     edShowSlSwing: '🔄 Légáramlat (Super Lite)', edShowSlSwingDesc: 'Légáramlat gomb mutatása Super Lite-ban',
     edShowSlRoomPower: '⚡ Szoba fogyasztás (Super Lite)', edShowSlRoomPowerDesc: 'Kiválasztott szoba fogyasztásának mutatása',
     edPowerUnit: '⚡ Teljesítményegység', edPowerUnitKw: 'kW', edPowerUnitW: 'W',
+    edTempUnit: '🌡 Hőmérsékleti egység', edTempUnitC: '°C — Celsius', edTempUnitF: '°F — Fahrenheit',
     edCoolAnimSpeed: '❄ Hópehely ismétlése (s)', edCoolAnimSpeedDesc: 'Várakozási idő animációk között (2–15s)',
     edShowOutdoorTemp: 'Kültéri hőmérséklet', edShowHumidity: 'Páratartalom', edShowPower: 'Teljesítmény (kW)',
     edRoomCountLabel: function(n) { return '🏠 Szobák száma (1–8, alapértelmezett 4)'; },
@@ -952,6 +960,7 @@ const AC_TRANSLATIONS = {
     edShowSlSwing: '🔄 Směr vzduchu (Super Lite)', edShowSlSwingDesc: 'Zobrazit tlačítko směru v Super Lite',
     edShowSlRoomPower: '⚡ Spotřeba místnosti (Super Lite)', edShowSlRoomPowerDesc: 'Zobrazit spotřebu vybrané místnosti',
     edPowerUnit: '⚡ Jednotka výkonu', edPowerUnitKw: 'kW', edPowerUnitW: 'W',
+    edTempUnit: '🌡 Jednotka teploty', edTempUnitC: '°C — Celsius', edTempUnitF: '°F — Fahrenheit',
     edCoolAnimSpeed: '❄ Opakování sněhové vločky (s)', edCoolAnimSpeedDesc: 'Čekání mezi animacemi (2–15s)',
     edShowOutdoorTemp: 'Venkovní teplota', edShowHumidity: 'Vlhkost', edShowPower: 'Výkon (kW)',
     edRoomCountLabel: function(n) { return '🏠 Počet místností (1–8, výchozí 4)'; },
@@ -1054,6 +1063,7 @@ const AC_TRANSLATIONS = {
     edShowSlSwing: '🔄 Direzione aria (Super Lite)', edShowSlSwingDesc: 'Mostra pulsante direzione in Super Lite',
     edShowSlRoomPower: '⚡ Consumo stanza (Super Lite)', edShowSlRoomPowerDesc: 'Mostra consumo stanza selezionata',
     edPowerUnit: '⚡ Unità potenza', edPowerUnitKw: 'kW', edPowerUnitW: 'W',
+    edTempUnit: '🌡 Unità di temperatura', edTempUnitC: '°C — Celsius', edTempUnitF: '°F — Fahrenheit',
     edCoolAnimSpeed: '❄ Ripetizione fiocco di neve (s)', edCoolAnimSpeedDesc: 'Attesa tra le animazioni (2–15s)',
     edShowOutdoorTemp: 'Temperatura esterna', edShowHumidity: 'Umidità', edShowPower: 'Potenza (kW)',
     edRoomCountLabel: function(n) { return '🏠 Numero di stanze (1–8, predefinito 4)'; },
@@ -1156,6 +1166,7 @@ const AC_TRANSLATIONS = {
     edShowSlSwing: '🔄 Direção do ar (Super Lite)', edShowSlSwingDesc: 'Mostrar botão de direção em Super Lite',
     edShowSlRoomPower: '⚡ Consumo sala (Super Lite)', edShowSlRoomPowerDesc: 'Mostrar consumo da sala selecionada',
     edPowerUnit: '⚡ Unidade de potência', edPowerUnitKw: 'kW', edPowerUnitW: 'W',
+    edTempUnit: '🌡 Unidade de temperatura', edTempUnitC: '°C — Celsius', edTempUnitF: '°F — Fahrenheit',
     edCoolAnimSpeed: '❄ Repetição do floco de neve (s)', edCoolAnimSpeedDesc: 'Aguardar entre animações (2–15s)',
     edShowOutdoorTemp: 'Temperatura externa', edShowHumidity: 'Humidade', edShowPower: 'Potência (kW)',
     edRoomCountLabel: function(n) { return '🏠 Número de salas (1–8, padrão 4)'; },
@@ -1287,7 +1298,27 @@ const AC_DEFAULT_CONFIG = {
   color_room_name: '',
   color_st_title: '',
   color_st_sub: '',
+  temp_unit: 'C',
 };
+
+// ─── Temperature unit helpers ─────────────────────────────────────────────────
+// Convert Celsius → display value + symbol based on config temp_unit
+function acCtoF(c) { return Math.round(c * 9/5 + 32 * 10) / 10; }
+function acFmtTemp(celsius, unit) {
+  if (unit === 'F') {
+    var f = celsius * 9/5 + 32;
+    return f.toFixed(1);
+  }
+  return parseFloat(celsius).toFixed(1);
+}
+function acTempUnit(unit) { return unit === 'F' ? '°F' : '°C'; }
+// For set temperature (integer steps in °C → whole number in °F)
+function acFmtSetTemp(celsius, unit) {
+  if (unit === 'F') return Math.round(celsius * 9/5 + 32);
+  return celsius;
+}
+// Reverse: F slider value → C for HA service call
+function acFtoC(f) { return Math.round((f - 32) * 5/9 * 2) / 2; }
 
 const ROOM_IMAGES = [
   'https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?w=900&q=85', // phòng khách
@@ -3560,6 +3591,10 @@ class AcControllerCardV2 extends HTMLElement {
     }
     var roomHumidityDisplay = roomHumidityRaw > 0 ? Math.round(roomHumidityRaw) + '%' : '--';
     var isLite  = this._config.view_mode === 'lite';
+    var tUnit   = cfg.temp_unit || 'C';   // 'C' | 'F'
+    var curTempDisp = acFmtTemp(curTemp, tUnit);   // display string e.g. "26.0" or "78.8"
+    var setTempDisp = acFmtSetTemp(setTemp, tUnit); // display value e.g. 24 or 75
+    var degSym      = tUnit === 'F' ? '°F' : '°C';  // full symbol for labels
     var fi  = Math.max(0, FAN_LEVELS.indexOf(fanMode));
     // Dùng supported fan_modes thực tế của entity; fallback về FAN_LEVELS
     var activeFanModes = supportedFanModes || FAN_LEVELS;
@@ -3709,7 +3744,8 @@ class AcControllerCardV2 extends HTMLElement {
       var rState = this._s(ROOMS[j].id);
       var ron = rState !== 'off';
       var rTemp = parseFloat(this._a(ROOMS[j].id, 'current_temperature') || 0);
-      var rTempStr = rTemp > 0 ? rTemp.toFixed(1) + '°' : '--';
+      var rTempDisp = rTemp > 0 ? acFmtTemp(rTemp, tUnit) + (tUnit === 'F' ? '°F' : '°') : '--';
+      var rTempStr = rTempDisp;
 
       // ── Đọc độ ẩm phòng (per-room sensor hoặc global) ──
       var rHumRaw = NaN;
@@ -3724,40 +3760,41 @@ class AcControllerCardV2 extends HTMLElement {
       var tipMsg = '';
       var tipColor = 'rgba(255,255,255,0.88)';
       var tipEmoji = '';
+      var rTD = rTemp > 0 ? acFmtTemp(rTemp, tUnit) + (tUnit === 'F' ? '°F' : '°') : '';
       if (rTemp > 0) {
+        // Thresholds: convert to compare in °C always (rTemp is always °C from HA)
+        var tHot  = 32, tWarm = 29, tCool = 24, tCold = 18;
         if (!ron) {
-          // Máy đang tắt — gợi ý bật
-          if (rTemp >= 32) {
-            tipEmoji = '🥵'; tipMsg = lang === 'vi' ? 'Nóng quá ' + rTemp.toFixed(1) + '° rồi, bật điều hòa đi bạn!' : 'Too hot at ' + rTemp.toFixed(1) + '°! Turn on the AC!';
+          if (rTemp >= tHot) {
+            tipEmoji = '🥵'; tipMsg = lang === 'vi' ? 'Nóng quá ' + rTD + ' rồi, bật điều hòa đi bạn!' : 'Too hot at ' + rTD + '! Turn on the AC!';
             tipColor = '#fca5a5';
-          } else if (rTemp >= 29) {
-            tipEmoji = '☀️'; tipMsg = lang === 'vi' ? 'Hơi nóng đó, ' + rTemp.toFixed(1) + '° — bật điều hòa cho mát?' : 'Getting warm (' + rTemp.toFixed(1) + '°) — turn on AC?';
+          } else if (rTemp >= tWarm) {
+            tipEmoji = '☀️'; tipMsg = lang === 'vi' ? 'Hơi nóng đó, ' + rTD + ' — bật điều hòa cho mát?' : 'Getting warm (' + rTD + ') — turn on AC?';
             tipColor = '#fdba74';
-          } else if (rTemp <= 18) {
-            tipEmoji = '🥶'; tipMsg = lang === 'vi' ? 'Lạnh quá ' + rTemp.toFixed(1) + '°, bật sưởi đi bạn!' : 'Too cold at ' + rTemp.toFixed(1) + '°! Turn on heat?';
+          } else if (rTemp <= tCold) {
+            tipEmoji = '🥶'; tipMsg = lang === 'vi' ? 'Lạnh quá ' + rTD + ', bật sưởi đi bạn!' : 'Too cold at ' + rTD + '! Turn on heat?';
             tipColor = '#93c5fd';
           } else if (!isNaN(rHumRaw) && rHumRaw >= 75) {
             tipEmoji = '💧'; tipMsg = lang === 'vi' ? 'Độ ẩm ' + Math.round(rHumRaw) + '% — ẩm thật! Bật hút ẩm đi?' : 'Humidity ' + Math.round(rHumRaw) + '% — quite humid! Try dry mode?';
             tipColor = '#c4b5fd';
           } else {
-            tipEmoji = '✅'; tipMsg = lang === 'vi' ? rTemp.toFixed(1) + '° — phòng đang ổn, không cần bật đâu' : rTemp.toFixed(1) + '° — room is comfortable';
+            tipEmoji = '✅'; tipMsg = lang === 'vi' ? rTD + ' — phòng đang ổn, không cần bật đâu' : rTD + ' — room is comfortable';
             tipColor = '#86efac';
           }
         } else {
-          // Máy đang bật — nhận xét trạng thái
           if (rState === 'cool') {
             if (rTemp > 28) {
-              tipEmoji = '❄️'; tipMsg = lang === 'vi' ? 'Đang làm lạnh... ' + rTemp.toFixed(1) + '° còn hơi cao, chờ tí nha!' : 'Cooling... ' + rTemp.toFixed(1) + '° still a bit high, hang on!';
+              tipEmoji = '❄️'; tipMsg = lang === 'vi' ? 'Đang làm lạnh... ' + rTD + ' còn hơi cao, chờ tí nha!' : 'Cooling... ' + rTD + ' still a bit high, hang on!';
               tipColor = '#7dd3fc';
-            } else if (rTemp <= 24) {
-              tipEmoji = '😌'; tipMsg = lang === 'vi' ? rTemp.toFixed(1) + '° — mát rồi đó, dễ chịu lắm!' : rTemp.toFixed(1) + '° — nice and cool now!';
+            } else if (rTemp <= tCool) {
+              tipEmoji = '😌'; tipMsg = lang === 'vi' ? rTD + ' — mát rồi đó, dễ chịu lắm!' : rTD + ' — nice and cool now!';
               tipColor = '#6ee7b7';
             } else {
-              tipEmoji = '❄️'; tipMsg = lang === 'vi' ? 'Đang làm lạnh, ' + rTemp.toFixed(1) + '° — sắp mát rồi!' : 'Cooling down (' + rTemp.toFixed(1) + '°) — almost there!';
+              tipEmoji = '❄️'; tipMsg = lang === 'vi' ? 'Đang làm lạnh, ' + rTD + ' — sắp mát rồi!' : 'Cooling down (' + rTD + ') — almost there!';
               tipColor = '#93c5fd';
             }
           } else if (rState === 'heat') {
-            tipEmoji = '🔥'; tipMsg = lang === 'vi' ? 'Đang sưởi ấm, ' + rTemp.toFixed(1) + '° — ấm áp rồi nhé!' : 'Heating up (' + rTemp.toFixed(1) + '°) — getting warm!';
+            tipEmoji = '🔥'; tipMsg = lang === 'vi' ? 'Đang sưởi ấm, ' + rTD + ' — ấm áp rồi nhé!' : 'Heating up (' + rTD + ') — getting warm!';
             tipColor = '#fca5a5';
           } else if (rState === 'dry') {
             tipEmoji = '💨'; tipMsg = lang === 'vi'
@@ -3765,11 +3802,10 @@ class AcControllerCardV2 extends HTMLElement {
               : (!isNaN(rHumRaw) ? 'Drying... ' + Math.round(rHumRaw) + '% humidity — getting better!' : 'Dehumidifying — air feels fresher!');
             tipColor = '#c4b5fd';
           } else if (rState === 'fan_only') {
-            tipEmoji = '🌬️'; tipMsg = lang === 'vi' ? 'Quạt đang chạy, ' + rTemp.toFixed(1) + '° — gió mát thôi nhé!' : 'Fan on (' + rTemp.toFixed(1) + '°) — just fresh air!';
+            tipEmoji = '🌬️'; tipMsg = lang === 'vi' ? 'Quạt đang chạy, ' + rTD + ' — gió mát thôi nhé!' : 'Fan on (' + rTD + ') — just fresh air!';
             tipColor = '#86efac';
           }
         }
-        // Cảnh báo độ ẩm cao kèm theo (cho các mode khác dry)
         if (!isNaN(rHumRaw) && rHumRaw >= 80 && rState !== 'dry' && !tipMsg.includes('ẩm') && !tipMsg.includes('humid')) {
           tipMsg += (lang === 'vi' ? ' (Độ ẩm ' + Math.round(rHumRaw) + '% hơi cao!)' : ' (Humidity ' + Math.round(rHumRaw) + '% is high!)');
         }
@@ -3891,9 +3927,12 @@ class AcControllerCardV2 extends HTMLElement {
       ? parseFloat(this._hass.states[cfg.pm25_entity].state) || '--'
       : '--';
     // Nhiệt độ ngoài: ưu tiên sensor config, fallback current_temperature phòng đang chọn
-    var outdoorTempVal = cfg.outdoor_temp_entity && this._hass && this._hass.states[cfg.outdoor_temp_entity]
-      ? parseFloat(this._hass.states[cfg.outdoor_temp_entity].state).toFixed(1) + '°'
-      : (curTemp > 0 ? curTemp.toFixed(1) + '°' : '--°');
+    var outdoorTempRaw = cfg.outdoor_temp_entity && this._hass && this._hass.states[cfg.outdoor_temp_entity]
+      ? parseFloat(this._hass.states[cfg.outdoor_temp_entity].state)
+      : (curTemp > 0 ? curTemp : null);
+    var outdoorTempVal = outdoorTempRaw !== null && !isNaN(outdoorTempRaw)
+      ? acFmtTemp(outdoorTempRaw, tUnit) + (tUnit === 'F' ? '°F' : '°')
+      : '--°';
     // Độ ẩm ngoài: ưu tiên outdoor sensor config, fallback roomHumidityRaw (đã tính từ phòng/cảm biến)
     var humidityVal = cfg.humidity_entity && this._hass && this._hass.states[cfg.humidity_entity]
       ? Math.round(parseFloat(this._hass.states[cfg.humidity_entity].state)) + '%'
@@ -3937,7 +3976,7 @@ class AcControllerCardV2 extends HTMLElement {
       var slIsOn = hvac !== 'off';
       // Outdoor sensors for super lite
       var slOutdoorTemp = cfg.outdoor_temp_entity && this._hass && this._hass.states[cfg.outdoor_temp_entity]
-        ? parseFloat(this._hass.states[cfg.outdoor_temp_entity].state).toFixed(1) + '°'
+        ? acFmtTemp(parseFloat(this._hass.states[cfg.outdoor_temp_entity].state), tUnit) + (tUnit === 'F' ? '°F' : '°')
         : null;
       var slHumidity = cfg.humidity_entity && this._hass && this._hass.states[cfg.humidity_entity]
         ? Math.round(parseFloat(this._hass.states[cfg.humidity_entity].state)) + '%'
@@ -3951,7 +3990,7 @@ class AcControllerCardV2 extends HTMLElement {
         var roomEntCfgSL = (cfg.entities && cfg.entities[this._activeIdx]) || {};
         var roomTempSL = curTemp; // curTemp đã tính từ sensor/entity bên trên
         var roomHumSL  = roomHumidityRaw; // roomHumidityRaw đã tính bên trên
-        slEnvTemp     = roomTempSL > 0 ? roomTempSL.toFixed(1) + '°' : null;
+        slEnvTemp     = roomTempSL > 0 ? acFmtTemp(roomTempSL, tUnit) + (tUnit === 'F' ? '°F' : '°') : null;
         slEnvHumidity = roomHumSL  > 0 ? Math.round(roomHumSL) + '%'  : null;
         slEnvIsRoom   = true;
       } else {
@@ -3975,7 +4014,7 @@ class AcControllerCardV2 extends HTMLElement {
         var sriState = this._s(ROOMS[sri].id);
         var sriOn    = sriState !== 'off';
         var sriTemp  = parseFloat(this._a(ROOMS[sri].id, 'current_temperature') || 0);
-        var sriTempStr = sriTemp > 0 ? ' · ' + sriTemp.toFixed(1) + '°' : '';
+        var sriTempStr = sriTemp > 0 ? ' · ' + acFmtTemp(sriTemp, tUnit) + (tUnit === 'F' ? '°F' : '°') : '';
         var sriHumRaw = parseFloat(this._a(ROOMS[sri].id, 'current_humidity') || this._a(ROOMS[sri].id, 'humidity') || 0);
         var sriEntCfgH = (cfg.entities && cfg.entities[sri]) || {};
         if (sriEntCfgH.humidity_entity && this._hass && this._hass.states[sriEntCfgH.humidity_entity]) {
@@ -4093,7 +4132,7 @@ class AcControllerCardV2 extends HTMLElement {
         + '</svg>'
         + '<div class="sl-dial-center">'
         + '  <div class="sl-temp-lbl">' + tr.tempLabel + '</div>'
-        + '  <div class="sl-temp-val" id="live-cur-temp" style="color:' + acTempColor(curTemp) + ';text-shadow:0 0 30px ' + acTempColor(curTemp) + ',0 0 60px ' + acTempColor(curTemp) + '">' + parseFloat(curTemp).toFixed(1) + '<span style="font-size:22px;font-weight:400;vertical-align:super;line-height:0">°</span></div>'
+        + '  <div class="sl-temp-val" id="live-cur-temp" style="color:' + acTempColor(curTemp) + ';text-shadow:0 0 30px ' + acTempColor(curTemp) + ',0 0 60px ' + acTempColor(curTemp) + '">' + curTempDisp + '<span style="font-size:22px;font-weight:400;vertical-align:super;line-height:0">°</span></div>'
         + '  <div class="sl-temp-feel" id="live-comfort">' + comfortTxt + '</div>'
         + '</div>'
         + '</div>'
@@ -4106,8 +4145,8 @@ class AcControllerCardV2 extends HTMLElement {
             var lang2 = cfg.language || 'vi';
             var prefix2 = slEta.mode === 'estimated' ? '⏱~ ' : '⏱ ';
             var etaTxt2 = lang2 === 'vi'
-              ? prefix2 + 'Dự kiến đạt ' + setTemp + '°C trong ' + slEta.eta + ' phút'
-              : prefix2 + 'Est. ' + setTemp + '°C in ' + slEta.eta + ' min';
+              ? prefix2 + 'Dự kiến đạt ' + setTempDisp + degSym + ' trong ' + slEta.eta + ' phút'
+              : prefix2 + 'Est. ' + setTempDisp + degSym + ' in ' + slEta.eta + ' min';
             return '<div class="eta-bar-sl" id="live-eta">' + etaTxt2 + '</div>';
           }).call(this)
         + '<div class="sl-temp-ctrl">'
@@ -4118,7 +4157,7 @@ class AcControllerCardV2 extends HTMLElement {
           + '  </button>'
         ) : '')
         + '  <button class="sl-temp-btn" id="sl-btn-temp-down">&#8722;</button>'
-        + '  <span class="sl-temp-set">' + setTemp + '&#176;C</span>'
+        + '  <span class="sl-temp-set" id="live-set-temp">' + setTempDisp + '<span style="font-size:0.55em;vertical-align:super;">' + degSym + '</span></span>'
         + '  <button class="sl-temp-btn" id="sl-btn-temp-up">+</button>'
         + (slShowSwing ? (
             '  <button class="sl-mini-btn sl-mini-btn--inline sl-swing-inline" id="sl-btn-swing-sl" type="button">'
@@ -4153,7 +4192,7 @@ class AcControllerCardV2 extends HTMLElement {
                    var opts = '';
                    for (var ri = 0; ri < ROOMS.length; ri++) {
                      var riTemp = parseFloat(this._a(ROOMS[ri].id, 'current_temperature') || 0);
-                     var riTempStr = riTemp > 0 ? ' · ' + riTemp.toFixed(1) + '°' : '';
+                     var riTempStr = riTemp > 0 ? ' · ' + acFmtTemp(riTemp, tUnit) + (tUnit === 'F' ? '°F' : '°') : '';
                      var riHumRaw = parseFloat(this._a(ROOMS[ri].id, 'current_humidity') || this._a(ROOMS[ri].id, 'humidity') || 0);
                      var riEntCfgH = (cfg.entities && cfg.entities[ri]) || {};
                      if (riEntCfgH.humidity_entity && this._hass && this._hass.states[riEntCfgH.humidity_entity]) { var riHumS = parseFloat(this._hass.states[riEntCfgH.humidity_entity].state); if (!isNaN(riHumS)) riHumRaw = riHumS; }
@@ -4272,14 +4311,14 @@ class AcControllerCardV2 extends HTMLElement {
 + '</svg>'
 + '<div class="dial-center">'
 + '  <div class="dial-lbl">' + tr.tempLabel + '</div>'
-+ '  <div class="dial-temp" id="live-cur-temp" style="color:' + acTempColor(curTemp) + ';text-shadow:0 0 30px ' + acTempColor(curTemp) + ',0 0 60px ' + acTempColor(curTemp) + '">' + curTemp.toFixed(1) + '<span class="dial-deg">&#176;</span></div>'
++ '  <div class="dial-temp" id="live-cur-temp" style="color:' + acTempColor(curTemp) + ';text-shadow:0 0 30px ' + acTempColor(curTemp) + ',0 0 60px ' + acTempColor(curTemp) + '">' + curTempDisp + '<span class="dial-deg">&#176;</span></div>'
 + '  <div class="dial-feel" id="live-comfort">' + comfortTxt + '</div>'
 + '</div>'
 + '</div>'
 
 + '<div class="temp-ctrl">'
 + '  <button class="temp-btn" id="btn-temp-down">&#8722;</button>'
-+ '  <span class="temp-set">' + setTemp + '&#176;C</span>'
++ '  <span class="temp-set" id="live-set-temp">' + setTempDisp + '<span style="font-size:0.55em;vertical-align:super;">' + degSym + '</span></span>'
 + '  <button class="temp-btn" id="btn-temp-up">+</button>'
 + '</div>'
 + (function() {
@@ -4289,8 +4328,8 @@ class AcControllerCardV2 extends HTMLElement {
     var lang2 = cfg.language || 'vi';
     var prefix = eta.mode === 'estimated' ? '⏱~ ' : '⏱ ';
     var etaTxt = lang2 === 'vi'
-      ? prefix + 'Dự kiến đạt ' + setTemp + '°C trong ' + eta.eta + ' phút'
-      : prefix + 'Est. ' + setTemp + '°C in ' + eta.eta + ' min';
+      ? prefix + 'Dự kiến đạt ' + setTempDisp + degSym + ' trong ' + eta.eta + ' phút'
+      : prefix + 'Est. ' + setTempDisp + degSym + ' in ' + eta.eta + ' min';
     var tipTxt = eta.mode === 'estimated' ? 'title="Ước tính theo tốc độ quạt, sẽ chính xác hơn khi có dữ liệu thực tế"' : '';
     return '<div class="eta-bar" id="live-eta" ' + tipTxt + '>' + etaTxt + '</div>';
   }).call(this)
@@ -4356,7 +4395,7 @@ class AcControllerCardV2 extends HTMLElement {
 + '    <span class="ac-overlay-txt">' + (isOn ? tr.overlayOn : tr.overlayOff) + '</span>'
 + modeChip
 + '  </div>'
-+ '  <div class="img-temp-badge" style="color:' + acTempColor(curTemp) + ';text-shadow:0 0 18px ' + acTempColor(curTemp) + ',0 0 40px ' + acTempColor(curTemp) + ',0 2px 20px rgba(0,0,0,0.7)">' + curTemp.toFixed(1) + '<span>&#176;C</span>'
++ '  <div class="img-temp-badge" style="color:' + acTempColor(curTemp) + ';text-shadow:0 0 18px ' + acTempColor(curTemp) + ',0 0 40px ' + acTempColor(curTemp) + ',0 2px 20px rgba(0,0,0,0.7)">' + curTempDisp + '<span>' + degSym + '</span>'
 + (roomHumidityRaw > 0 ? '<span style="font-family:\'Sora\',sans-serif;font-size:13px;font-weight:500;opacity:0.75;margin-left:6px;vertical-align:middle;">💧' + Math.round(roomHumidityRaw) + '%</span>' : '')
 + '</div>'
 + '  <div class="img-room-name">' + room.label + '</div>'
@@ -5254,7 +5293,7 @@ class AcControllerCardV2 extends HTMLElement {
         var ri2State = self._s(ROOMS[ri2].id);
         var ri2On = ri2State !== 'off';
         var ri2Temp = parseFloat(self._a(ROOMS[ri2].id, 'current_temperature') || 0);
-        var ri2TempStr = ri2Temp > 0 ? ' · ' + ri2Temp.toFixed(1) + '°' : '';
+        var ri2TempStr = ri2Temp > 0 ? ' · ' + acFmtTemp(ri2Temp, (self._config && self._config.temp_unit) || 'C') + ((self._config && self._config.temp_unit) === 'F' ? '°F' : '°') : '';
         var ri2HumRaw = parseFloat(self._a(ROOMS[ri2].id, 'current_humidity') || self._a(ROOMS[ri2].id, 'humidity') || 0);
         var ri2EntH = (self._config && self._config.entities && self._config.entities[ri2]) || {};
         if (ri2EntH.humidity_entity && self._hass && self._hass.states[ri2EntH.humidity_entity]) { var ri2HS = parseFloat(self._hass.states[ri2EntH.humidity_entity].state); if (!isNaN(ri2HS)) ri2HumRaw = ri2HS; }
@@ -5396,16 +5435,26 @@ class AcControllerCardV2 extends HTMLElement {
     }
 
     // ── Patch nhiệt độ hiển thị ──────────────────────────────────────────
+    var tUnit2  = cfg.temp_unit || 'C';
     var tempEl = sr.getElementById('live-cur-temp');
     if (tempEl) {
       var color = acTempColor(curTemp);
       tempEl.style.color = color;
       tempEl.style.textShadow = '0 0 30px ' + color + ',0 0 60px ' + color;
-      // Giữ nguyên thẻ con (span °), chỉ cập nhật text node đầu
       var firstNode = tempEl.firstChild;
-      var tempStr = curTemp.toFixed(1);
+      var tempStr = acFmtTemp(curTemp, tUnit2);
       if (firstNode && firstNode.nodeType === 3) {
         if (firstNode.textContent !== tempStr) firstNode.textContent = tempStr;
+      }
+    }
+
+    // ── Patch set-temp display ───────────────────────────────────────────
+    var setTempEl = sr.getElementById('live-set-temp');
+    if (setTempEl) {
+      var setTempVal = String(acFmtSetTemp(setTemp, tUnit2));
+      var setTempNode = setTempEl.firstChild;
+      if (setTempNode && setTempNode.nodeType === 3) {
+        if (setTempNode.textContent !== setTempVal) setTempNode.textContent = setTempVal;
       }
     }
 
@@ -5421,14 +5470,16 @@ class AcControllerCardV2 extends HTMLElement {
     }
 
     // ── Patch ETA bar ─────────────────────────────────────────────────────
+    var setTempDisp2 = acFmtSetTemp(setTemp, tUnit2);
+    var degSym2 = tUnit2 === 'F' ? '°F' : '°C';
     var etaEl = sr.getElementById('live-eta');
     if (hvac === 'cool' && isOn) {
       var eta = this._calcEta(this._activeIdx, setTemp, curTemp, fanMode);
       if (eta) {
         var prefix = eta.mode === 'estimated' ? '⏱~ ' : '⏱ ';
         var etaTxt = lang === 'vi'
-          ? prefix + 'Dự kiến đạt ' + setTemp + '°C trong ' + eta.eta + ' phút'
-          : prefix + 'Est. ' + setTemp + '°C in ' + eta.eta + ' min';
+          ? prefix + 'Dự kiến đạt ' + setTempDisp2 + degSym2 + ' trong ' + eta.eta + ' phút'
+          : prefix + 'Est. ' + setTempDisp2 + degSym2 + ' in ' + eta.eta + ' min';
         if (etaEl) {
           if (etaEl.textContent !== etaTxt) etaEl.textContent = etaTxt;
           etaEl.style.display = '';
@@ -5445,7 +5496,7 @@ class AcControllerCardV2 extends HTMLElement {
     // ── Patch sensor values (outdoor temp, humidity, power) ──────────────
     var outdoorEl = sr.getElementById('met-outdoor-temp');
     if (outdoorEl && cfg.outdoor_temp_entity && this._hass.states[cfg.outdoor_temp_entity]) {
-      var ov = parseFloat(this._hass.states[cfg.outdoor_temp_entity].state).toFixed(1) + '°';
+      var ov = acFmtTemp(parseFloat(this._hass.states[cfg.outdoor_temp_entity].state), tUnit2) + (tUnit2 === 'F' ? '°F' : '°');
       if (outdoorEl.textContent !== ov) outdoorEl.textContent = ov;
     }
     var humEl = sr.getElementById('met-humidity');
@@ -6225,6 +6276,13 @@ class MultiAcCardEditor extends HTMLElement {
           <option value="w"  ${(this._config.power_unit||'kw')==='w' ?'selected':''}>${t.edPowerUnitW ||'W' }</option>
         </select>
       </div>
+      <div style="margin-top:8px;padding:8px 2px;display:flex;align-items:center;gap:10px;">
+        <div style="flex:1;font-size:12.5px;font-weight:500;color:var(--primary-text-color);">${t.edTempUnit||'🌡 Temperature unit'}</div>
+        <div style="display:flex;gap:4px;">
+          <button id="tu-c" style="padding:4px 12px;border-radius:8px;border:1px solid ${(this._config.temp_unit||'C')==='C'?'var(--primary-color,#03a9f4)':'var(--divider-color)'};background:${(this._config.temp_unit||'C')==='C'?'rgba(3,169,244,0.15)':'transparent'};color:${(this._config.temp_unit||'C')==='C'?'var(--primary-color,#03a9f4)':'var(--secondary-text-color)'};font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;transition:all .15s;">°C</button>
+          <button id="tu-f" style="padding:4px 12px;border-radius:8px;border:1px solid ${(this._config.temp_unit||'C')==='F'?'var(--primary-color,#03a9f4)':'var(--divider-color)'};background:${(this._config.temp_unit||'C')==='F'?'rgba(3,169,244,0.15)':'transparent'};color:${(this._config.temp_unit||'C')==='F'?'var(--primary-color,#03a9f4)':'var(--secondary-text-color)'};font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;transition:all .15s;">°F</button>
+        </div>
+      </div>
       <div style="height:1px;background:var(--divider-color,rgba(0,0,0,0.08));margin:6px 0;"></div>
       <div style="padding:8px 2px;">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
@@ -6601,6 +6659,18 @@ class MultiAcCardEditor extends HTMLElement {
     const selPowerUnit = sr.getElementById('sel-power-unit');
     if (selPowerUnit) selPowerUnit.addEventListener('change', () => {
       this._config = { ...this._config, power_unit: selPowerUnit.value };
+      this._fire(); this._render();
+    });
+
+    // temperature unit toggle (°C / °F)
+    const tuC = sr.getElementById('tu-c');
+    const tuF = sr.getElementById('tu-f');
+    if (tuC) tuC.addEventListener('click', () => {
+      this._config = { ...this._config, temp_unit: 'C' };
+      this._fire(); this._render();
+    });
+    if (tuF) tuF.addEventListener('click', () => {
+      this._config = { ...this._config, temp_unit: 'F' };
       this._fire(); this._render();
     });
 
