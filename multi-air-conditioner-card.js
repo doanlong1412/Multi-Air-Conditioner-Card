@@ -2722,7 +2722,7 @@ class AcControllerCardV2 extends HTMLElement {
           }).call(this)
         + '<div class="sl-temp-ctrl">'
         + (slShowFan ? (
-            '  <button class="sl-mini-btn sl-mini-btn--inline sl-fan-inline" id="sl-btn-fan-sl" type="button">'
+            '  <button class="sl-mini-btn sl-mini-btn--inline sl-fan-inline" id="sl-btn-fan" type="button">'
           + '    <span class="sl-mini-btn-ico">&#128168;</span>'
           + '    <span class="sl-mini-btn-val">' + slFanLabel + '</span>'
           + '  </button>'
@@ -3034,68 +3034,183 @@ class AcControllerCardV2 extends HTMLElement {
     if (this._applyScale) { var _asSelf = this; requestAnimationFrame(function(){ _asSelf._applyScale(); }); }
   }
 
-  // ── Popup chọn giá trị (fan speed, swing mode) — giống thermostat card ────
+  // ── Popup chọn giá trị (fan speed, swing mode, hvac mode) — glass style ────
+  _injectPopupStyles(isWave) {
+    var id = isWave ? 'sel-wave-style' : 'sel-bubble-style';
+    if (document.getElementById(id)) return;
+    var st = document.createElement('style');
+    st.id = id;
+    if (isWave) {
+      st.textContent = [
+        '@keyframes selWaveSlideUp{',
+        '  0%  {opacity:0;transform:translateY(100%) scaleX(0.85);filter:blur(8px)}',
+        '  55% {opacity:1;transform:translateY(-6%) scaleX(1.02);filter:blur(0)}',
+        '  75% {transform:translateY(2%) scaleX(0.99)}',
+        '  100%{transform:translateY(0) scaleX(1)}',
+        '}',
+        '@keyframes selWaveItem{',
+        '  0%  {opacity:0;transform:translateX(-24px);filter:blur(4px)}',
+        '  60% {opacity:1;transform:translateX(4px);filter:blur(0)}',
+        '  80% {transform:translateX(-2px)}',
+        '  100%{transform:translateX(0)}',
+        '}',
+        '@keyframes selRippleOut{',
+        '  0%  {transform:scale(0);opacity:0.7}',
+        '  100%{transform:scale(3.5);opacity:0}',
+        '}',
+        '.sel-ri{display:flex;align-items:center;gap:8px;padding:12px 16px;border-radius:14px;',
+        '  cursor:pointer;font-family:Sora,sans-serif;font-size:13px;font-weight:600;',
+        '  color:rgba(255,255,255,0.88);transition:background 0.15s,transform 0.12s;',
+        '  white-space:nowrap;position:relative;overflow:hidden}',
+        '.sel-ri-wave{animation:selWaveItem 0.38s cubic-bezier(0.22,1,0.36,1) both}',
+        '.sel-ri:hover{background:rgba(255,255,255,0.09);transform:scale(1.01)}',
+        '.sel-ri:active{transform:scale(0.97)}',
+        '.sel-ri.active{background:linear-gradient(100deg,rgba(59,130,246,0.28),rgba(139,92,246,0.18));',
+        '  color:#fff;box-shadow:inset 0 0 0 1px rgba(120,180,255,0.25)}',
+        '.sel-ri+.sel-ri{border-top:1px solid rgba(255,255,255,0.05)}',
+        '.sel-wave-ripple{position:absolute;border-radius:50%;pointer-events:none;',
+        '  background:radial-gradient(circle,rgba(120,180,255,0.55) 0%,transparent 70%);',
+        '  width:60px;height:60px;margin-left:-30px;margin-top:-30px;',
+        '  animation:selRippleOut 0.5s cubic-bezier(0.4,0,0.2,1) both;',
+        '  display:none}',
+      ].join('\n');
+    } else {
+      st.textContent = [
+        '@keyframes selBubblePop{',
+        '  0%  {opacity:0;transform:scale(0.25);filter:blur(18px)}',
+        '  40% {opacity:1;filter:blur(2px)}',
+        '  65% {transform:scale(1.10);filter:blur(0)}',
+        '  82% {transform:scale(0.96)}',
+        '  92% {transform:scale(1.03)}',
+        '  100%{transform:scale(1)}',
+        '}',
+        '@keyframes selItemIn{from{opacity:0;transform:translateX(-8px)}to{opacity:1;transform:translateX(0)}}',
+        '.sel-ri{display:flex;align-items:center;gap:8px;padding:12px 16px;border-radius:14px;',
+        '  cursor:pointer;font-family:Sora,sans-serif;font-size:13px;font-weight:600;',
+        '  color:rgba(255,255,255,0.88);transition:background 0.15s,transform 0.12s;',
+        '  white-space:nowrap;animation:selItemIn 0.3s cubic-bezier(0.22,1,0.36,1) both}',
+        '.sel-ri:hover{background:rgba(255,255,255,0.09);transform:scale(1.02)}',
+        '.sel-ri:active{transform:scale(0.96)}',
+        '.sel-ri.active{background:linear-gradient(100deg,rgba(59,130,246,0.28),rgba(139,92,246,0.18));',
+        '  color:#fff;box-shadow:inset 0 0 0 1px rgba(120,180,255,0.25)}',
+        '.sel-ri+.sel-ri{border-top:1px solid rgba(255,255,255,0.05)}',
+        '.sel-pop-shimmer{position:absolute;top:0;left:8%;right:8%;height:1px;pointer-events:none;',
+        '  background:linear-gradient(90deg,transparent,rgba(255,255,255,0.55),transparent)}',
+      ].join('\n');
+    }
+    document.head.appendChild(st);
+  }
+
   _openSelectPopup(anchor, options, current, onSelect) {
     var self = this;
-    var r = this.shadowRoot;
     // Xóa popup cũ nếu có
-    var oldPop = r.getElementById('sel-popup');
-    var oldOv  = r.getElementById('sel-popup-ov');
+    var oldPop = document.getElementById('sel-popup');
+    var oldOv  = document.getElementById('sel-popup-ov');
     if (oldPop) oldPop.remove();
     if (oldOv) oldOv.remove();
+
+    var cfg = this._config || {};
+    var isWave = cfg.popup_style === 'wave';
+    this._injectPopupStyles(isWave);
 
     // Overlay
     var ov = document.createElement('div');
     ov.id = 'sel-popup-ov';
-    ov.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;z-index:998;background:rgba(0,0,0,0.3)';
+    ov.style.cssText = 'position:fixed;inset:0;z-index:9990;background:transparent';
+    document.body.appendChild(ov);
 
     // Popup
     var pop = document.createElement('div');
     pop.id = 'sel-popup';
-    pop.style.cssText = 'position:absolute;z-index:999;min-width:160px;max-height:280px;overflow-y:auto;'
-      + 'background:rgba(20,30,50,0.95);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);'
-      + 'border:1px solid rgba(255,255,255,0.12);border-radius:14px;padding:6px 0;'
-      + 'box-shadow:0 8px 32px rgba(0,0,0,0.5);animation:popIn 0.15s ease-out';
+    pop.style.cssText = [
+      'position:fixed','z-index:9999',
+      'background:rgba(8,20,48,0.55)',
+      'border:1px solid rgba(255,255,255,0.20)',
+      'border-top:1px solid rgba(255,255,255,0.35)',
+      'border-radius:22px',
+      'backdrop-filter:blur(48px) saturate(2) brightness(1.1)',
+      '-webkit-backdrop-filter:blur(48px) saturate(2) brightness(1.1)',
+      'box-shadow:0 2px 0 rgba(255,255,255,0.15) inset,0 24px 64px rgba(0,0,0,0.55),0 0 0 1px rgba(255,255,255,0.06)',
+      'overflow:hidden','padding:8px','min-width:180px','max-height:320px','overflow-y:auto',
+      'font-family:Sora,sans-serif',
+      'transform-origin:' + (isWave ? 'bottom center' : 'top center'),
+      isWave
+        ? 'animation:selWaveSlideUp 0.45s cubic-bezier(0.22,1,0.36,1) both'
+        : 'animation:selBubblePop 0.45s cubic-bezier(0.22,1,0.36,1) both'
+    ].join(';');
 
+    var html = '';
+    if (!isWave) {
+      html += '<div class="sel-pop-shimmer"></div>';
+    }
     for (var i = 0; i < options.length; i++) {
       var opt = options[i];
-      var item = document.createElement('div');
-      item.textContent = opt;
-      item.dataset.val = opt;
       var isActive = opt === current;
-      item.style.cssText = 'padding:10px 18px;font-size:13px;cursor:pointer;transition:background 0.15s;'
-        + 'color:' + (isActive ? 'var(--accent,#00bcd4)' : 'rgba(255,255,255,0.85)') + ';'
-        + 'font-weight:' + (isActive ? '700' : '400') + ';'
-        + 'background:' + (isActive ? 'rgba(255,255,255,0.08)' : 'transparent');
-      item.addEventListener('mouseenter', function() { this.style.background = 'rgba(255,255,255,0.12)'; });
-      item.addEventListener('mouseleave', function() {
-        this.style.background = this.dataset.val === current ? 'rgba(255,255,255,0.08)' : 'transparent';
-      });
-      (function(val) {
-        item.addEventListener('click', function(e) {
-          e.stopPropagation();
-          onSelect(val);
-          pop.remove();
-          ov.remove();
-        });
-      })(opt);
-      pop.appendChild(item);
+      var delay = (i * 0.04 + 0.03).toFixed(2) + 's';
+      if (isWave) {
+        html += '<div class="sel-ri sel-ri-wave' + (isActive ? ' active' : '') + '"'
+              + ' data-sel-val="' + opt + '" style="animation-delay:' + delay + '">'
+              + '<span style="flex:1">' + opt + '</span>'
+              + (isActive ? '<span style="color:rgba(52,211,153,0.95);font-size:14px;flex-shrink:0">✓</span>' : '')
+              + '<div class="sel-wave-ripple"></div></div>';
+      } else {
+        html += '<div class="sel-ri' + (isActive ? ' active' : '') + '"'
+              + ' data-sel-val="' + opt + '" style="animation-delay:' + delay + '">'
+              + '<span style="flex:1">' + opt + '</span>'
+              + (isActive ? '<span style="color:rgba(52,211,153,0.95);font-size:14px;flex-shrink:0">✓</span>' : '')
+              + '</div>';
+      }
     }
+    pop.innerHTML = html;
 
-    // Vị trí popup
-    var container = r.getElementById('ac-card-root') || r.host;
-    container.appendChild(ov);
-    container.appendChild(pop);
-
-    // Tính vị trí dựa trên anchor
+    // Vị trí popup dựa trên anchor
     if (anchor) {
-      var rect = anchor.getBoundingClientRect();
-      var cRect = container.getBoundingClientRect();
-      pop.style.left = (rect.left - cRect.left) + 'px';
-      pop.style.top = (rect.bottom - cRect.top + 4) + 'px';
+      var bRect = anchor.getBoundingClientRect();
+      var popW = Math.max(bRect.width + 60, 190);
+      var popL = bRect.left + bRect.width / 2 - popW / 2;
+      if (popL + popW > window.innerWidth - 8) popL = window.innerWidth - popW - 8;
+      if (popL < 8) popL = 8;
+      if (isWave) {
+        pop.style.bottom = (window.innerHeight - bRect.top + 6) + 'px';
+        pop.style.top = 'auto';
+      } else {
+        pop.style.top = (bRect.bottom + 6) + 'px';
+      }
+      pop.style.left = popL + 'px';
+      pop.style.width = popW + 'px';
+    }
+    document.body.appendChild(pop);
+
+    function closePopup() {
+      var p2 = document.getElementById('sel-popup');   if (p2) p2.remove();
+      var o2 = document.getElementById('sel-popup-ov'); if (o2) o2.remove();
     }
 
-    ov.addEventListener('click', function() { pop.remove(); ov.remove(); });
+    function waveRipple(item, e) {
+      var ripple = item.querySelector('.sel-wave-ripple');
+      if (!ripple) return;
+      var rect = item.getBoundingClientRect();
+      var x = (e.clientX || (rect.left + rect.width / 2)) - rect.left;
+      var y = (e.clientY || (rect.top + rect.height / 2)) - rect.top;
+      ripple.style.left = x + 'px';
+      ripple.style.top  = y + 'px';
+      ripple.style.display = 'block';
+      ripple.style.animation = 'none';
+      void ripple.offsetWidth;
+      ripple.style.animation = 'selRippleOut 0.5s cubic-bezier(0.4,0,0.2,1) both';
+    }
+
+    pop.querySelectorAll('[data-sel-val]').forEach(function(item) {
+      item.addEventListener('click', function(e) {
+        e.stopPropagation();
+        if (isWave) waveRipple(item, e);
+        var val = item.dataset.selVal;
+        var doAction = function() { onSelect(val); closePopup(); };
+        isWave ? setTimeout(doAction, 200) : doAction();
+      });
+    });
+
+    ov.addEventListener('click', closePopup);
   }
 
   _bind() {
