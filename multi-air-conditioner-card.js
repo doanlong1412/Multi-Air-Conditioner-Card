@@ -1,9 +1,9 @@
 /**
  * Multi Air Conditioner Card
- * v1.7.3 Designed by @doanlong1412 from 🇻🇳 Vietnam
+ * v1.7.4 Designed by @doanlong1412 from 🇻🇳 Vietnam
  * HACS-compatible Web Component
  *
- * ─── What's new in v1.7.3 ─────────────────────────────────────────────────
+ * ─── What's new in v1.7.4 ─────────────────────────────────────────────────
  * 📐 Long-label overflow fix — fc-label (VENTILATORSNELHEID / LUCHTRICHTING)
  *    nay tự xuống dòng thay vì tràn ra ngoài card; letter-spacing giảm nhẹ;
  *    fan-card/swing-card có overflow:hidden; hdr-title, rt-header, sl-title
@@ -1305,30 +1305,52 @@ const AC_DEFAULT_CONFIG = {
 // haUnit: đơn vị HA entity thực sự trả về ('C' hoặc 'F')
 // tUnit:  đơn vị người dùng muốn hiển thị ('C' hoặc 'F')
 // Chỉ convert khi haUnit ≠ tUnit
-function acCtoF(c) { return Math.round(c * 9/5 + 32 * 10) / 10; }
+function acCtoF(c) { return c * 9/5 + 32; }
+function acFtoC(f) { return (f - 32) * 5/9; }
 function acFmtTemp(val, tUnit, haUnit) {
-  // haUnit mặc định 'C' nếu không truyền (backward compat)
   var hu = haUnit || 'C';
   if (isNaN(parseFloat(val))) return '--';
   val = parseFloat(val);
-  if (hu === tUnit) return val.toFixed(1);                        // đơn vị khớp, không convert
-  if (hu === 'C' && tUnit === 'F') return (val * 9/5 + 32).toFixed(1);  // C→F
-  if (hu === 'F' && tUnit === 'C') return ((val - 32) * 5/9).toFixed(1); // F→C
+  if (hu === tUnit) return val.toFixed(1);
+  if (hu === 'C' && tUnit === 'F') return acCtoF(val).toFixed(1);
+  if (hu === 'F' && tUnit === 'C') return acFtoC(val).toFixed(1);
   return val.toFixed(1);
 }
 function acTempUnit(unit) { return unit === 'F' ? '°F' : '°C'; }
-// For set temperature (integer steps)
+// For set temperature display (integer steps)
 function acFmtSetTemp(val, tUnit, haUnit) {
   var hu = haUnit || 'C';
   if (isNaN(parseFloat(val))) return val;
   val = parseFloat(val);
   if (hu === tUnit) return val;
-  if (hu === 'C' && tUnit === 'F') return Math.round(val * 9/5 + 32);
-  if (hu === 'F' && tUnit === 'C') return Math.round((val - 32) * 5/9);
+  if (hu === 'C' && tUnit === 'F') return Math.round(acCtoF(val));
+  if (hu === 'F' && tUnit === 'C') return Math.round(acFtoC(val));
   return val;
 }
-// Reverse: F display value → C for HA service call
-function acFtoC(f) { return Math.round((f - 32) * 5/9 * 2) / 2; }
+// Tính giá trị gửi lên HA khi user nhấn +/- (luôn trả về đúng đơn vị HA)
+// step: bước nhảy theo đơn vị hiển thị (tUnit), convert về haUnit trước khi gửi
+function acTempStep(currentHaVal, step, tUnit, haUnit) {
+  var hu = haUnit || 'C';
+  // Convert current HA value → display unit, add step, convert back → HA unit
+  if (hu === tUnit) {
+    // Cùng đơn vị: +1 thẳng
+    return currentHaVal + step;
+  }
+  if (hu === 'C' && tUnit === 'F') {
+    // HA °C, user xem °F: +1°F = +5/9°C, làm tròn 0.5°C
+    var dispF = acCtoF(currentHaVal) + step;
+    return Math.round(acFtoC(dispF) * 2) / 2; // round to nearest 0.5°C
+  }
+  if (hu === 'F' && tUnit === 'C') {
+    // HA °F, user xem °C: +1°C = +1.8°F, làm tròn 1°F
+    var dispC = acFtoC(currentHaVal) + step;
+    return Math.round(acCtoF(dispC));
+  }
+  return currentHaVal + step;
+}
+// Min set temp theo đơn vị HA
+function acMinTemp(haUnit) { return haUnit === 'F' ? 60 : 16; }
+function acMaxTemp(haUnit) { return haUnit === 'F' ? 95 : 30; }
 
 const ROOM_IMAGES = [
   'https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?w=900&q=85', // phòng khách
@@ -3625,7 +3647,10 @@ class AcControllerCardV2 extends HTMLElement {
     for (var _si = 1; _si <= 6; _si++) { swingModeToLabel[String(_si)] = swingLabels[3 + _si] || ('Pos ' + _si); }
     var swingCurrentLabel = swingModeToLabel[swingMode] || swingMode;
 
-    var pct    = Math.max(0, Math.min(1, (curTemp - 16) / 16));
+    // Arc range always in °C (16–32°C) — convert if haUnit is °F
+    var curTempC = haUnit === 'F' ? acFtoC(curTemp) : curTemp;
+    var setTempC = haUnit === 'F' ? acFtoC(setTemp) : setTemp;
+    var pct    = Math.max(0, Math.min(1, (curTempC - 16) / 16));
     var arcEnd = -140 + pct * 280;
     var dotRad = (arcEnd - 90) * Math.PI / 180;
     var dotX   = (110 + 88 * Math.cos(dotRad)).toFixed(1);
@@ -3639,7 +3664,7 @@ class AcControllerCardV2 extends HTMLElement {
     var arcFill  = pct > 0.02 ? this._arc(110,110,88,-140,arcEnd) : '';
 
     // Inner set-temperature ring (r=76) — color by mode, length by setTemp
-    var setPct    = Math.max(0, Math.min(1, (setTemp - 16) / 16));
+    var setPct    = Math.max(0, Math.min(1, (setTempC - 16) / 16));
     var setArcEnd = -140 + setPct * 280;
     var innerTrack   = this._arc(110,110,76,-140,140);
     var innerArcFill = setPct > 0.02 ? this._arc(110,110,76,-140,setArcEnd) : '';
@@ -3775,17 +3800,17 @@ class AcControllerCardV2 extends HTMLElement {
       var tipColor = 'rgba(255,255,255,0.88)';
       var tipEmoji = '';
       var rTD = rTemp > 0 ? acFmtTemp(rTemp, tUnit, rHaUnit) + (tUnit === 'F' ? '°F' : '°') : '';
+      var rTempC = rHaUnit === 'F' ? acFtoC(rTemp) : rTemp;
       if (rTemp > 0) {
-        // Thresholds: convert to compare in °C always (rTemp is always °C from HA)
         var tHot  = 32, tWarm = 29, tCool = 24, tCold = 18;
         if (!ron) {
-          if (rTemp >= tHot) {
+          if (rTempC >= tHot) {
             tipEmoji = '🥵'; tipMsg = lang === 'vi' ? 'Nóng quá ' + rTD + ' rồi, bật điều hòa đi bạn!' : 'Too hot at ' + rTD + '! Turn on the AC!';
             tipColor = '#fca5a5';
-          } else if (rTemp >= tWarm) {
+          } else if (rTempC >= tWarm) {
             tipEmoji = '☀️'; tipMsg = lang === 'vi' ? 'Hơi nóng đó, ' + rTD + ' — bật điều hòa cho mát?' : 'Getting warm (' + rTD + ') — turn on AC?';
             tipColor = '#fdba74';
-          } else if (rTemp <= tCold) {
+          } else if (rTempC <= tCold) {
             tipEmoji = '🥶'; tipMsg = lang === 'vi' ? 'Lạnh quá ' + rTD + ', bật sưởi đi bạn!' : 'Too cold at ' + rTD + '! Turn on heat?';
             tipColor = '#93c5fd';
           } else if (!isNaN(rHumRaw) && rHumRaw >= 75) {
@@ -3797,10 +3822,10 @@ class AcControllerCardV2 extends HTMLElement {
           }
         } else {
           if (rState === 'cool') {
-            if (rTemp > 28) {
+            if (rTempC > 28) {
               tipEmoji = '❄️'; tipMsg = lang === 'vi' ? 'Đang làm lạnh... ' + rTD + ' còn hơi cao, chờ tí nha!' : 'Cooling... ' + rTD + ' still a bit high, hang on!';
               tipColor = '#7dd3fc';
-            } else if (rTemp <= tCool) {
+            } else if (rTempC <= tCool) {
               tipEmoji = '😌'; tipMsg = lang === 'vi' ? rTD + ' — mát rồi đó, dễ chịu lắm!' : rTD + ' — nice and cool now!';
               tipColor = '#6ee7b7';
             } else {
@@ -3922,7 +3947,7 @@ class AcControllerCardV2 extends HTMLElement {
         + '</button>';
     }
 
-    var comfortTxt = (hvac === 'cool' || hvac === 'heat') ? tr.comfortTemp(curTemp) : (tr.comfort[hvac] || '');
+    var comfortTxt = (hvac === 'cool' || hvac === 'heat') ? tr.comfortTemp(curTempC) : (tr.comfort[hvac] || '');
     var modeChipIcon = (mode.icon && mode.icon.indexOf('mdi:') === 0)
       ? '<ha-icon icon="' + mode.icon + '" style="--mdc-icon-size:14px;--mdc-icon-color:' + mode.color + ';width:14px;height:14px;display:inline-flex;align-items:center;justify-content:center;color:' + mode.color + '"></ha-icon>'
       : '<span style="font-size:12px;line-height:1;vertical-align:middle">' + mode.icon + '</span>';
@@ -4013,7 +4038,7 @@ class AcControllerCardV2 extends HTMLElement {
         slEnvIsRoom   = false;
       }
       // Inner set-temp ring (same calc as main render)
-      var slSetPct    = Math.max(0, Math.min(1, (setTemp - 16) / 16));
+      var slSetPct    = Math.max(0, Math.min(1, (setTempC - 16) / 16));
       var slSetArcEnd = -140 + slSetPct * 280;
       var slInnerTrack   = this._arc(110,110,76,-140,140);
       var slInnerArcFill = slSetPct > 0.02 ? this._arc(110,110,76,-140,slSetArcEnd) : '';
@@ -4147,7 +4172,7 @@ class AcControllerCardV2 extends HTMLElement {
         + '</svg>'
         + '<div class="sl-dial-center">'
         + '  <div class="sl-temp-lbl">' + tr.tempLabel + '</div>'
-        + '  <div class="sl-temp-val" id="live-cur-temp" style="color:' + acTempColor(curTemp) + ';text-shadow:0 0 30px ' + acTempColor(curTemp) + ',0 0 60px ' + acTempColor(curTemp) + '">' + curTempDisp + '<span style="font-size:22px;font-weight:400;vertical-align:super;line-height:0">°</span></div>'
+        + '  <div class="sl-temp-val" id="live-cur-temp" style="color:' + acTempColor(curTempC) + ';text-shadow:0 0 30px ' + acTempColor(curTempC) + ',0 0 60px ' + acTempColor(curTempC) + '">' + curTempDisp + '<span style="font-size:22px;font-weight:400;vertical-align:super;line-height:0">°</span></div>'
         + '  <div class="sl-temp-feel" id="live-comfort">' + comfortTxt + '</div>'
         + '</div>'
         + '</div>'
@@ -4155,7 +4180,7 @@ class AcControllerCardV2 extends HTMLElement {
         // ── Temp control (với fan bên trái, swing bên phải)
         + (function() {
             if (hvac !== 'cool' || !slIsOn) return '';
-            var slEta = this._calcEta(this._activeIdx, setTemp, curTemp, fanMode);
+            var slEta = this._calcEta(this._activeIdx, setTempC, curTempC, fanMode);
             if (!slEta) return '';
             var lang2 = cfg.language || 'vi';
             var prefix2 = slEta.mode === 'estimated' ? '⏱~ ' : '⏱ ';
@@ -4327,7 +4352,7 @@ class AcControllerCardV2 extends HTMLElement {
 + '</svg>'
 + '<div class="dial-center">'
 + '  <div class="dial-lbl">' + tr.tempLabel + '</div>'
-+ '  <div class="dial-temp" id="live-cur-temp" style="color:' + acTempColor(curTemp) + ';text-shadow:0 0 30px ' + acTempColor(curTemp) + ',0 0 60px ' + acTempColor(curTemp) + '">' + curTempDisp + '<span class="dial-deg">&#176;</span></div>'
++ '  <div class="dial-temp" id="live-cur-temp" style="color:' + acTempColor(curTempC) + ';text-shadow:0 0 30px ' + acTempColor(curTempC) + ',0 0 60px ' + acTempColor(curTempC) + '">' + curTempDisp + '<span class="dial-deg">&#176;</span></div>'
 + '  <div class="dial-feel" id="live-comfort">' + comfortTxt + '</div>'
 + '</div>'
 + '</div>'
@@ -4339,7 +4364,7 @@ class AcControllerCardV2 extends HTMLElement {
 + '</div>'
 + (function() {
     if (hvac !== 'cool' || !isOn) return '';
-    var eta = this._calcEta(this._activeIdx, setTemp, curTemp, fanMode);
+    var eta = this._calcEta(this._activeIdx, setTempC, curTempC, fanMode);
     if (!eta) return '';
     var lang2 = cfg.language || 'vi';
     var prefix = eta.mode === 'estimated' ? '⏱~ ' : '⏱ ';
@@ -4411,7 +4436,7 @@ class AcControllerCardV2 extends HTMLElement {
 + '    <span class="ac-overlay-txt">' + (isOn ? tr.overlayOn : tr.overlayOff) + '</span>'
 + modeChip
 + '  </div>'
-+ '  <div class="img-temp-badge" style="color:' + acTempColor(curTemp) + ';text-shadow:0 0 18px ' + acTempColor(curTemp) + ',0 0 40px ' + acTempColor(curTemp) + ',0 2px 20px rgba(0,0,0,0.7)">' + curTempDisp + '<span>' + degSym + '</span>'
++ '  <div class="img-temp-badge" style="color:' + acTempColor(curTempC) + ';text-shadow:0 0 18px ' + acTempColor(curTempC) + ',0 0 40px ' + acTempColor(curTempC) + ',0 2px 20px rgba(0,0,0,0.7)">' + curTempDisp + '<span>' + degSym + '</span>'
 + (roomHumidityRaw > 0 ? '<span style="font-family:\'Sora\',sans-serif;font-size:13px;font-weight:500;opacity:0.75;margin-left:6px;vertical-align:middle;">💧' + Math.round(roomHumidityRaw) + '%</span>' : '')
 + '</div>'
 + '  <div class="img-room-name">' + room.label + '</div>'
@@ -4541,12 +4566,22 @@ class AcControllerCardV2 extends HTMLElement {
 
     onTap(r.getElementById('btn-temp-up'), function() {
       var id = ROOMS[self._activeIdx].id;
-      self._call('climate','set_temperature',{entity_id:id, temperature: parseFloat(self._a(id,'temperature')||24)+1});
+      var cur = parseFloat(self._a(id,'temperature') || 24);
+      var cfg2 = self._config || {};
+      var tU = cfg2.temp_unit || 'C';
+      var hU = cur > 50 ? 'F' : 'C';
+      var next = acTempStep(cur, 1, tU, hU);
+      self._call('climate','set_temperature',{entity_id:id, temperature: Math.min(acMaxTemp(hU), next)});
     });
 
     onTap(r.getElementById('btn-temp-down'), function() {
       var id = ROOMS[self._activeIdx].id;
-      self._call('climate','set_temperature',{entity_id:id, temperature: Math.max(16, parseFloat(self._a(id,'temperature')||24)-1)});
+      var cur = parseFloat(self._a(id,'temperature') || 24);
+      var cfg2 = self._config || {};
+      var tU = cfg2.temp_unit || 'C';
+      var hU = cur > 50 ? 'F' : 'C';
+      var next = acTempStep(cur, -1, tU, hU);
+      self._call('climate','set_temperature',{entity_id:id, temperature: Math.max(acMinTemp(hU), next)});
     });
 
     onTapAll(r.querySelectorAll('[data-hvac]'), function(b) {
@@ -4840,11 +4875,21 @@ class AcControllerCardV2 extends HTMLElement {
     // Temp up/down
     onTapSL(r.getElementById('sl-btn-temp-up'), function() {
       var id = ROOMS[self._activeIdx].id;
-      self._call('climate','set_temperature',{entity_id:id, temperature: parseFloat(self._a(id,'temperature')||24)+1});
+      var cur = parseFloat(self._a(id,'temperature') || 24);
+      var cfg2 = self._config || {};
+      var tU = cfg2.temp_unit || 'C';
+      var hU = cur > 50 ? 'F' : 'C';
+      var next = acTempStep(cur, 1, tU, hU);
+      self._call('climate','set_temperature',{entity_id:id, temperature: Math.min(acMaxTemp(hU), next)});
     });
     onTapSL(r.getElementById('sl-btn-temp-down'), function() {
       var id = ROOMS[self._activeIdx].id;
-      self._call('climate','set_temperature',{entity_id:id, temperature: Math.max(16, parseFloat(self._a(id,'temperature')||24)-1)});
+      var cur = parseFloat(self._a(id,'temperature') || 24);
+      var cfg2 = self._config || {};
+      var tU = cfg2.temp_unit || 'C';
+      var hU = cur > 50 ? 'F' : 'C';
+      var next = acTempStep(cur, -1, tU, hU);
+      self._call('climate','set_temperature',{entity_id:id, temperature: Math.max(acMinTemp(hU), next)});
     });
 
     // Fan dropdown popup (Super Lite)
@@ -5455,9 +5500,11 @@ class AcControllerCardV2 extends HTMLElement {
     // ── Patch nhiệt độ hiển thị ──────────────────────────────────────────
     var tUnit2  = cfg.temp_unit || 'C';
     var haUnit2 = curTemp > 50 ? 'F' : 'C';
+    var curTempC = haUnit2 === 'F' ? acFtoC(curTemp) : curTemp;
+    var setTempC2 = haUnit2 === 'F' ? acFtoC(setTemp) : setTemp;
     var tempEl = sr.getElementById('live-cur-temp');
     if (tempEl) {
-      var color = acTempColor(curTemp);
+      var color = acTempColor(curTempC);
       tempEl.style.color = color;
       tempEl.style.textShadow = '0 0 30px ' + color + ',0 0 60px ' + color;
       var firstNode = tempEl.firstChild;
@@ -5484,7 +5531,7 @@ class AcControllerCardV2 extends HTMLElement {
       if (!isOn) comfortTxt = tr.comfort && tr.comfort.off ? tr.comfort.off : '';
       else if (hvac === 'dry') comfortTxt = tr.comfort && tr.comfort.dry ? tr.comfort.dry : '';
       else if (hvac === 'fan_only') comfortTxt = tr.comfort && tr.comfort.fan_only ? tr.comfort.fan_only : '';
-      else comfortTxt = tr.comfortTemp ? tr.comfortTemp(curTemp) : '';
+      else comfortTxt = tr.comfortTemp ? tr.comfortTemp(curTempC) : '';
       if (comfortEl.textContent !== comfortTxt) comfortEl.textContent = comfortTxt;
     }
 
@@ -5493,7 +5540,7 @@ class AcControllerCardV2 extends HTMLElement {
     var degSym2 = tUnit2 === 'F' ? '°F' : '°C';
     var etaEl = sr.getElementById('live-eta');
     if (hvac === 'cool' && isOn) {
-      var eta = this._calcEta(this._activeIdx, setTemp, curTemp, fanMode);
+      var eta = this._calcEta(this._activeIdx, setTempC2, curTempC, fanMode);
       if (eta) {
         var prefix = eta.mode === 'estimated' ? '⏱~ ' : '⏱ ';
         var etaTxt = lang === 'vi'
@@ -6107,7 +6154,7 @@ class MultiAcCardEditor extends HTMLElement {
 </style>
 <div class="editor">
   <div class="credit">❄️ <strong>Multi Air Conditioner Card</strong>
-    <span style="color:var(--secondary-text-color);font-weight:400;">v1.7.3 Designed by @doanlong1412 from 🇻🇳 Vietnam</span>
+    <span style="color:var(--secondary-text-color);font-weight:400;">v1.7.4 Designed by @doanlong1412 from 🇻🇳 Vietnam</span>
   </div>
   <a href="https://www.tiktok.com/@long.1412" target="_blank" rel="noopener noreferrer"
     style="display:flex;align-items:center;gap:8px;margin:6px 0 10px;padding:8px 14px;
