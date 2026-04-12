@@ -15,7 +15,13 @@ Card tùy chỉnh cho Home Assistant Lovelace — điều khiển điều hòa n
 
 ## 📸 Xem trước
 
-![Multi AC Card Preview](assets/preview.png)
+
+### 🎬 Demo
+![Demo](assets/preview.gif)
+
+### 🖼️ Screenshot
+![Preview](assets/preview.png)
+
 
 ---
 

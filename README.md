@@ -15,7 +15,11 @@ A custom Home Assistant Lovelace card for multi-room air conditioner control —
 
 ## 📸 Preview
 
-![Multi AC Card Preview](assets/preview.png)
+### 🎬 Demo
+![Demo](assets/preview.gif)
+
+### 🖼️ Screenshot
+![Preview](assets/preview.png)
 
 ---
 
