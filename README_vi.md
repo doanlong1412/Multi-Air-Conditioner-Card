@@ -1,7 +1,7 @@
 # ❄️ Multi Air Conditioner Card
 
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/hacs/integration)
-![version](https://img.shields.io/badge/version-1.7-blue)
+![version](https://img.shields.io/badge/version-1.8-blue)
 ![HA](https://img.shields.io/badge/Home%20Assistant-2023.1+-green)
 ![license](https://img.shields.io/badge/license-MIT-lightgrey)
 
@@ -15,13 +15,11 @@ Card tùy chỉnh cho Home Assistant Lovelace — điều khiển điều hòa n
 
 ## 📸 Xem trước
 
-
 ### 🎬 Demo
 ![Demo](assets/preview.gif)
 
 ### 🖼️ Screenshot
 ![Preview](assets/preview.png)
-
 
 ---
 
@@ -31,7 +29,7 @@ Card tùy chỉnh cho Home Assistant Lovelace — điều khiển điều hòa n
 
 ---
 
-## ✨ Tính năng (v1.7)
+## ✨ Tính năng (v1.8)
 
 ### 🎨 Hiển thị & Giao diện
 - ❄️ **Đồng hồ nhiệt độ** — vòng cung động với màu sắc thay đổi theo nhiệt độ: xanh dương (lạnh) → xanh lơ → xanh lá → cam → đỏ (nóng)
@@ -47,26 +45,43 @@ Card tùy chỉnh cho Home Assistant Lovelace — điều khiển điều hòa n
 - **Super Lite** ⚡ — bố cục một cột siêu gọn với đồng hồ lớn, điều chỉnh nhiệt độ, chọn chế độ và chọn phòng; lý tưởng cho widget, sidebar hoặc không gian hẹp
 
 ### 🔀 Chuyển chế độ ngay trên card
-Chuyển giữa Full / Lite / Super Lite **trực tiếp ngay trên card** mà không cần mở editor. Các chấm tròn của chế độ đang chọn nay **nhảy lên xuống theo sóng lệch pha** — Full có 3 chấm nhảy lần lượt từ trái sang phải, Lite có 2, Super Lite có 1 — giúp nhận biết ngay chế độ đang dùng.
+Chuyển giữa Full / Lite / Super Lite **trực tiếp ngay trên card** mà không cần mở editor. Các chấm tròn của chế độ đang chọn nay **nhảy lên xuống theo sóng lệch pha** — Full có 3 chấm, Lite có 2, Super Lite có 1 — giúp nhận biết ngay chế độ đang dùng.
 
 ### ✨ Kiểu Popup (Super Lite)
-Khi dùng chế độ **Super Lite**, ô chọn chế độ HVAC và chọn phòng hỗ trợ 3 kiểu tương tác — cấu hình trong editor:
+Khi dùng chế độ **Super Lite**, ô chọn chế độ HVAC và chọn phòng hỗ trợ 3 kiểu tương tác:
 - **Normal** — dropdown `<select>` gốc (tương thích tốt nhất, nhất quán trên iOS/Android)
 - **Effect** — popup kính tùy chỉnh với animation mở/đóng kiểu lò xo
 - **Wave** — cùng kiểu popup kính nhưng với animation gợn sóng khi mở
 
 ### 🎛️ Bố cục Super Lite
-Trong chế độ **Super Lite**, hàng điều chỉnh nhiệt độ có 2 nút tắt tắt nhanh chuyên dụng:
-- **Nút tốc độ quạt** — nằm bên trái nút `−` (giảm nhiệt); nhấn để chuyển mức quạt
-- **Nút hướng gió** — nằm bên phải nút `+` (tăng nhiệt); nhấn để chuyển chế độ xoay
-- **Nút Chọn chế độ và Chọn phòng** mở rộng ra hết chiều rộng card để dễ thao tác trên màn hình hẹp
+Trong chế độ **Super Lite**, hàng điều chỉnh nhiệt độ có 2 nút tắt nhanh chuyên dụng:
+- **Nút tốc độ quạt** — nằm bên trái nút `−`; nhấn để chuyển mức quạt
+- **Nút hướng gió** — nằm bên phải nút `+`; nhấn để chuyển chế độ xoay
+- **Nút Chọn chế độ và Chọn phòng** mở rộng ra hết chiều rộng card
 
 ### 🎛️ Tùy chỉnh hiển thị từng thành phần
 Mỗi phần của card có thể bật/tắt riêng lẻ ngay trong editor:
 - Lời chào, nút chế độ HVAC (Cool / Heat / Dry / Fan từng nút riêng), bảng quạt, bảng hướng gió, thanh Eco/Fav/Clean, khối trạng thái & cảm biến, nhiệt độ ngoài trời, độ ẩm, công suất, nút hẹn giờ, nút tắt tất cả
-- **Nhiệt độ/Độ ẩm phòng** (Super Lite) — bật để hiển thị nhiệt độ & độ ẩm của phòng đang chọn trên header thay vì dữ liệu ngoài trời
+- **Nhiệt độ/Độ ẩm phòng** (Super Lite) — bật để hiển thị nhiệt độ & độ ẩm của phòng đang chọn trên header
 - **Tiêu thụ điện phòng** (Super Lite) — bật để hiển thị mức điện tiêu thụ cạnh độ ẩm trên header
 - **Nút Quạt / Hướng gió** (Super Lite) — bật/tắt từng nút riêng lẻ
+
+### 📡 Phát hiện Offline / Mất kết nối *(Mới trong v1.8)*
+Khi điều hòa mất mạng hoặc mất điện (trạng thái `unavailable` / `unknown`), card phản ánh rõ ràng ngay lập tức mà không cần thao tác thủ công:
+- **Tab phòng** → badge **OFFLINE** đỏ nhấp nháy thay thế ON/OFF; sub-text hiện "Mất kết nối"; icon xám mờ
+- **Vòng tròn nhiệt độ** → hiển thị `--°` và `📡 Mất kết nối` thay vì số thực
+- **Khối STATUS** → chữ `OFFLINE` đỏ nhấp nháy + "Mất kết nối, chờ khôi phục..."
+- **Nút nguồn** → vô hiệu hóa khi entity không khả dụng — không gửi lệnh nhầm lên HA
+- **Tắt tất cả** → tự động bỏ qua các phòng đang offline; chỉ gửi lệnh đến phòng đang kết nối
+- **Super Lite** — badge header và tất cả kiểu popup (Normal / Effect / Wave) đều hiển thị `OFFLINE`
+- **Tự động khôi phục** — ngay khi thiết bị online trở lại và đổi trạng thái, card cập nhật ngay lập tức, không cần reload
+- Áp dụng đồng bộ cả 3 chế độ: **Full / Lite / Super Lite**
+
+### 💾 Ghi nhớ phòng đang chọn *(Mới trong v1.8)*
+- Card lưu phòng đang chọn vào `localStorage` mỗi khi người dùng chuyển phòng
+- Sau khi **reload trang**, **chuyển dashboard rồi quay lại**, hoặc **tắt app bật lại** → card tự động khôi phục đúng phòng cuối cùng đã chọn
+- Key lưu trữ riêng theo entity đầu tiên của card — nhiều card AC trên cùng dashboard nhớ phòng riêng biệt, không ảnh hưởng nhau
+- Hoạt động trên cả 3 chế độ: tab phòng (Full/Lite), room select & room popup (Super Lite)
 
 ### ❄️ Điều khiển nhiều phòng (tối đa 8 phòng)
 - **Tab chọn phòng** (Full / Lite) — hiển thị MDI icon, tên, nhiệt độ và badge ON/OFF; luôn hiện 4 hàng, cuộn để xem thêm. Nhấn tab sẽ hiện **tooltip thông minh** với nhiệt độ, độ ẩm và trạng thái hoạt động
@@ -85,38 +100,35 @@ Mỗi phòng hỗ trợ cảm biến nhiệt độ, độ ẩm và điện năng
 - Hiển thị trong badge ảnh phòng (Full/Lite) và trong header Super Lite
 
 ### ⚡ Tiêu thụ điện — Từng phòng & Tùy chọn đơn vị
-- Mỗi phòng có entity điện riêng (`entities[n].power_entity`) — giá trị tự đổi khi chuyển phòng trên Full, Lite và Super Lite
+- Mỗi phòng có entity điện riêng (`entities[n].power_entity`) — giá trị tự đổi khi chuyển phòng
 - `power_entity` toàn cục là fallback khi phòng không có sensor riêng
-- **Tùy chọn đơn vị** trong editor: chọn **kW** (dùng nguyên giá trị sensor) hoặc **W** (tự convert — giá trị ≥ 1000 W hiển thị dạng kW)
+- **Tùy chọn đơn vị** trong editor: chọn **kW** hoặc **W** (tự convert ≥ 1000 W sang kW)
 - Super Lite: giá trị điện hiển thị cạnh độ ẩm ở góc trái header; toggle bằng `show_sl_room_power`
 
 ### 🎨 Icon phòng MDI
-Icon phòng nay dùng hệ thống **Material Design Icons** (`mdi:*`) thay vì emoji, đồng nhất với phong cách icon gốc của Home Assistant:
+Icon phòng dùng hệ thống **Material Design Icons** (`mdi:*`) đồng nhất với phong cách icon gốc của Home Assistant:
 - Icon mặc định: `mdi:sofa`, `mdi:bed`, `mdi:silverware-fork-knife`, `mdi:briefcase`, `mdi:shower`, `mdi:teddy-bear`, `mdi:dumbbell`, `mdi:archive`
-- Được render dạng `<ha-icon>` xuyên suốt card — tab phòng (Full/Lite), nút chọn phòng (Super Lite), danh sách popup (Effect & Wave), native select (chỉ hiện tên)
-- Người dùng có thể nhập bất kỳ `mdi:tên-icon` nào trong ô **MDI Icon** của editor; emoji vẫn được chấp nhận như fallback
+- Render dạng `<ha-icon>` xuyên suốt card — tab phòng (Full/Lite), nút chọn phòng (Super Lite), popup (Effect & Wave)
+- Có thể nhập bất kỳ `mdi:tên-icon` nào trong ô **MDI Icon** của editor; emoji vẫn được chấp nhận như fallback
 
-### 🎇 Hiệu ứng canvas theo chế độ HVAC (Mới trong v1.7)
-Mỗi nút chế độ HVAC khi được kích hoạt sẽ phát ra **hiệu ứng canvas động** chạy từ nút đến tâm vòng tròn nhiệt độ — lặp lại mỗi 10 giây (có thể cấu hình):
+### 🎇 Hiệu ứng canvas theo chế độ HVAC
+Mỗi nút chế độ HVAC khi được kích hoạt phát ra **hiệu ứng canvas động** từ nút đến tâm vòng tròn nhiệt độ — lặp lại mỗi 10 giây (có thể cấu hình):
 
 | Chế độ | Đường đi | Hiệu ứng kết thúc |
 |--------|----------|-------------------|
 | ❄️ **Làm lạnh** | 5 bông tuyết + vệt sáng | Bùng nổ tinh thể băng + giọt nước |
 | 🔥 **Sưởi** | 4 tia nhiệt rung zigzag | Than hồng bắn ra + vầng hào quang lan rộng |
-| 💧 **Hút ẩm** | 18 giọt sương uốn lượn | Đám sương nở to rồi xoáy vào trong (hút ẩm) |
+| 💧 **Hút ẩm** | 18 giọt sương uốn lượn | Đám sương nở to rồi xoáy vào trong |
 | 🌀 **Quạt** | 5 luồng gió song song cong | Lốc xoáy 3 vòng to dần rồi tan biến |
 
-Cả 4 chế độ cũng **giữ animation icon sau khi chọn** (xoay, nhấp nhảy, nảy, rung) — trước đây chỉ có Auto mới có tính năng này.
+Cả 4 chế độ cũng **giữ animation icon sau khi chọn** (xoay, nhấp nhảy, nảy, rung).
 
-**Thời gian lặp lại** cấu hình trong editor qua thanh trượt *Lặp lại bông tuyết (giây)* (2–15 giây, mặc định 10 giây) — áp dụng cho cả 4 chế độ.
+**Thời gian lặp lại** cấu hình trong editor qua thanh trượt (2–15 giây, mặc định 10 giây).
 
-### ⚡ Nút Tắt Tất Cả — Thiết kế lại (Mới trong v1.7)
-Nút Tắt Tất Cả nay nổi bật hẳn so với các nút khác:
-- **Gradient đỏ rực** — `rgba(220,38,38)` thay thế kiểu mờ nhạt cũ
-- **Hiệu ứng 3D nổi lên** — `box-shadow` nhiều lớp mô phỏng nút vật lý nổi trên mặt card
+### ⚡ Nút Tắt Tất Cả
+- **Gradient đỏ rực** với hiệu ứng 3D nổi lên và animation thở nhẹ
 - **Hover:** nút nổi cao hơn; **Nhấn/tap:** nút chìm xuống vật lý
-- **Animation thở nhẹ** — ánh sáng đỏ thở vào ra liên tục để thu hút sự chú ý
-- Phiên bản Lite cũng được cập nhật tương tự
+- Tự động **bỏ qua các phòng offline** — chỉ tắt phòng đang kết nối
 
 ### 🌿 Eco & Tác vụ nhanh
 - **Bật/tắt Eco** — kích hoạt chế độ Eco/preset cho điều hòa phòng đang chọn
@@ -187,38 +199,38 @@ Sau khi thêm, nhấn **✏️ Edit** để mở Config Editor.
 | 1 | 🌐 **Ngôn ngữ** | 11 ngôn ngữ với ảnh cờ thật |
 | 2 | 🖥️ **Chế độ hiển thị** | Full / Lite / Super Lite |
 | 3 | ✨ **Kiểu Popup** | Normal / Effect / Wave (chỉ Super Lite) |
-| 4 | 👁️ **Tùy chọn hiển thị** | Bật/tắt từng thành phần riêng lẻ; tùy chọn đơn vị điện (kW / W) |
-| 5 | 🔢 **Số phòng** | Thanh trượt chọn 1–8 phòng |
-| 6 | ❄️ **Điều hòa** | Entity, tên, MDI icon, ảnh URL, cảm biến nhiệt độ / độ ẩm / điện năng từng phòng |
-| 7 | 📡 **Cảm biến môi trường** | PM2.5, nhiệt độ ngoài trời, độ ẩm, điện năng (global fallback) |
+| 4 | 👁️ **Hiển thị** | Bật/tắt từng thành phần; tùy chọn đơn vị điện (kW / W) |
+| 5 | 🔢 **Số phòng** | Thanh trượt 1–8 phòng |
+| 6 | ❄️ **Điều hòa** | Chọn entity, tên hiển thị, MDI icon, URL ảnh, cảm biến nhiệt độ/độ ẩm/điện từng phòng |
+| 7 | 📡 **Cảm biến môi trường** | PM2.5, nhiệt độ ngoài trời, độ ẩm, điện (fallback toàn cục) |
 | 8 | 🎨 **Màu sắc** | Màu nhấn, màu chữ |
-| 9 | 🎨 **Màu nền** | 16 preset + bộ chọn hai màu tùy chỉnh |
+| 9 | 🎨 **Màu nền** | 16 preset gradient + bộ chọn 2 màu tùy chỉnh |
 
 ---
 
-## 🔌 Tham chiếu thực thể
+## 🔌 Tham chiếu Entity
 
-### Thực thể từng phòng (tối đa 8 phòng)
+### Entity từng phòng (tối đa 8 phòng)
 
-| Config key | Loại | Mô tả |
+| Config key | Loại entity | Mô tả |
 |---|---|---|
 | `entities[n].entity_id` | `climate` | Entity điều hòa ✅ |
 | `entities[n].label` | string | Tên hiển thị của phòng |
-| `entities[n].icon` | string | MDI icon, ví dụ `mdi:sofa` (emoji vẫn được chấp nhận) |
-| `entities[n].area` | string | Diện tích phòng (ví dụ: `25 m²`) |
-| `entities[n].image` | string | URL ảnh phòng tùy chỉnh (tuỳ chọn) |
+| `entities[n].icon` | string | Chuỗi MDI icon, vd `mdi:sofa` (emoji cũng được) |
+| `entities[n].area` | string | Diện tích phòng (vd `25 m²`) |
+| `entities[n].image` | string | URL ảnh phòng tùy chỉnh (tùy chọn) |
 | `entities[n].temp_entity` | `sensor` | Cảm biến nhiệt độ phòng (nếu điều hòa không có) |
 | `entities[n].humidity_entity` | `sensor` | Cảm biến độ ẩm phòng (nếu điều hòa không có) |
 | `entities[n].power_entity` | `sensor` | Cảm biến tiêu thụ điện riêng từng phòng |
 
-### Cảm biến môi trường (tuỳ chọn)
+### Cảm biến môi trường (tùy chọn)
 
-| Config key | Loại | Mô tả |
+| Config key | Loại entity | Mô tả |
 |---|---|---|
 | `pm25_entity` | `sensor` | Cảm biến bụi mịn PM2.5 |
 | `outdoor_temp_entity` | `sensor` | Cảm biến nhiệt độ ngoài trời |
 | `humidity_entity` | `sensor` | Cảm biến độ ẩm ngoài trời |
-| `power_entity` | `sensor` | Cảm biến điện năng toàn cục (fallback) |
+| `power_entity` | `sensor` | Cảm biến điện toàn cục (fallback khi phòng không có sensor riêng) |
 
 ---
 
@@ -230,26 +242,26 @@ Sau khi thêm, nhấn **✏️ Edit** để mở Config Editor.
 | `view_mode` | string | `full` | `full` · `lite` · `super_lite` |
 | `popup_style` | string | `normal` | Kiểu selector Super Lite: `normal` · `effect` · `wave` |
 | `room_count` | number | `4` | Số phòng hiển thị (1–8) |
-| `owner_name` | string | `Smart Home` | Tên chủ nhà hiển thị trong lời chào |
-| `cool_anim_speed` | number | `10000` | Thời gian lặp animation HVAC tính bằng ms (2000–15000) |
+| `owner_name` | string | `Smart Home` | Tên hiển thị trong lời chào |
+| `cool_anim_speed` | number | `10000` | Thời gian lặp animation HVAC (ms, 2000–15000) |
 | `show_greet` | boolean | `true` | Hiện lời chào |
-| `show_cool` | boolean | `true` | Hiện nút chế độ Làm lạnh |
-| `show_heat` | boolean | `true` | Hiện nút chế độ Sưởi |
-| `show_dry` | boolean | `true` | Hiện nút chế độ Hút ẩm |
-| `show_fan_only` | boolean | `true` | Hiện nút chế độ Quạt |
+| `show_cool` | boolean | `true` | Hiện nút Làm lạnh |
+| `show_heat` | boolean | `true` | Hiện nút Sưởi |
+| `show_dry` | boolean | `true` | Hiện nút Hút ẩm |
+| `show_fan_only` | boolean | `true` | Hiện nút Quạt |
 | `show_fan` | boolean | `true` | Hiện bảng tốc độ quạt (Full/Lite) |
 | `show_swing` | boolean | `true` | Hiện bảng hướng gió (Full/Lite) |
 | `show_preset_bar` | boolean | `true` | Hiện thanh Eco / Fav / Clean |
 | `show_status` | boolean | `true` | Hiện khối trạng thái & cảm biến |
-| `show_outdoor_temp` | boolean | `true` | Hiện chỉ số nhiệt độ ngoài trời |
-| `show_humidity` | boolean | `true` | Hiện chỉ số độ ẩm |
-| `show_power` | boolean | `true` | Hiện chỉ số điện năng |
+| `show_outdoor_temp` | boolean | `true` | Hiện nhiệt độ ngoài trời |
+| `show_humidity` | boolean | `true` | Hiện độ ẩm |
+| `show_power` | boolean | `true` | Hiện điện năng tiêu thụ |
 | `show_all_off` | boolean | `true` | Hiện nút Tắt tất cả |
-| `show_timer` | boolean | `true` | Hiện nút hẹn giờ |
+| `show_timer` | boolean | `true` | Hiện nút Hẹn giờ |
 | `show_room_env` | boolean | `false` | Super Lite: hiện nhiệt độ & độ ẩm phòng trên header |
-| `show_sl_fan` | boolean | `true` | Super Lite: hiện nút tắt quạt nhanh |
-| `show_sl_swing` | boolean | `true` | Super Lite: hiện nút hướng gió nhanh |
-| `show_sl_room_power` | boolean | `true` | Super Lite: hiện điện năng phòng trên header |
+| `show_sl_fan` | boolean | `true` | Super Lite: hiện nút tốc độ quạt |
+| `show_sl_swing` | boolean | `true` | Super Lite: hiện nút hướng gió |
+| `show_sl_room_power` | boolean | `true` | Super Lite: hiện tiêu thụ điện phòng trên header |
 | `power_unit` | string | `kw` | Đơn vị điện: `kw` hoặc `w` (tự convert ≥ 1000 W → kW) |
 | `background_preset` | string | `default` | Tên preset gradient |
 | `bg_color1` | hex | `#001e2b` | Màu gradient tùy chỉnh 1 (trên trái) |
@@ -260,7 +272,7 @@ Sau khi thêm, nhấn **✏️ Edit** để mở Config Editor.
 | `pm25_entity` | entity | — | Cảm biến PM2.5 |
 | `outdoor_temp_entity` | entity | — | Cảm biến nhiệt độ ngoài trời |
 | `humidity_entity` | entity | — | Cảm biến độ ẩm |
-| `power_entity` | entity | — | Cảm biến điện năng toàn cục (fallback) |
+| `power_entity` | entity | — | Cảm biến điện toàn cục (fallback) |
 
 ---
 
@@ -381,23 +393,35 @@ entities:
 
 ## 📋 Lịch sử thay đổi
 
+### v1.8
+- 📡 **Phát hiện Offline / Mất kết nối** — khi điều hòa mất mạng hoặc mất điện (`unavailable` / `unknown`):
+  - Tab phòng hiện badge **OFFLINE** đỏ nhấp nháy, icon xám và "Mất kết nối" thay vì nhiệt độ
+  - Vòng tròn nhiệt độ hiện `--°` và `📡 Mất kết nối` thay vì số thực
+  - Khối STATUS hiện `OFFLINE` đỏ nhấp nháy + "Mất kết nối, chờ khôi phục..."
+  - Nút nguồn bị vô hiệu hóa khi entity không khả dụng — không gửi lệnh nhầm lên HA
+  - Nút Tắt tất cả tự động bỏ qua các phòng offline
+  - Super Lite — badge header và tất cả kiểu popup (Normal / Effect / Wave) đều hiện `OFFLINE`
+  - Tự động khôi phục: ngay khi thiết bị online trở lại card cập nhật ngay, không cần reload
+- 💾 **Ghi nhớ phòng đang chọn** — lưu vào `localStorage`; sau khi reload trang, chuyển dashboard rồi quay lại, hoặc tắt app bật lại → card tự khôi phục đúng phòng cuối cùng; key riêng theo card nên nhiều card không ảnh hưởng nhau
+- 🐛 **Sửa nội bộ** — `_stateOf()` nay trả về state thực (`unavailable`) thay vì che bằng `off`, đảm bảo change detection hoạt động chính xác cho mọi transition trạng thái
+
 ### v1.7
 - 🎇 **Hiệu ứng canvas theo chế độ HVAC** — mỗi chế độ đang hoạt động phát ra animation canvas lặp lại từ nút đến tâm đồng hồ nhiệt:
   - ❄️ Làm lạnh: vệt bông tuyết + bùng nổ tinh thể băng kèm giọt nước
   - 🔥 Sưởi: tia nhiệt rung zigzag + than hồng bắn ra + vầng hào quang lan rộng
   - 💧 Hút ẩm: giọt sương uốn lượn + đám sương nở rồi xoáy hút vào trong
   - 🌀 Quạt: luồng gió song song + lốc xoáy 3 vòng to dần rồi tan biến
-- ✨ **Giữ animation icon sau khi chọn chế độ** — Cool, Heat, Dry, Fan duy trì animation (xoay, nhấp nhảy, nảy, rung) sau khi chọn, không chỉ khi hover; mỗi chế độ có kiểu và tốc độ riêng
-- 🎯 **Chấm tròn chuyển chế độ nhảy lệch pha** — các chấm của chế độ đang chọn nhảy lên xuống theo sóng từ trái sang phải (lệch 180 ms) giúp nhận biết ngay chế độ hiện tại
-- 🟥 **Thiết kế lại nút Tắt Tất Cả** — gradient đỏ rực, hiệu ứng 3D nổi lên nhiều lớp, nhấn xuống vật lý khi tap, animation thở nhẹ liên tục; phiên bản Lite cũng được cập nhật
-- 🐛 **Sửa lỗi bông tuyết biến mất giữa chừng** — thêm bộ bảo vệ frame-delta để ngăn phase animation bị skip khi tab trình duyệt bị ẩn rồi focus lại
+- ✨ **Giữ animation icon sau khi chọn chế độ** — Cool, Heat, Dry, Fan duy trì animation sau khi chọn
+- 🎯 **Chấm tròn chuyển chế độ nhảy lệch pha** — nhảy sóng từ trái sang phải
+- 🟥 **Thiết kế lại nút Tắt Tất Cả** — gradient đỏ rực, 3D nổi, animation thở nhẹ
+- 🐛 **Sửa lỗi bông tuyết biến mất giữa chừng** — frame-delta guard
 
 ### v1.6
-- 🔀 **Chuyển chế độ ngay trên card** — chuyển giữa Full / Lite / Super Lite trực tiếp từ header mà không cần mở editor
-- 🎨 **Icon phòng MDI** — tất cả icon phòng nay dùng chuỗi `mdi:*` và render dạng `<ha-icon>`
-- ⚡ **Cảm biến điện từng phòng** — `entities[n].power_entity` riêng mỗi phòng
-- 🔢 **Tùy chọn đơn vị điện** — kW hoặc W, tự convert ≥ 1000 W
-- 📍 **Chỉ số điện trên Super Lite** — toggle bằng `show_sl_room_power`
+- 🔀 **Chuyển chế độ ngay trên card** — Full / Lite / Super Lite không cần mở editor
+- 🎨 **Icon phòng MDI** — render dạng `<ha-icon>`
+- ⚡ **Cảm biến điện từng phòng** — `entities[n].power_entity`
+- 🔢 **Tùy chọn đơn vị điện** — kW hoặc W
+- 📍 **Chỉ số điện trên Super Lite** — toggle `show_sl_room_power`
 - 🐛 Sửa lỗi cánh quạt, scale nhấp nháy, tooltip nháy loạn
 
 ### v1.5

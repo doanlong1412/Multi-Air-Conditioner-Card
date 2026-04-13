@@ -1,7 +1,7 @@
 # ❄️ Multi Air Conditioner Card
 
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/hacs/integration)
-![version](https://img.shields.io/badge/version-1.7-blue)
+![version](https://img.shields.io/badge/version-1.8-blue)
 ![HA](https://img.shields.io/badge/Home%20Assistant-2023.1+-green)
 ![license](https://img.shields.io/badge/license-MIT-lightgrey)
 
@@ -29,7 +29,7 @@ A custom Home Assistant Lovelace card for multi-room air conditioner control —
 
 ---
 
-## ✨ Features (v1.7)
+## ✨ Features (v1.8)
 
 ### 🎨 Display & Interface
 - ❄️ **Temperature dial** — animated arc gauge with dynamic colour glow: blue (cold) → cyan → green → orange → red (hot)
@@ -66,6 +66,23 @@ Every section of the card can be individually shown or hidden directly from the 
 - **Room Power** (Super Lite) — toggle to show the selected room's power consumption next to humidity in the header
 - **Fan speed / Airflow buttons** (Super Lite) — show or hide individually
 
+### 📡 Offline / Unavailable Detection *(New in v1.8)*
+When an AC unit loses network or power (`unavailable` / `unknown` state), the card clearly reflects this without any manual intervention:
+- **Room tab** → flashing red **OFFLINE** badge replaces ON/OFF; sub-text changes to "Offline"; icon dims
+- **Temperature dial** → displays `--°` and `📡 Offline` instead of live temperature readings
+- **STATUS block** → shows flashing red `OFFLINE` label + "Disconnected, waiting to restore..."
+- **Power button** → disabled while entity is unavailable — no accidental HA service calls sent
+- **Turn all off** → automatically skips offline rooms; only sends commands to rooms that are reachable
+- **Super Lite** — header status badge, room dropdown (all popup styles) all show `OFFLINE`
+- **Auto-recovery** — as soon as the AC comes back online and its state changes, the card updates instantly with no reload required
+- Applied consistently across all 3 view modes: **Full / Lite / Super Lite**
+
+### 💾 Remember Active Room *(New in v1.8)*
+- The card saves the currently selected room to `localStorage` whenever the user switches rooms
+- After a **page reload**, **navigating to another dashboard and back**, or **closing and reopening the app** → the card automatically restores the last selected room
+- The storage key is scoped to the card's first entity ID — multiple AC cards on the same dashboard each remember their own room independently
+- Works across all 3 view modes: room tabs (Full/Lite), room select & room popup (Super Lite)
+
 ### ❄️ Multi-Room Control (up to 8 rooms)
 - **Room selector tabs** (Full / Lite) — shows MDI icon, name, current temperature and ON/OFF badge; always displays 4 rows, scrollable for more. Tapping a tab shows a **smart tooltip** with temperature, humidity and running state
 - **Room selector dropdown** (Super Lite) — compact dropdown / glass popup listing all rooms with live temperature and ON/OFF badge; icons render as `ha-icon` MDI icons
@@ -94,8 +111,8 @@ Room icons use the **Material Design Icons** system (`mdi:*`) matching the nativ
 - Rendered as `<ha-icon>` throughout — tabs (Full/Lite), room button (Super Lite), popup items (Effect & Wave), native select (label only)
 - Any `mdi:icon-name` can be entered in the **MDI Icon** field of the visual editor; emoji still accepted as fallback
 
-### 🎇 HVAC Mode Animations (New in v1.7)
-Each HVAC mode button now plays a **canvas-rendered particle animation** that travels from the mode button to the centre of the temperature dial — looping every 10 seconds (configurable) while the mode is active:
+### 🎇 HVAC Mode Animations
+Each HVAC mode button plays a **canvas-rendered particle animation** that travels from the mode button to the centre of the temperature dial — looping every 10 seconds (configurable) while the mode is active:
 
 | Mode | Trail | Burst / Effect |
 |------|-------|----------------|
@@ -104,17 +121,14 @@ Each HVAC mode button now plays a **canvas-rendered particle animation** that tr
 | 💧 **Dry** | 18 mist droplets in wavy paths | Mist cloud expands then spirals inward (absorbed) |
 | 🌀 **Fan** | 5 offset wind streams (curved) | Triple spiral vortex grows then fades |
 
-All four modes also **keep their icon animation running** after selection (spin, flicker, bounce, blow) — previously only Auto mode did this.
+All four modes also **keep their icon animation running** after selection (spin, flicker, bounce, blow).
 
-**Repeat interval** is configurable in the editor via the *Snowflake repeat (seconds)* slider (2–15 s, default 10 s) — applies to all four modes.
+**Repeat interval** is configurable in the editor via the *Snowflake repeat (seconds)* slider (2–15 s, default 10 s).
 
-### ⚡ Turn-All-Off Button — Redesigned (New in v1.7)
-The Turn-All-Off button now stands out clearly from all other controls:
-- **Vibrant red gradient** — `rgba(220,38,38)` replacing the previous barely-visible translucent style
-- **3D raised effect** — multi-layer `box-shadow` simulates a physical button sitting above the surface
-- **Hover:** lifts higher with deeper shadow; **Active/tap:** presses down physically
-- **Breathing pulse animation** — a soft red glow breathes in and out continuously to draw attention
-- The Lite view version receives the same treatment
+### ⚡ Turn-All-Off Button
+- **Vibrant red gradient** with 3D raised `box-shadow` effect and breathing-pulse glow
+- **Hover:** lifts; **Active/tap:** presses down physically
+- Automatically **skips offline rooms** — only turns off rooms that are currently reachable
 
 ### 🌿 Eco & Quick Actions
 - **Eco toggle** — activates eco/preset mode on the selected room's AC unit
@@ -379,45 +393,50 @@ entities:
 
 ## 📋 Changelog
 
+### v1.8
+- 📡 **Offline / Unavailable handling** — when an AC unit loses network or power (`unavailable` / `unknown`):
+  - Room tab shows a flashing red **OFFLINE** badge, dimmed icon and "Offline" sub-text instead of temperature
+  - Temperature dial shows `--°` and `📡 Offline` instead of live readings
+  - STATUS block shows flashing red `OFFLINE` + "Disconnected, waiting to restore..."
+  - Power button is disabled while the entity is unavailable — no accidental HA service calls
+  - Turn-all-off automatically skips offline rooms
+  - Super Lite header badge and all popup styles (Normal / Effect / Wave) reflect the offline state
+  - Auto-recovery: card updates instantly as soon as the device comes back online, no reload needed
+- 💾 **Remember active room** — the selected room is saved to `localStorage`; after page reload, navigating away and back, or closing and reopening the app the card restores the last selected room automatically; storage key is scoped per card so multiple AC cards on the same dashboard are independent
+- 🐛 **Internal fix** — `_stateOf()` now returns the real entity state (`unavailable`) instead of masking it as `off`, ensuring change detection correctly triggers re-renders for all state transitions
+
 ### v1.7
 - 🎇 **HVAC mode canvas animations** — each active mode plays a looping canvas animation from its button to the temperature dial centre:
   - ❄️ Cool: snowflake trail + ice crystal burst with water droplet splash
   - 🔥 Heat: zigzag heat-shimmer rays + ember particles + expanding halo rings
   - 💧 Dry: wavy mist droplet trail + mist cloud expands then spirals inward (absorbed)
   - 🌀 Fan Only: curved wind streams + triple spiral vortex that grows and fades
-- ✨ **Persistent mode icon animations** — Cool, Heat, Dry and Fan icons continue animating (spin / flicker / bounce / blow) after selection, not just on hover; each mode has its own animation style and speed
-- 🎯 **Staggered dot bounce on view switcher** — the active view mode's dots now bounce in a wave sequence (left-to-right, staggered 180 ms apart) so the selected layout is immediately obvious
-- 🟥 **Turn-All-Off button redesign** — vibrant red gradient, multi-layer 3D raised `box-shadow`, physical press-down on tap, and a continuous breathing-pulse glow; Lite variant updated to match
-- 🐛 **Snowflake trail clip fix** — added frame-delta guard to prevent the animation phase from skipping when the browser tab is hidden and then re-focused (causing the trail to disappear mid-flight)
+- ✨ **Persistent mode icon animations** — Cool, Heat, Dry and Fan icons continue animating after selection, not just on hover
+- 🎯 **Staggered dot bounce on view switcher** — active view mode dots bounce in a wave sequence
+- 🟥 **Turn-All-Off button redesign** — vibrant red gradient, 3D raised shadow, physical press-down, breathing-pulse glow
+- 🐛 **Snowflake trail clip fix** — frame-delta guard prevents animation phase skipping on tab re-focus
 
 ### v1.6
-- 🔀 **Inline view switcher** — switch between Full / Lite / Super Lite directly on the card header without opening the editor; dot-icon buttons highlight the active mode
-- 🎨 **MDI room icons** — all room icons now use `mdi:*` strings and render as native `<ha-icon>` elements throughout the card (tabs, popups, button labels); emoji still accepted as fallback
-- ⚡ **Per-room power sensor** — each room has its own `entities[n].power_entity`; the displayed value updates automatically when switching rooms in all three view modes
-- 🔢 **Power unit selector** — choose **kW** or **W** in the editor; values ≥ 1000 W auto-convert to kW
-- 📍 **Super Lite power indicator** — power reading shown inline next to humidity in the header top-left; toggle with `show_sl_room_power`
-- 🐛 **Fan blade fix** — fixed missing fan blade SVG at fan levels Low-Mid and above (index ≥ 4)
-- 🐛 **Scale flicker fix** — debounced ResizeObserver with double-rAF and change-only style updates
-- 🐛 **Tooltip flicker fix** — room tab tooltips now auto-dismiss after 5 s on mobile
+- 🔀 **Inline view switcher** — switch between Full / Lite / Super Lite directly on the card header
+- 🎨 **MDI room icons** — all room icons use `mdi:*` strings and render as `<ha-icon>` elements
+- ⚡ **Per-room power sensor** — `entities[n].power_entity` per room
+- 🔢 **Power unit selector** — kW or W, auto-converts ≥ 1000 W
+- 📍 **Super Lite power indicator** — toggle with `show_sl_room_power`
+- 🐛 Fan blade fix, scale flicker fix, tooltip flicker fix
 
 ### v1.5
-- 🎛️ **Super Lite layout redesign** — fan speed button moved to the left of `−`; airflow button moved to the right of `+`; Mode and Room selectors now scale to full card width
+- 🎛️ **Super Lite layout redesign** — fan speed button left of `−`, airflow button right of `+`
 
 ### v1.4
-- ⚡ New **Super Lite** view mode — ultra-compact single-column layout
-- ✨ **Popup style selector** (Super Lite) — Normal / Effect / Wave
-- 🌡️ **Per-room temperature sensor** — `temp_entity` per room
-- 💧 **Per-room humidity sensor** — `humidity_entity` per room
-- 🏠 **Custom room photo** — `entities[n].image`
-- 🔵 **Set-point inner ring** — thin arc inside the temperature dial
-- 💧 **Room humidity in photo badge**
-- 👁️ **show_room_env** toggle
-- 🔧 **Swing mode fix**
+- ⚡ New **Super Lite** view mode
+- ✨ **Popup style selector** — Normal / Effect / Wave
+- 🌡️ Per-room temperature & humidity sensors
+- 🏠 Custom room photo
+- 🔵 Set-point inner ring on dial
 
 ### v1.3
 - 🖥️ New **Lite view mode**
 - 👁️ **Per-element visibility toggles**
-- 🐛 Bug fixes and stability improvements
 
 ### v1.2
 - 🇵🇹 New language — Português (11 languages total)
