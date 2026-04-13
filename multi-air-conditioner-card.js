@@ -4236,8 +4236,11 @@ class AcControllerCardV2 extends HTMLElement {
         + '</svg>'
         + '<div class="sl-dial-center">'
         + '  <div class="sl-temp-lbl">' + tr.tempLabel + '</div>'
-        + '  <div class="sl-temp-val" id="live-cur-temp" style="color:' + acTempColor(curTempC) + ';text-shadow:0 0 30px ' + acTempColor(curTempC) + ',0 0 60px ' + acTempColor(curTempC) + '">' + curTempDisp + '<span style="font-size:22px;font-weight:400;vertical-align:super;line-height:0">°</span></div>'
-        + '  <div class="sl-temp-feel" id="live-comfort">' + comfortTxt + '</div>'
+        + (isUnavailable
+            ? '  <div class="sl-temp-val" id="live-cur-temp" style="color:rgba(255,255,255,0.3);font-size:32px;text-shadow:none">--<span style="font-size:18px;font-weight:400;vertical-align:super;line-height:0">°</span></div>'
+              + '  <div class="sl-temp-feel" id="live-comfort" style="color:#f87171;font-weight:600">' + (lang === 'vi' ? '📡 Mất kết nối' : '📡 Offline') + '</div>'
+            : '  <div class="sl-temp-val" id="live-cur-temp" style="color:' + acTempColor(curTempC) + ';text-shadow:0 0 30px ' + acTempColor(curTempC) + ',0 0 60px ' + acTempColor(curTempC) + '">' + curTempDisp + '<span style="font-size:22px;font-weight:400;vertical-align:super;line-height:0">°</span></div>'
+              + '  <div class="sl-temp-feel" id="live-comfort">' + comfortTxt + '</div>')
         + '</div>'
         + '</div>'
 
@@ -5169,6 +5172,8 @@ class AcControllerCardV2 extends HTMLElement {
           '.sl-ri-badge{font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px;flex-shrink:0;letter-spacing:0.8px}',
           '.sl-ri-badge.on{background:rgba(52,211,153,0.18);color:#34d399;box-shadow:0 0 10px rgba(52,211,153,0.35)}',
           '.sl-ri-badge.off{background:rgba(255,255,255,0.07);color:rgba(255,255,255,0.32)}',
+          '.sl-ri-badge.offline{background:rgba(248,113,113,0.15);color:#f87171;border:1px solid rgba(248,113,113,0.4);animation:offlinePulse 2s ease-in-out infinite}',
+          '@keyframes offlinePulse{0%,100%{opacity:1}50%{opacity:0.5}}',
           /* ripple element */
           '.sl-wave-ripple{position:absolute;border-radius:50%;pointer-events:none;',
           '  background:radial-gradient(circle,rgba(120,180,255,0.55) 0%,transparent 70%);',
@@ -5204,6 +5209,8 @@ class AcControllerCardV2 extends HTMLElement {
           '.sl-ri-badge{font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px;flex-shrink:0;letter-spacing:0.8px}',
           '.sl-ri-badge.on{background:rgba(52,211,153,0.18);color:#34d399;box-shadow:0 0 10px rgba(52,211,153,0.35)}',
           '.sl-ri-badge.off{background:rgba(255,255,255,0.07);color:rgba(255,255,255,0.32)}',
+          '.sl-ri-badge.offline{background:rgba(248,113,113,0.15);color:#f87171;border:1px solid rgba(248,113,113,0.4);animation:offlinePulse 2s ease-in-out infinite}',
+          '@keyframes offlinePulse{0%,100%{opacity:1}50%{opacity:0.5}}',
           '.sl-pop-shimmer{position:absolute;top:0;left:8%;right:8%;height:1px;pointer-events:none;',
           '  background:linear-gradient(90deg,transparent,rgba(255,255,255,0.55),transparent)}',
           '.sl-spark{position:absolute;width:28px;height:28px;pointer-events:none;border-radius:50%;',
@@ -5432,6 +5439,8 @@ class AcControllerCardV2 extends HTMLElement {
       );
       for (var ri2 = 0; ri2 < ROOMS.length; ri2++) {
         var ri2State = self._s(ROOMS[ri2].id);
+        var ri2Offline = (ri2State === 'unavailable' || ri2State === 'unknown');
+        if (ri2Offline) ri2State = 'off';
         var ri2On = ri2State !== 'off';
         var ri2Temp = parseFloat(self._a(ROOMS[ri2].id, 'current_temperature') || 0);
         var ri2TUnit = (self._config && self._config.temp_unit) || 'C';
@@ -5441,19 +5450,22 @@ class AcControllerCardV2 extends HTMLElement {
         var ri2EntH = (self._config && self._config.entities && self._config.entities[ri2]) || {};
         if (ri2EntH.humidity_entity && self._hass && self._hass.states[ri2EntH.humidity_entity]) { var ri2HS = parseFloat(self._hass.states[ri2EntH.humidity_entity].state); if (!isNaN(ri2HS)) ri2HumRaw = ri2HS; }
         var ri2HumStr = ri2HumRaw > 0 ? ' · 💧' + Math.round(ri2HumRaw) + '%' : '';
-        var ri2IconHtml = self._mdiIcon(ROOMS[ri2].icon, 18);
-        var ri2LabelText = ROOMS[ri2].label + ri2TempStr + ri2HumStr;
+        var ri2IconColor = ri2Offline ? 'rgba(255,255,255,0.3)' : (ri2On ? (MODE_CFG[ri2State] || MODE_CFG.cool).color : 'rgba(255,255,255,0.55)');
+        var ri2IconHtml = self._mdiIcon(ROOMS[ri2].icon, 18, ri2IconColor);
+        var ri2LabelText = ROOMS[ri2].label + (ri2Offline ? '' : ri2TempStr + ri2HumStr);
+        var ri2BadgeClass = ri2Offline ? 'sl-ri-badge offline' : (ri2On ? 'sl-ri-badge on' : 'sl-ri-badge off');
+        var ri2BadgeText  = ri2Offline ? 'OFFLINE' : (ri2On ? 'ON' : 'OFF');
         var delay = (ri2 * 0.03 + 0.03).toFixed(2) + 's';
         if (isWave) {
           itemsHtml += '<div class="sl-ri sl-ri-wave' + (ri2 === self._activeIdx ? ' active' : '') + '" data-room-idx="' + ri2 + '" style="animation-delay:' + delay + '">'
             + '<span style="flex:1;display:flex;align-items:center;gap:6px">' + ri2IconHtml + '<span>' + ri2LabelText + '</span></span>'
-            + '<span class="sl-ri-badge ' + (ri2On ? 'on' : 'off') + '">' + (ri2On ? 'ON' : 'OFF') + '</span>'
+            + '<span class="' + ri2BadgeClass + '">' + ri2BadgeText + '</span>'
             + '<div class="sl-wave-ripple"></div>'
             + '</div>';
         } else {
           itemsHtml += '<div class="sl-ri' + (ri2 === self._activeIdx ? ' active' : '') + '" data-room-idx="' + ri2 + '" style="animation-delay:' + delay + '">'
             + '<span style="flex:1;display:flex;align-items:center;gap:6px">' + ri2IconHtml + '<span>' + ri2LabelText + '</span></span>'
-            + '<span class="sl-ri-badge ' + (ri2On ? 'on' : 'off') + '">' + (ri2On ? 'ON' : 'OFF') + '</span>'
+            + '<span class="' + ri2BadgeClass + '">' + ri2BadgeText + '</span>'
             + '</div>';
         }
       }
