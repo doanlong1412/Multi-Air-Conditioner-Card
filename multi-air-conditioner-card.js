@@ -1,9 +1,32 @@
 /**
  * Multi Air Conditioner Card
- * v1.7.4 Designed by @doanlong1412 from 🇻🇳 Vietnam
+ * v1.8 Designed by @doanlong1412 from 🇻🇳 Vietnam
  * HACS-compatible Web Component
  *
- * ─── What's new in v1.7.4 ─────────────────────────────────────────────────
+ * ─── What's new in v1.8 ─────────────────────────────────────────────────
+ * Room tab → flashing red OFFLINE badge, sub-text "Offline" instead of temperature, icon dimmed, progress bar hidden
+ * Temperature dial → displays --° and 📡 Offline instead of live temperature
+ * STATUS block (right panel) → flashing red OFFLINE label + sub-text "Disconnected, waiting to restore..."
+ * Power button → disabled, no HA service calls sent while entity is unavailable
+ * Turn all off → automatically skips offline rooms, only turns off rooms that are currently on
+ * Super Lite → header status badge and room dropdown both show OFFLINE
+ * Auto-recovery → when the AC comes back online and its state changes, the card updates instantly without any reload
+ * Applied consistently across all 3 view modes: Full / Lite / Super Lite
+ * 
+ * ─── What's new in v1.7.5 ─────────────────────────────────────────────────
+ * 💾 Remember active room — card ghi nhớ phòng đang chọn vào localStorage;
+ *    khi reload trang, chuyển dashboard rồi quay lại, card tự động trả về
+ *    đúng phòng cuối cùng đã chọn (key riêng theo entity đầu tiên của card)
+ * 📡 Unavailable / Offline handling — khi điều hòa mất mạng hoặc mất điện
+ *    (state = 'unavailable' / 'unknown'), card hiển thị:
+ *    • Badge "OFFLINE" nhấp nháy đỏ trên tab phòng bị mất kết nối
+ *    • Nhiệt độ tab hiển thị "Mất kết nối" / "Offline"
+ *    • Vòng tròn nhiệt độ hiển thị "--°" và "📡 Mất kết nối"
+ *    • Khối STATUS bên phải hiện "OFFLINE" + "Mất kết nối, chờ khôi phục..."
+ *    • Nút nguồn vô hiệu hóa (không gửi lệnh khi entity không khả dụng)
+ *    • "Tắt tất cả" tự động bỏ qua các phòng đang offline
+ *    • Khi điều hòa khôi phục kết nối và đổi trạng thái → card tự cập nhật
+ *    Áp dụng đồng bộ cho cả 3 chế độ: Full, Lite, Super Lite
  * 📐 Long-label overflow fix — fc-label (VENTILATORSNELHEID / LUCHTRICHTING)
  *    nay tự xuống dòng thay vì tràn ra ngoài card; letter-spacing giảm nhẹ;
  *    fan-card/swing-card có overflow:hidden; hdr-title, rt-header, sl-title
@@ -1708,6 +1731,9 @@ button,a{touch-action:manipulation;-webkit-tap-highlight-color:transparent;user-
 .room-status-badge{font-size:9px;font-weight:700;letter-spacing:0.3px;padding:3px 8px;border-radius:7px;flex-shrink:0;line-height:1.5;min-width:32px;text-align:center;align-self:center}
 .rsb-on{background:color-mix(in srgb,var(--cv-room-on,var(--accent)) 55%,rgba(0,10,30,0.4));color:#ffffff;border:1px solid color-mix(in srgb,var(--cv-room-on,var(--accent)) 80%,transparent)}
 .rsb-off{background:rgba(0,20,50,0.25);color:var(--cv-room-off,rgba(255,255,255,0.55));border:1px solid rgba(255,255,255,0.3)}
+.rsb-offline{background:rgba(60,10,10,0.5);color:#f87171;border:1px solid rgba(248,113,113,0.5);animation:offlinePulse 2s ease-in-out infinite}
+@keyframes offlinePulse{0%,100%{opacity:1}50%{opacity:0.55}}
+.st-offline{font-size:13px;font-weight:700;color:#f87171;margin-top:2px;animation:offlinePulse 2s ease-in-out infinite}
 .all-off-btn{
   margin:0 10px 6px;
   background:linear-gradient(145deg,rgba(220,38,38,0.82),rgba(185,18,18,0.88));
@@ -1967,6 +1993,7 @@ button,a{touch-action:manipulation;-webkit-tap-highlight-color:transparent;user-
 .sl-room-item-badge{font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;flex-shrink:0;letter-spacing:0.5px}
 .sl-room-item-badge.on{background:rgba(52,211,153,0.2);color:#34d399;box-shadow:0 0 8px rgba(52,211,153,0.3)}
 .sl-room-item-badge.off{background:rgba(255,255,255,0.07);color:rgba(255,255,255,0.35)}
+.sl-room-item-badge.offline{background:rgba(248,113,113,0.15);color:#f87171;border:1px solid rgba(248,113,113,0.4);animation:offlinePulse 2s ease-in-out infinite}
 
 
 /* ======================================================
@@ -2247,7 +2274,8 @@ class AcControllerCardV2 extends HTMLElement {
 
   // Helpers để đọc state/attr an toàn từ bất kỳ hass object nào
   _stateOf(hassObj, id) {
-    return hassObj && hassObj.states && hassObj.states[id] ? hassObj.states[id].state : 'off';
+    // Trả về state thực sự (bao gồm 'unavailable') thay vì che đi bằng 'off'
+    return hassObj && hassObj.states && hassObj.states[id] ? hassObj.states[id].state : 'unavailable';
   }
   _attrOf(hassObj, id, k) {
     return hassObj && hassObj.states && hassObj.states[id] && hassObj.states[id].attributes
@@ -3430,6 +3458,16 @@ class AcControllerCardV2 extends HTMLElement {
     // Đảm bảo activeIdx không vượt quá số phòng
     if (this._activeIdx >= ROOMS.length) this._activeIdx = 0;
 
+    // ── Khôi phục phòng đang chọn từ localStorage (survive reload / navigate) ──
+    // Key dựa trên entity đầu tiên → mỗi card instance có key riêng
+    this._cardKey = 'ac_active_room_' + (ROOMS[0] ? ROOMS[0].id.replace(/[^a-z0-9]/gi, '_') : 'default');
+    try {
+      var savedRoom = parseInt(localStorage.getItem(this._cardKey));
+      if (!isNaN(savedRoom) && savedRoom >= 0 && savedRoom < ROOMS.length) {
+        this._activeIdx = savedRoom;
+      }
+    } catch(e) {}
+
     // Khi cool_anim_speed thay đổi → restart animation ngay lập tức
     var newSpeed = c && c.cool_anim_speed;
     if (newSpeed && newSpeed !== this._prevCoolAnimSpeed) {
@@ -3468,6 +3506,14 @@ class AcControllerCardV2 extends HTMLElement {
 
   _s(id)       { return this._stateOf(this._hass, id); }
   _a(id, k)    { return this._attrOf(this._hass, id, k); }
+
+  // Chọn phòng và lưu vào localStorage để nhớ sau reload
+  _setActiveRoom(idx) {
+    this._activeIdx = idx;
+    try {
+      if (this._cardKey) localStorage.setItem(this._cardKey, String(idx));
+    } catch(e) {}
+  }
   _call(d,s,x) { this._hass.callService(d, s, x); }
 
   // ── FIX: connectedCallback – inject font + CSS 1 lần duy nhất ────────────
@@ -3599,7 +3645,10 @@ class AcControllerCardV2 extends HTMLElement {
 
     var room    = ROOMS[this._activeIdx];
     var hvac    = this._s(room.id);
-    var isOn    = hvac !== 'off';
+    var isUnavailable = (hvac === 'unavailable' || hvac === 'unknown');
+    var isOn    = !isUnavailable && hvac !== 'off';
+    // Khi unavailable, treat như off để tính toán hiển thị
+    if (isUnavailable) hvac = 'off';
     var curTemp = parseFloat(this._a(room.id,'current_temperature') || 26);
     var setTemp = parseFloat(this._a(room.id,'temperature')         || 24);
     var fanMode  = this._a(room.id,'fan_mode')     || 'auto';
@@ -3780,6 +3829,9 @@ class AcControllerCardV2 extends HTMLElement {
     var roomTabs = '';
     for (var j = 0; j < ROOMS.length; j++) {
       var rState = this._s(ROOMS[j].id);
+      var rOffline = (rState === 'unavailable' || rState === 'unknown');
+      // Khi offline, coi như tắt để hiển thị tab
+      if (rOffline) rState = 'off';
       var ron = rState !== 'off';
       var rTemp = parseFloat(this._a(ROOMS[j].id, 'current_temperature') || 0);
       var rHaUnit = rTemp > 50 ? 'F' : 'C';
@@ -3914,14 +3966,22 @@ class AcControllerCardV2 extends HTMLElement {
           + 'transparent 100%);';
       }
 
+      // Khi offline: icon xám, không có progress, badge OFFLINE
+      if (rOffline) {
+        tabIconColor = 'rgba(255,255,255,0.3)';
+        tabProgressStyle = '';
+      }
+
       roomTabs += '<button class="' + tabClass + '" data-room="' + j + '" data-tip="' + (tipMsg ? tipEmoji + ' ' + tipMsg : '') + '" data-tip-color="' + tipColor + '"'
         + (tabProgressStyle ? ' style="' + tabProgressStyle + '"' : '') + '>'
         + '<span class="room-tab-ico">' + this._mdiIcon(ROOMS[j].icon, 20, tabIconColor) + '</span>'
         + '<span class="room-tab-info">'
         + '  <span class="room-tab-name">' + ROOMS[j].label + '</span>'
-        + '  <span class="room-tab-temp">' + rTempStr + '</span>'
+        + '  <span class="room-tab-temp">' + (rOffline ? (lang === 'vi' ? 'Mất kết nối' : 'Offline') : rTempStr) + '</span>'
         + '</span>'
-        + '<span class="room-status-badge ' + (ron ? 'rsb-on' : 'rsb-off') + '">' + (ron ? 'ON' : 'OFF') + '</span>'
+        + (rOffline
+            ? '<span class="room-status-badge rsb-offline">' + (lang === 'vi' ? 'OFFLINE' : 'OFFLINE') + '</span>'
+            : '<span class="room-status-badge ' + (ron ? 'rsb-on' : 'rsb-off') + '">' + (ron ? 'ON' : 'OFF') + '</span>')
         + '</button>';
     }
 
@@ -3958,7 +4018,9 @@ class AcControllerCardV2 extends HTMLElement {
     var wifiOk = entityState !== 'unknown' && entityState !== 'unavailable';
     var wifiColor = wifiOk ? '#34d399' : 'rgba(255,255,255,0.4)';
     var wifiGlow  = wifiOk ? 'drop-shadow(0 0 4px #34d399)' : 'none';
-    var pwSub   = isOn ? tr.tapOff : tr.tapOn;
+    var pwSub   = isUnavailable
+      ? (lang === 'vi' ? 'Thiết bị mất kết nối' : 'Device offline')
+      : (isOn ? tr.tapOff : tr.tapOn);
 
     // Đọc giá trị cảm biến từ config
     var cfg = this._config || {};
@@ -4051,6 +4113,8 @@ class AcControllerCardV2 extends HTMLElement {
       var slRoomPopupItems = '';
       for (var sri = 0; sri < ROOMS.length; sri++) {
         var sriState = this._s(ROOMS[sri].id);
+        var sriOffline = (sriState === 'unavailable' || sriState === 'unknown');
+        if (sriOffline) sriState = 'off';
         var sriOn    = sriState !== 'off';
         var sriTemp  = parseFloat(this._a(ROOMS[sri].id, 'current_temperature') || 0);
         var sriHaUnit = sriTemp > 50 ? 'F' : 'C';
@@ -4068,7 +4132,7 @@ class AcControllerCardV2 extends HTMLElement {
         if (sri === this._activeIdx) slRoomBtnLabel = sriIconHtml + ' ' + sriLabelText;
         slRoomPopupItems += '<div class="sl-room-item' + (sri === this._activeIdx ? ' active' : '') + '" data-room-idx="' + sri + '">'
           + '<span style="flex:1;display:flex;align-items:center;gap:6px">' + sriIconHtml + '<span>' + sriLabelText + '</span></span>'
-          + '<span class="sl-room-item-badge ' + (sriOn ? 'on' : 'off') + '">' + (sriOn ? 'ON' : 'OFF') + '</span>'
+          + '<span class="sl-room-item-badge ' + (sriOffline ? 'offline' : (sriOn ? 'on' : 'off')) + '">' + (sriOffline ? 'OFFLINE' : (sriOn ? 'ON' : 'OFF')) + '</span>'
           + '</div>';
       }
       this._slRoomPopupItems = slRoomPopupItems;
@@ -4137,8 +4201,8 @@ class AcControllerCardV2 extends HTMLElement {
         + '        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.7)" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>'
         + '      </button>'
         + '      <span class="sl-badge">'
-        + '        <span class="sl-led ' + (slIsOn ? 'sl-led-on' : 'sl-led-off') + '"></span>'
-        + '        <span class="sl-badge-txt">' + (slIsOn ? tr.statusOn : tr.statusOff) + '</span>'
+        + '        <span class="sl-led ' + (isUnavailable ? 'sl-led-off' : (slIsOn ? 'sl-led-on' : 'sl-led-off')) + '" style="' + (isUnavailable ? 'background:#f87171;box-shadow:0 0 8px #f87171;animation:offlinePulse 2s ease-in-out infinite' : '') + '"></span>'
+        + '        <span class="sl-badge-txt" style="' + (isUnavailable ? 'color:#f87171' : '') + '">' + (isUnavailable ? 'OFFLINE' : (slIsOn ? tr.statusOn : tr.statusOff)) + '</span>'
         + '      </span>'
         + '    </div>'
         + '    <div style="display:flex;align-items:center;gap:3px">'
@@ -4352,8 +4416,12 @@ class AcControllerCardV2 extends HTMLElement {
 + '</svg>'
 + '<div class="dial-center">'
 + '  <div class="dial-lbl">' + tr.tempLabel + '</div>'
-+ '  <div class="dial-temp" id="live-cur-temp" style="color:' + acTempColor(curTempC) + ';text-shadow:0 0 30px ' + acTempColor(curTempC) + ',0 0 60px ' + acTempColor(curTempC) + '">' + curTempDisp + '<span class="dial-deg">&#176;</span></div>'
-+ '  <div class="dial-feel" id="live-comfort">' + comfortTxt + '</div>'
++ (isUnavailable
+    ? '  <div class="dial-temp" id="live-cur-temp" style="color:rgba(255,255,255,0.3);font-size:28px;text-shadow:none">--<span class="dial-deg">&#176;</span></div>'
+      + '  <div class="dial-feel" id="live-comfort" style="color:#f87171;font-weight:600">'
+      + (lang === 'vi' ? '📡 Mất kết nối' : '📡 Offline') + '</div>'
+    : '  <div class="dial-temp" id="live-cur-temp" style="color:' + acTempColor(curTempC) + ';text-shadow:0 0 30px ' + acTempColor(curTempC) + ',0 0 60px ' + acTempColor(curTempC) + '">' + curTempDisp + '<span class="dial-deg">&#176;</span></div>'
+      + '  <div class="dial-feel" id="live-comfort">' + comfortTxt + '</div>')
 + '</div>'
 + '</div>'
 
@@ -4448,8 +4516,8 @@ class AcControllerCardV2 extends HTMLElement {
 + '  <div class="status-header">'
 + '    <div>'
 + '      <div class="st-title">' + tr.statusLabel + '</div>'
-+ '      <div class="' + (isOn ? 'st-on' : 'st-off') + '">' + (isOn ? tr.statusOn : tr.statusOff) + '</div>'
-+ '      <div class="st-sub">' + (isOn ? tr.airGood : tr.pressOn) + '</div>'
++ '      <div class="' + (isUnavailable ? 'st-offline' : (isOn ? 'st-on' : 'st-off')) + '">' + (isUnavailable ? (lang === 'vi' ? 'OFFLINE' : 'OFFLINE') : (isOn ? tr.statusOn : tr.statusOff)) + '</div>'
++ '      <div class="st-sub">' + (isUnavailable ? (lang === 'vi' ? 'Mất kết nối, chờ khôi phục...' : 'Disconnected, waiting to restore...') : (isOn ? tr.airGood : tr.pressOn)) + '</div>'
 + '    </div>'
 + '    <div class="pm-ring"><div class="pm-val">' + pm25Val + '</div><div class="pm-unit">' + tr.dustLabel + '</div></div>'
 + '  </div>'
@@ -4599,6 +4667,8 @@ class AcControllerCardV2 extends HTMLElement {
     onTap(r.getElementById('btn-power'), function() {
       var id = ROOMS[self._activeIdx].id;
       var curState = self._s(id);
+      // Không làm gì khi entity mất kết nối
+      if (curState === 'unavailable' || curState === 'unknown') return;
       if (curState !== 'off') {
         // Lưu chế độ hiện tại vào localStorage trước khi tắt
         self._hvacModeSave(id, curState);
@@ -4697,7 +4767,12 @@ class AcControllerCardV2 extends HTMLElement {
       cpop.querySelector('#cp-cancel-btn').onclick = function(ev) { ev.stopPropagation(); cpop.remove(); };
       cpop.querySelector('#cp-ok-btn').onclick = function(ev) {
         ev.stopPropagation();
-        ROOMS.forEach(function(room) { self._call('climate','set_hvac_mode',{entity_id:room.id, hvac_mode:'off'}); });
+        ROOMS.forEach(function(room) {
+          var rSt = self._s(room.id);
+          if (rSt !== 'unavailable' && rSt !== 'unknown' && rSt !== 'off') {
+            self._call('climate','set_hvac_mode',{entity_id:room.id, hvac_mode:'off'});
+          }
+        });
         cpop.remove();
       };
       self._confirmJustOpened = true;
@@ -4739,7 +4814,12 @@ class AcControllerCardV2 extends HTMLElement {
       cpop.querySelector('#cp-cancel-btn').onclick = function(ev) { ev.stopPropagation(); cpop.remove(); };
       cpop.querySelector('#cp-ok-btn').onclick = function(ev) {
         ev.stopPropagation();
-        ROOMS.forEach(function(room) { self._call('climate','set_hvac_mode',{entity_id:room.id, hvac_mode:'off'}); });
+        ROOMS.forEach(function(room) {
+          var rSt = self._s(room.id);
+          if (rSt !== 'unavailable' && rSt !== 'unknown' && rSt !== 'off') {
+            self._call('climate','set_hvac_mode',{entity_id:room.id, hvac_mode:'off'});
+          }
+        });
         cpop.remove();
       };
       self._confirmJustOpened = true;
@@ -4763,9 +4843,9 @@ class AcControllerCardV2 extends HTMLElement {
       var img = r.getElementById('room-photo');
       if (img) {
         img.classList.add('fade-out');
-        setTimeout(function() { self._activeIdx = newIdx; self._renderFull(); }, 300);
+        setTimeout(function() { self._setActiveRoom(newIdx); self._renderFull(); }, 300);
       } else {
-        self._activeIdx = newIdx; self._renderFull();
+        self._setActiveRoom(newIdx); self._renderFull();
       }
     });
 
@@ -5043,7 +5123,7 @@ class AcControllerCardV2 extends HTMLElement {
       roomSelect.addEventListener('change', function() {
         var idx = parseInt(roomSelect.value);
         if (!isNaN(idx) && idx !== self._activeIdx) {
-          self._activeIdx = idx;
+          self._setActiveRoom(idx);
           self._renderFull();
         }
       });
@@ -5404,7 +5484,7 @@ class AcControllerCardV2 extends HTMLElement {
           if (isWave) _slWaveRipple(item, e);
           var idx = parseInt(item.dataset.roomIdx);
           var doSwitch = function() {
-            self._activeIdx = idx;
+            self._setActiveRoom(idx);
             closeRoomPopup();
             self._renderFull();
           };
@@ -6154,7 +6234,7 @@ class MultiAcCardEditor extends HTMLElement {
 </style>
 <div class="editor">
   <div class="credit">❄️ <strong>Multi Air Conditioner Card</strong>
-    <span style="color:var(--secondary-text-color);font-weight:400;">v1.7.4 Designed by @doanlong1412 from 🇻🇳 Vietnam</span>
+    <span style="color:var(--secondary-text-color);font-weight:400;">v1.8 Designed by @doanlong1412 from 🇻🇳 Vietnam</span>
   </div>
   <a href="https://www.tiktok.com/@long.1412" target="_blank" rel="noopener noreferrer"
     style="display:flex;align-items:center;gap:8px;margin:6px 0 10px;padding:8px 14px;
@@ -6900,3 +6980,10 @@ window.customCards.push({
   description: 'Multi-room air conditioner card with live sensor data, full editor and 10-language support. By @doanlong1412',
   preview: true,
 });
+
+console.info(
+  '%c ❄ Multi Air Conditioner Card %c v1.8 %c ready! 🚀',
+  'background:#00d4ff;color:#002030;font-weight:700;padding:2px 6px;border-radius:4px 0 0 4px;font-size:11px',
+  'background:#002030;color:#00d4ff;font-weight:700;padding:2px 6px;border-radius:0 4px 4px 0;font-size:11px',
+  'color:#34d399;font-weight:600;font-size:11px'
+);
