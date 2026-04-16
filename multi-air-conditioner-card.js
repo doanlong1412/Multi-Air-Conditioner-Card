@@ -1,6 +1,6 @@
 /**
  * Multi Air Conditioner Card
- * v1.9 Designed by @doanlong1412 from 🇻🇳 Vietnam
+ * v1.9.1 Designed by @doanlong1412 from 🇻🇳 Vietnam
  * HACS-compatible Web Component
  *
  * ─── What's new in v1.9 ─────────────────────────────────────────────────
@@ -23,7 +23,6 @@
  * Super Lite → header status badge and room dropdown both show OFFLINE
  * Auto-recovery → when the AC comes back online and its state changes, the card updates instantly without any reload
  * Applied consistently across all 3 view modes: Full / Lite / Super Lite
- * 
  * ─── What's new in v1.7.5 ─────────────────────────────────────────────────
  * 💾 Remember active room — card ghi nhớ phòng đang chọn vào localStorage;
  *    khi reload trang, chuyển dashboard rồi quay lại, card tự động trả về
@@ -1250,6 +1249,114 @@ const AC_TRANSLATIONS = {
     rooms: ['Sala de estar','Quarto','Sala de jantar','Escritório'],
     roomIcons: ['mdi:sofa','mdi:bed','mdi:silverware-fork-knife','mdi:briefcase'],
   },
+  sl: {
+    lang: 'Slovenščina', flag: 'si',
+    cardTitle: 'Klimatska Naprava',
+    cardSub:   'Pametni Dom',
+    greet: function() {
+      var h = new Date().getHours();
+      if (h>=6  && h<11) return 'Dobro jutro,';
+      if (h>=11 && h<13) return 'Dober dan,';
+      if (h>=13 && h<18) return 'Dober popoldan,';
+      if (h>=18 && h<21) return 'Dober večer,';
+      return 'Lahko noč,';
+    },
+    tempLabel: 'TEMPERATURA',
+    selectRoom: 'IZBERI PROSTOR',
+    modeLabel: 'NAČIN',
+    statusLabel: 'STANJE',
+    statusOn: 'DELUJE', statusOff: 'IZKLOP',
+    airGood: 'Kakovost zraka je dobra', outdoorLabel: 'Zunaj', pressOn: 'Pritisni za vklop',
+    dustLabel: 'Prah PM2.5',
+    fanLabel: 'Hitrost ventilatorja', swingLabel: 'Smer pihanja',
+    allOff: 'Izklopi vse', allOffSub: 'Pritisni za izklop vseh prostorov',
+    tapOff: 'Pritisni za izklop', tapOn: 'Pritisni za vklop',
+    confirmOff: '⚠ Izklopiti vse?', confirmSub: function(n) { return 'Izklopljenih bo ' + n + ' naprav hkrati'; },
+    cancel: 'Prekliči', doOff: '⏻ Izklopi vse',
+    overlayOn: 'VKLOPLJENO', overlayOff: 'IZKLOP',
+    modes: { cool:'Hlajenje', heat:'Gretje', dry:'Razvlaževanje', fan_only:'Ventilator', auto:'Samodejno', off:'Izklop' },
+    fans:   ['Samodejno','Min','Nizko','Nizko-Srednje','Srednje','Srednje-Visoko','Visoko','Max','Nizko/Auto','Visoko/Auto','Tiho'],
+    swings: ['Fiksno','Gor-dol','Levo-desno','Vse smeri','Položaj 1','Položaj 2','Položaj 3','Položaj 4','Položaj 5','Položaj 6'],
+    comfort: { dry:'Suh zrak', fan_only:'Svež vetrič', off:'Izklopljeno' },
+    comfortTemp: function(t) {
+      t = Math.round(t);
+      if (t<=19) return 'Zelo mrzlo, oblecite se!';
+      if (t<=23) return 'Idealna temperatura, sprostite se';
+      if (t<=27) return 'Prijetno in udobno';
+      if (t<=31) return 'Postaja toplo, potrebno hlajenje';
+      return 'Prevroče! Prilagodite temperaturo';
+    },
+    centralAcLabel: '🏢 Centralna klima', centralAcDesc: 'Vklopite za nastavitev loput (damper)',
+    damperAdd: '+ Dodaj loputo', damperRemove: 'Odstrani',
+    damperEntity: 'Entiteta lopute (cover.*)', damperName: 'Ime lopute',
+    damperLabel: 'Pretok zraka', damperOpen: 'Odprto', damperClosed: 'Zaprto',
+    timerBtn: 'Časovnik',
+    timerTitle: '⏰ Časovnik',
+    timerOff: '⏹ Izklop ob', timerOn: '▶ Vklop ob',
+    timerMinPlaceholder: 'Vnesi minute...', timerMinUnit: 'min',
+    timerDelete: 'Izbriši', timerConfirm: 'Potrdi',
+    edViewMode: '🖥 Način prikaza',
+    edViewModeFull: 'Full — Polno',
+    edViewModeLite: 'Lite — Kompaktno',
+    edPopupStyle: '✨ Stil pojavnega okna (Super Lite)',
+    edPopupNormal: 'Navadno',
+    edPopupEffect: 'Učinek',
+    edPopupWave: 'Valovanje',
+    edPresetBar: '🎛 Vrstica z možnostmi (Eco / Fav / Clean)',
+    edPresetBarDesc: 'Prikaži vrstico Eco · Fav · Clean',
+    bgLabel: 'Gradientno ozadje', bgPresets: 'Prednastavitve',
+    colorLabel: 'Barve', accentColor: 'Poudarjena barva (accent)', textColor: 'Barva besedila',
+    color1: 'Barva 1 (zgoraj levo)', color2: 'Barva 2 (spodaj desno)',
+    edLang: 'Jezik',
+    edEntities: 'Entitete (Entity)',
+    edOwnerName: '👤 Prikazano ime (Smart Home)',
+    edDisplay: '👁 Možnosti prikaza',
+    edShowGreet: 'Pozdrav', edShowGreetDesc: 'Prikaži jutranji/popoldanski/večerni pozdrav',
+    edShowCool: '❄ Hlajenje (Cool)', edShowHeat: '🔥 Gretje (Heat)',
+    edShowDry: '💧 Razvlaževanje (Dry)', edShowFanOnly: '🌀 Ventilator (Fan)', edShowAuto: '🔄 Samodejno (Auto)',
+    edShowFan: 'Hitrost ventilatorja', edShowFanDesc: 'Prikaži nadzor hitrosti ventilatorja',
+    edShowSwing: 'Smer pihanja', edShowSwingDesc: 'Prikaži nadzor smeri pihanja',
+    edShowPreset: 'Vrstica Eco/Fav/Clean', edShowPresetDesc: 'Prikaži gumbe Eco · Fav · Clean',
+    edShowStatus: 'Statusna plošča', edShowStatusDesc: 'Prikaži bloke stanja in senzorjev na desni',
+    edShowAllOff: 'Gumb Izklopi vse', edShowAllOffDesc: 'Prikaži gumb za izklop vseh klim',
+    edShowTimer: 'Gumb Časovnik', edShowTimerDesc: 'Prikaži gumb za časovnik vklopa/izklopa',
+    edShowRoomEnv: 'Temperatura/Vlaga v prostoru', edShowRoomEnvDesc: 'Prikaži temp. in vlago izbranega prostora (Super Lite)',
+    edShowSlFan: '💨 Hitrost ventilatorja (Super Lite)', edShowSlFanDesc: 'Prikaži gumb ventilatorja v Super Lite',
+    edShowSlSwing: '🔄 Smer pihanja (Super Lite)', edShowSlSwingDesc: 'Prikaži gumb smeri v Super Lite',
+    edShowSlRoomPower: '⚡ Poraba v prostoru (Super Lite)', edShowSlRoomPowerDesc: 'Prikaži porabo energije izbranega prostora',
+    edDialInvert: '🔄 Obrni temperaturni krog', edDialInvertDesc: 'Nastavljena temp. zunaj, sobna temp. znotraj — privzeto',
+    edPowerUnit: '⚡ Enota moči', edPowerUnitKw: 'kW', edPowerUnitW: 'W',
+    edTempUnit: '🌡 Enota temperature', edTempUnitC: '°C — Celzij', edTempUnitF: '°F — Fahrenheit',
+    edCoolAnimSpeed: '❄ Interval snežink (sekunde)', edCoolAnimSpeedDesc: 'Čas med pojavitvami snežink (2–15s)',
+    edShowOutdoorTemp: 'Zunanja temperatura', edShowHumidity: 'Vlažnost', edShowPower: 'Moč (kW)',
+    edRoomCountLabel: function(n) { return '🏠 Število prostorov (1–8, privzeto 4)'; },
+    edRoomsHeader: function(n) { return '❄ Klimatske naprave (' + n + ' prostorov)'; },
+    edRooms: '❄ Klime',
+    edSensors: '📡 Senzorji okolja',
+    edColors: 'Barve',
+    edBg: 'Barva ozadja',
+    edBgAlpha: '🔆 Prozornost ozadja', edBgTransparent: 'Prozorno', edBgSolid: 'Polno',
+    edColorsAdvanced: '🎨 Napredne barve',
+    edColorsDefault: 'Prazno = privzeta barva. Uporabljeno v realnem času.',
+    edColorsReset: '↩ Ponastavi vse barve na privzeto',
+    edColorsSecHeader: '📌 Glava in Pozdrav',
+    edColorsDial: '🌡 Temperaturni krog',
+    edColorsModeCtrl: '⚡ Načini in Upravljanje',
+    edColorsStatusRoom: '🏠 Stanje in Zavihki',
+    edAcEntity: '❄ Entiteta klime (climate.*)',
+    edAcName: '🏷 Prikazano ime',
+    edAcIcon: '🎨 MDI ikona (npr: mdi:sofa)',
+    edAcImage: '🖼 Slika prostora (URL)',
+    edRoomTempEntity: '🌡 Senzor sobne temp. (če klima nima)',
+    edRoomHumidityEntity: '💧 Senzor sobne vlage (če klima nima)',
+    edRoomPowerEntity: '⚡ Senzor porabe prostora (sensor.*)',
+    edPm25: '🌫 Delci PM2.5',
+    edOutdoorTemp: '🌡 Zunanja temperatura',
+    edHumidity: '💧 Zunanja vlažnost',
+    edPower: '⚡ Skupna poraba (kW)',
+    rooms: ['Dnevna soba','Spalnica','Jedilnica','Pisarna'],
+    roomIcons: ['mdi:sofa','mdi:bed','mdi:silverware-fork-knife','mdi:briefcase'],
+  },
 };
 
 // ─── Background presets (y hệt Gate Card) ─────────────────────────────────────
@@ -1541,7 +1648,6 @@ button,a{touch-action:manipulation;-webkit-tap-highlight-color:transparent;user-
 .temp-btn:hover{background:rgba(0,30,70,0.4);border-color:var(--accent);color:var(--accent);box-shadow:0 0 18px var(--glow)}
 .temp-btn:active{transform:scale(0.88)}
 .temp-set{min-width:100px;text-align:center;font-family:'Orbitron',sans-serif;font-size:14px;font-weight:600;color:var(--cv-temp-set,rgba(255,255,255,0.85))}
-/* ── macOS Dock mode selector ── */
 .mode-dock-wrap{
   display:flex;align-items:flex-end;justify-content:center;
   background:rgba(0,15,40,0.45);
@@ -1566,10 +1672,11 @@ button,a{touch-action:manipulation;-webkit-tap-highlight-color:transparent;user-
   color:rgba(255,255,255,0.75);
   font-size:8px;font-weight:600;
   font-family:'Sora',sans-serif;
-  transition:transform 0.2s cubic-bezier(.34,1.56,.64,1),
+  transition:transform 0.22s cubic-bezier(.34,1.56,.64,1),
              background 0.2s ease,
              border-color 0.2s ease,
-             box-shadow 0.2s ease;
+             box-shadow 0.2s ease,
+             margin 0.22s cubic-bezier(.34,1.56,.64,1);
   transform-origin:bottom center;
   overflow:visible;position:relative;
   min-width:46px;
@@ -1585,29 +1692,17 @@ button,a{touch-action:manipulation;-webkit-tap-highlight-color:transparent;user-
   box-shadow:0 0 24px var(--bg,var(--glow)),inset 0 1px 0 rgba(255,255,255,0.25);
   transform:scale(1.0);
 }
-/* Active dot indicator */
-.mode-btn--active::after{
-  content:'';
-  position:absolute;
-  bottom:-8px;left:50%;transform:translateX(-50%);
-  width:4px;height:4px;border-radius:50%;
-  background:var(--bc,var(--accent,#00ffcc));
-  box-shadow:0 0 6px var(--bc,var(--accent,#00ffcc));
-}
-.mode-icon{
-  font-size:22px;line-height:1;
-  display:flex;align-items:center;justify-content:center;
-  transition:transform 0.25s ease,filter 0.25s ease;
-}
-.mode-lbl{font-size:8px;color:var(--cv-mode-lbl,inherit);white-space:nowrap;line-height:1.2}
-/* Dock neighbour scaling — handled via JS mousemove */
-.mode-dock-wrap.dock-active .mode-btn{transform:scale(0.85) translateY(0px);opacity:0.65;transition:transform 0.22s cubic-bezier(.34,1.56,.64,1),opacity 0.18s ease,margin 0.22s cubic-bezier(.34,1.56,.64,1)}
-.mode-dock-wrap.dock-active .mode-btn.dock-hovered{transform:scale(1.22) translateY(-6px);opacity:1;z-index:10;border-color:rgba(255,255,255,0.6);margin:0 6px}
-.mode-dock-wrap.dock-active .mode-btn.dock-near1{transform:scale(0.95) translateY(-2px);opacity:0.88;z-index:5;margin:0 2px}
-.mode-dock-wrap.dock-active .mode-btn.dock-near2{transform:scale(0.88) translateY(0px);opacity:0.75;z-index:3}
-/* Keep active btn same size as others when dock not hovered */
+/* Active dot */
+.mode-btn--active::after{content:'';position:absolute;bottom:-8px;left:50%;transform:translateX(-50%);
+  width:4px;height:4px;border-radius:50%;background:var(--bc,var(--accent,#00ffcc));
+  box-shadow:0 0 6px var(--bc,var(--accent,#00ffcc));}
+/* Dock neighbour scaling — JS sets inline transform */
+.mode-dock-wrap.dock-active .mode-btn{opacity:0.65;transition:transform 0.22s cubic-bezier(.34,1.56,.64,1),opacity 0.18s ease,margin 0.22s cubic-bezier(.34,1.56,.64,1)}
+.mode-dock-wrap.dock-active .mode-btn.dock-hovered{opacity:1;z-index:10;border-color:rgba(255,255,255,0.6);margin:0 6px}
+.mode-dock-wrap.dock-active .mode-btn.dock-near1{opacity:0.88;z-index:5;margin:0 2px}
+.mode-dock-wrap.dock-active .mode-btn.dock-near2{opacity:0.75;z-index:3}
 .mode-dock-wrap .mode-btn--active:not(.dock-hovered):not(.dock-near1):not(.dock-near2){transform:scale(1.0) !important}
-/* Tooltip on hover */
+/* Tooltip */
 .mode-btn .dock-tooltip{
   position:absolute;bottom:calc(100% + 12px);left:50%;transform:translateX(-50%) scale(0.85);
   background:rgba(0,10,30,0.9);border:1px solid rgba(255,255,255,0.2);
@@ -1617,41 +1712,44 @@ button,a{touch-action:manipulation;-webkit-tap-highlight-color:transparent;user-
   backdrop-filter:blur(8px);
 }
 .mode-dock-wrap.dock-active .mode-btn.dock-hovered .dock-tooltip{opacity:1;transform:translateX(-50%) scale(1)}
+.mode-icon{font-size:22px;line-height:1;display:flex;align-items:center;justify-content:center;
+  transition:transform 0.25s ease,filter 0.25s ease}
+.mode-lbl{font-size:8px;color:var(--cv-mode-lbl,inherit);white-space:nowrap;line-height:1.2}
 
 /* ── Hover: Cool — bông tuyết xoay + sáng ── */
 @keyframes modeCoolSpin{0%{transform:rotate(0deg) scale(1)}50%{transform:rotate(180deg) scale(1.25)}100%{transform:rotate(360deg) scale(1)}}
 @keyframes modeCoolGlow{0%,100%{filter:drop-shadow(0 0 4px #3b9eff)}50%{filter:drop-shadow(0 0 12px #3b9eff) drop-shadow(0 0 22px #a8d8ff)}}
-.mode-btn[data-hvac="cool"]:hover .mode-icon,.mode-btn[data-hvac="cool"].dock-hovered .mode-icon{animation:modeCoolSpin 1.1s linear infinite,modeCoolGlow 1.1s ease-in-out infinite}
-.mode-btn[data-hvac="cool"]:hover,.mode-btn[data-hvac="cool"].dock-hovered{background:rgba(20,60,120,0.5);border-color:#3b9eff;box-shadow:0 4px 20px rgba(59,158,255,0.35),inset 0 0 14px rgba(59,158,255,0.1)}
+.mode-btn[data-hvac="cool"]:hover .mode-icon{animation:modeCoolSpin 1.1s linear infinite,modeCoolGlow 1.1s ease-in-out infinite}
+.mode-btn[data-hvac="cool"]:hover{background:rgba(20,60,120,0.5);border-color:#3b9eff;box-shadow:0 4px 20px rgba(59,158,255,0.35),inset 0 0 14px rgba(59,158,255,0.1)}
 .mode-btn[data-hvac="cool"].mode-btn--active .mode-icon{animation:modeCoolSpin 1.6s linear infinite,modeCoolGlow 1.6s ease-in-out infinite}
 
 /* ── Hover: Heat — lửa nhảy múa ── */
 @keyframes modeHeatFlicker{0%{transform:scale(1) rotate(-3deg)}20%{transform:scale(1.18) rotate(2deg)}40%{transform:scale(1.08) rotate(-2deg)}60%{transform:scale(1.22) rotate(3deg)}80%{transform:scale(1.1) rotate(-1deg)}100%{transform:scale(1) rotate(-3deg)}}
 @keyframes modeHeatGlow{0%,100%{filter:drop-shadow(0 0 5px #ff7b3b)}50%{filter:drop-shadow(0 0 14px #ff7b3b) drop-shadow(0 0 26px #ffcc44)}}
-.mode-btn[data-hvac="heat"]:hover .mode-icon,.mode-btn[data-hvac="heat"].dock-hovered .mode-icon{animation:modeHeatFlicker 0.7s ease-in-out infinite,modeHeatGlow 0.7s ease-in-out infinite}
-.mode-btn[data-hvac="heat"]:hover,.mode-btn[data-hvac="heat"].dock-hovered{background:rgba(80,30,10,0.5);border-color:#ff7b3b;box-shadow:0 4px 20px rgba(255,123,59,0.4),inset 0 0 14px rgba(255,123,59,0.12)}
+.mode-btn[data-hvac="heat"]:hover .mode-icon{animation:modeHeatFlicker 0.7s ease-in-out infinite,modeHeatGlow 0.7s ease-in-out infinite}
+.mode-btn[data-hvac="heat"]:hover{background:rgba(80,30,10,0.5);border-color:#ff7b3b;box-shadow:0 4px 20px rgba(255,123,59,0.4),inset 0 0 14px rgba(255,123,59,0.12)}
 .mode-btn[data-hvac="heat"].mode-btn--active .mode-icon{animation:modeHeatFlicker 1.1s ease-in-out infinite,modeHeatGlow 1.1s ease-in-out infinite}
 
 /* ── Hover: Dry — giọt nước nảy lên xuống ── */
 @keyframes modeDryBounce{0%,100%{transform:translateY(0) scale(1)}30%{transform:translateY(-5px) scale(0.92)}60%{transform:translateY(2px) scale(1.1)}80%{transform:translateY(-2px) scale(0.97)}}
 @keyframes modeDryGlow{0%,100%{filter:drop-shadow(0 0 4px #a78bfa)}50%{filter:drop-shadow(0 0 12px #a78bfa) drop-shadow(0 0 20px #d8b4fe)}}
-.mode-btn[data-hvac="dry"]:hover .mode-icon,.mode-btn[data-hvac="dry"].dock-hovered .mode-icon{animation:modeDryBounce 1s ease-in-out infinite,modeDryGlow 1s ease-in-out infinite}
-.mode-btn[data-hvac="dry"]:hover,.mode-btn[data-hvac="dry"].dock-hovered{background:rgba(50,20,90,0.5);border-color:#a78bfa;box-shadow:0 4px 20px rgba(167,139,250,0.35),inset 0 0 14px rgba(167,139,250,0.1)}
+.mode-btn[data-hvac="dry"]:hover .mode-icon{animation:modeDryBounce 1s ease-in-out infinite,modeDryGlow 1s ease-in-out infinite}
+.mode-btn[data-hvac="dry"]:hover{background:rgba(50,20,90,0.5);border-color:#a78bfa;box-shadow:0 4px 20px rgba(167,139,250,0.35),inset 0 0 14px rgba(167,139,250,0.1)}
 .mode-btn[data-hvac="dry"].mode-btn--active .mode-icon{animation:modeDryBounce 1.4s ease-in-out infinite,modeDryGlow 1.4s ease-in-out infinite}
 
 /* ── Hover: Fan — gió thổi sang phải (shake ngang) ── */
 @keyframes modeFanBlow{0%{transform:translateX(0) rotate(0deg)}15%{transform:translateX(3px) rotate(8deg)}30%{transform:translateX(-1px) rotate(-4deg)}50%{transform:translateX(4px) rotate(10deg)}70%{transform:translateX(-2px) rotate(-5deg)}85%{transform:translateX(3px) rotate(6deg)}100%{transform:translateX(0) rotate(0deg)}}
 @keyframes modeFanGlow{0%,100%{filter:drop-shadow(0 0 4px #34d399)}50%{filter:drop-shadow(0 0 12px #34d399) drop-shadow(0 0 22px #6ee7b7)}}
-.mode-btn[data-hvac="fan_only"]:hover .mode-icon,.mode-btn[data-hvac="fan_only"].dock-hovered .mode-icon{animation:modeFanBlow 0.9s ease-in-out infinite,modeFanGlow 0.9s ease-in-out infinite}
-.mode-btn[data-hvac="fan_only"]:hover,.mode-btn[data-hvac="fan_only"].dock-hovered{background:rgba(10,60,40,0.5);border-color:#34d399;box-shadow:0 4px 20px rgba(52,211,153,0.35),inset 0 0 14px rgba(52,211,153,0.1)}
+.mode-btn[data-hvac="fan_only"]:hover .mode-icon{animation:modeFanBlow 0.9s ease-in-out infinite,modeFanGlow 0.9s ease-in-out infinite}
+.mode-btn[data-hvac="fan_only"]:hover{background:rgba(10,60,40,0.5);border-color:#34d399;box-shadow:0 4px 20px rgba(52,211,153,0.35),inset 0 0 14px rgba(52,211,153,0.1)}
 .mode-btn[data-hvac="fan_only"].mode-btn--active .mode-icon{animation:modeFanBlow 1.3s ease-in-out infinite,modeFanGlow 1.3s ease-in-out infinite}
 
 /* ── Hover: Auto — xoay tự động + ánh vàng ── */
 @keyframes modeAutoSpin{0%{transform:rotate(0deg) scale(1)}50%{transform:rotate(180deg) scale(1.2)}100%{transform:rotate(360deg) scale(1)}}
 @keyframes modeAutoGlow{0%,100%{filter:drop-shadow(0 0 4px #f59e0b)}50%{filter:drop-shadow(0 0 14px #f59e0b) drop-shadow(0 0 26px #fcd34d)}}
 .mode-btn[data-hvac="auto"] .mode-icon{animation:modeAutoSpin 2.5s linear infinite,modeAutoGlow 2.5s ease-in-out infinite}
-.mode-btn[data-hvac="auto"]:hover .mode-icon,.mode-btn[data-hvac="auto"].dock-hovered .mode-icon{animation:modeAutoSpin 1.0s linear infinite,modeAutoGlow 1.0s ease-in-out infinite}
-.mode-btn[data-hvac="auto"]:hover,.mode-btn[data-hvac="auto"].dock-hovered{background:rgba(80,50,5,0.5);border-color:#f59e0b;box-shadow:0 4px 20px rgba(245,158,11,0.4),inset 0 0 14px rgba(245,158,11,0.12)}
+.mode-btn[data-hvac="auto"]:hover .mode-icon{animation:modeAutoSpin 1.0s linear infinite,modeAutoGlow 1.0s ease-in-out infinite}
+.mode-btn[data-hvac="auto"]:hover{background:rgba(80,50,5,0.5);border-color:#f59e0b;box-shadow:0 4px 20px rgba(245,158,11,0.4),inset 0 0 14px rgba(245,158,11,0.12)}
 .mode-btn[data-hvac="auto"].mode-btn--active .mode-icon{animation:modeAutoSpin 2s linear infinite,modeAutoGlow 2s ease-in-out infinite}
 
 /* ── Cool Active: Trail animation overlay ── */
@@ -1685,6 +1783,68 @@ button,a{touch-action:manipulation;-webkit-tap-highlight-color:transparent;user-
 .swing-btn{display:flex;flex-direction:column;align-items:center;gap:4px;
   background:none;border:none;cursor:pointer;outline:none;padding:0;width:100%}
 .swing-lbl{font-size:9px;color:var(--cv-swing-lbl,rgba(255,255,255,0.7));font-weight:600}
+/* ── Damper control button (thay airflow khi Central AC) ── */
+.damper-ctrl-btn{
+  display:flex;align-items:center;gap:10px;width:100%;padding:11px 14px;
+  background:rgba(0,20,50,0.35);border:1px solid rgba(255,255,255,0.22);border-radius:14px;
+  cursor:pointer;outline:none;font-family:'Sora',sans-serif;
+  transition:all 0.2s cubic-bezier(.34,1.56,.64,1);text-align:left;
+  position:relative;overflow:hidden;
+}
+.damper-ctrl-btn::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,rgba(0,212,255,0.06),rgba(0,100,180,0.04));
+  border-radius:14px;
+}
+.damper-ctrl-btn:hover{background:rgba(0,40,100,0.5);border-color:rgba(0,212,255,0.45);transform:translateY(-1px);box-shadow:0 4px 20px rgba(0,212,255,0.15)}
+.damper-ctrl-btn:active{transform:scale(0.98)}
+.damper-ctrl-ico{font-size:22px;flex-shrink:0;filter:drop-shadow(0 0 6px rgba(0,212,255,0.4))}
+.damper-ctrl-info{flex:1;min-width:0}
+.damper-ctrl-title{font-size:10px;font-weight:700;color:rgba(255,255,255,0.5);letter-spacing:0.8px;text-transform:uppercase;margin-bottom:2px}
+.damper-ctrl-summary{font-size:12px;font-weight:700;color:#00d4ff;letter-spacing:0.2px}
+.damper-ctrl-arrow{font-size:16px;color:rgba(255,255,255,0.4);flex-shrink:0}
+/* ── Damper full popup (tất cả damper trong 1 popup) ── */
+.damper-all-popup-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.6);backdrop-filter:blur(8px);
+  z-index:9100;display:flex;align-items:flex-end;justify-content:center;
+  padding-bottom:env(safe-area-inset-bottom,0px)}
+.damper-all-popup{
+  background:linear-gradient(160deg,rgba(0,15,38,0.98),rgba(0,28,60,0.98));
+  border:1px solid rgba(255,255,255,0.14);border-radius:24px 24px 0 0;
+  padding:20px 20px 28px;width:100%;max-width:460px;box-sizing:border-box;
+  max-height:80vh;overflow-y:auto;
+  animation:dampAllUp 0.3s cubic-bezier(0.34,1.56,0.64,1);
+}
+@keyframes dampAllUp{from{transform:translateY(100%);opacity:0}to{transform:translateY(0);opacity:1}}
+.damper-all-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+.damper-all-title{font-size:14px;font-weight:700;color:#fff;display:flex;align-items:center;gap:8px}
+.damper-all-close{width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,0.1);
+  border:none;cursor:pointer;font-size:16px;color:rgba(255,255,255,0.7);
+  display:flex;align-items:center;justify-content:center;transition:background 0.15s;font-family:'Sora',sans-serif}
+.damper-all-close:hover{background:rgba(255,255,255,0.2)}
+.damper-all-item{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);
+  border-radius:14px;padding:14px 16px 12px;margin-bottom:10px}
+.damper-all-item:last-child{margin-bottom:0}
+.damper-all-item-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.damper-all-item-name{font-size:11px;font-weight:700;color:rgba(255,255,255,0.9);display:flex;align-items:center;gap:6px}
+.damper-all-item-pct{font-size:20px;font-weight:700;letter-spacing:-0.5px;min-width:50px;text-align:right}
+.damper-all-slider{width:100%;-webkit-appearance:none;appearance:none;height:6px;border-radius:3px;
+  background:rgba(255,255,255,0.15);outline:none;cursor:pointer;margin:2px 0 6px;display:block}
+.damper-all-slider::-webkit-slider-thumb{-webkit-appearance:none;width:24px;height:24px;border-radius:50%;
+  background:#fff;box-shadow:0 2px 8px rgba(0,0,0,0.4),0 0 0 3px var(--accent);cursor:grab;transition:transform 0.1s}
+.damper-all-slider::-webkit-slider-thumb:active{transform:scale(1.15);cursor:grabbing}
+.damper-all-quick{display:flex;gap:6px;margin-top:8px}
+.damper-all-quick-btn{flex:1;padding:6px 4px;border-radius:8px;font-size:9px;font-weight:700;
+  border:1px solid rgba(255,255,255,0.18);background:rgba(255,255,255,0.06);
+  color:rgba(255,255,255,0.7);cursor:pointer;font-family:'Sora',sans-serif;transition:all 0.15s}
+.damper-all-quick-btn:hover{background:rgba(255,255,255,0.14);color:#fff}
+.damper-all-quick-btn.active{background:var(--accent,#00ffcc);color:#002030;border-color:var(--accent,#00ffcc)}
+.damper-all-footer{display:flex;gap:8px;margin-top:16px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.08)}
+.damper-all-btn{flex:1;padding:11px;border-radius:12px;font-size:13px;font-weight:700;
+  border:none;cursor:pointer;font-family:'Sora',sans-serif;transition:all 0.15s}
+.damper-all-btn--close{background:rgba(255,255,255,0.1);color:rgba(255,255,255,0.7)}
+.damper-all-btn--apply{background:var(--accent,#00ffcc);color:#002030}
+.damper-all-btn--close:hover{background:rgba(255,255,255,0.18)}
+.damper-all-btn--apply:hover{filter:brightness(1.1)}
 /* ── Damper list ── */
 .damper-list{display:flex;flex-direction:column;gap:6px;margin-top:6px}
 .damper-btn{display:flex;align-items:center;gap:9px;width:100%;padding:8px 10px;
@@ -1720,11 +1880,6 @@ button,a{touch-action:manipulation;-webkit-tap-highlight-color:transparent;user-
 .damper-popup-btn--apply{background:var(--accent);color:#002030}
 .damper-popup-btn--close:hover{background:rgba(255,255,255,0.18)}
 .damper-popup-btn--apply:hover{filter:brightness(1.1)}
-.dmp-preset-btn{padding:6px 2px;border-radius:8px;font-size:10px;font-weight:700;
-  border:1px solid rgba(255,255,255,0.15);background:rgba(255,255,255,0.07);
-  color:rgba(255,255,255,0.6);cursor:pointer;font-family:'Sora',sans-serif;transition:all 0.15s}
-.dmp-preset-btn:hover{background:rgba(255,255,255,0.16);color:#fff;border-color:rgba(255,255,255,0.3)}
-.dmp-preset-btn:active{transform:scale(0.95)}
 .chips{display:flex;gap:7px}
 .chip{flex:1;background:rgba(0,20,50,0.28);border:1px solid rgba(255,255,255,0.25);
   border-radius:12px;padding:7px 4px;display:flex;align-items:center;justify-content:center;gap:4px;
@@ -1750,10 +1905,18 @@ button,a{touch-action:manipulation;-webkit-tap-highlight-color:transparent;user-
   transform:translateY(1px);
   box-shadow:0 2px 0 rgba(0,0,0,0.55),0 3px 8px rgba(0,0,0,0.3),inset 0 2px 4px rgba(0,0,0,0.25),inset 0 1px 0 rgba(255,255,255,0.06)}
 .pw-btn{width:40px;height:40px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:19px;transition:all 0.35s}
-.pw-on{background:linear-gradient(135deg,#3b9eff,#1a5faa);
-  box-shadow:0 0 26px rgba(59,158,255,0.7),0 0 50px rgba(59,158,255,0.25);animation:pwP 2.5s ease-in-out infinite}
-.pw-off{background:rgba(0,20,50,0.25);border:1px solid rgba(255,255,255,0.5)}
-@keyframes pwP{0%,100%{box-shadow:0 0 26px rgba(59,158,255,0.7),0 0 50px rgba(59,158,255,0.25)}50%{box-shadow:0 0 40px rgba(59,158,255,0.95),0 0 70px rgba(59,158,255,0.45)}}
+.pw-on{
+  background:linear-gradient(135deg,var(--pw-color1,#3b9eff),var(--pw-color2,#1a5faa));
+  box-shadow:0 0 26px var(--pw-glow,rgba(59,158,255,0.7)),0 0 50px var(--pw-glow,rgba(59,158,255,0.25));
+  animation:pwP 2.5s ease-in-out infinite}
+.pw-off{
+  background:rgba(255,255,255,0.06);
+  border:1px solid rgba(255,255,255,0.22);
+  backdrop-filter:blur(8px);
+  -webkit-backdrop-filter:blur(8px);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,0.15),0 2px 8px rgba(0,0,0,0.2);
+}
+@keyframes pwP{0%,100%{box-shadow:0 0 26px var(--pw-glow,rgba(59,158,255,0.7)),0 0 50px var(--pw-glow,rgba(59,158,255,0.25))}50%{box-shadow:0 0 40px var(--pw-glow,rgba(59,158,255,0.95)),0 0 70px var(--pw-glow,rgba(59,158,255,0.45))}}
 .pw-sub{font-size:9px;color:rgba(255,255,255,0.5);margin-top:2px}
 .pw-sub--big{font-size:13px;font-weight:600;color:var(--cv-power-lbl,rgba(255,255,255,0.85));letter-spacing:0.2px}
 .confirm-popup{position:fixed;z-index:9999;
@@ -2389,16 +2552,44 @@ class AcControllerCardV2 extends HTMLElement {
             if (sNew !== sOld) { changed = true; break; }
           }
         }
-        // Damper cover entities
-        if (!changed && ents[ei] && ents[ei].is_central_ac && ents[ei].dampers) {
-          for (var dci = 0; dci < ents[ei].dampers.length && !changed; dci++) {
-            var dEnt = ents[ei].dampers[dci] && ents[ei].dampers[dci].entity_id;
-            if (dEnt) {
-              var dNew = h.states && h.states[dEnt] ? (h.states[dEnt].attributes && h.states[dEnt].attributes.current_position) : null;
-              var dOld = prev.states && prev.states[dEnt] ? (prev.states[dEnt].attributes && prev.states[dEnt].attributes.current_position) : null;
-              if (dNew !== dOld) changed = true;
+        // Damper entities (Central AC)
+        if (!changed && ents[ei] && ents[ei].is_central_ac) {
+          var dmpsChk = ents[ei].dampers || [];
+          for (var dci = 0; dci < dmpsChk.length; dci++) {
+            var dcEnt = dmpsChk[dci] && dmpsChk[dci].entity_id;
+            if (dcEnt) {
+              var dcNew = h.states && h.states[dcEnt] ? h.states[dcEnt].state : null;
+              var dcOld = prev.states && prev.states[dcEnt] ? prev.states[dcEnt].state : null;
+              var dcPosNew = h.states && h.states[dcEnt] && h.states[dcEnt].attributes ? h.states[dcEnt].attributes.current_position : null;
+              var dcPosOld = prev.states && prev.states[dcEnt] && prev.states[dcEnt].attributes ? prev.states[dcEnt].attributes.current_position : null;
+              if (dcNew !== dcOld || dcPosNew !== dcPosOld) { changed = true; break; }
             }
           }
+        }
+      }
+    }
+
+    // ── Central AC safety: auto-off nếu tất cả damper đóng ─────────────────
+    if (prev && h) {
+      var cfgCA = this._config || {};
+      var entsCA = cfgCA.entities || [];
+      for (var cai = 0; cai < ROOMS.length; cai++) {
+        var roomCfgCA = entsCA[cai] || {};
+        if (!roomCfgCA.is_central_ac) continue;
+        var dmpsCA = roomCfgCA.dampers || [];
+        if (!dmpsCA.length) continue;
+        var roomIdCA = ROOMS[cai].id;
+        var roomStateCA = h.states && h.states[roomIdCA] ? h.states[roomIdCA].state : 'off';
+        if (roomStateCA === 'off' || roomStateCA === 'unavailable' || roomStateCA === 'unknown') continue;
+        // Kiểm tra tất cả damper có đóng không
+        var allClosedCA = dmpsCA.every(function(d) {
+          if (!d || !d.entity_id) return true;
+          var dst = h.states && h.states[d.entity_id];
+          return !dst || (parseFloat(dst.attributes && dst.attributes.current_position) || 0) === 0;
+        });
+        if (allClosedCA) {
+          // Tắt AC để bảo vệ đường ống
+          this._call('climate', 'set_hvac_mode', { entity_id: roomIdCA, hvac_mode: 'off' });
         }
       }
     }
@@ -3800,6 +3991,7 @@ class AcControllerCardV2 extends HTMLElement {
 
   _renderFull() {
     if (!this._hass) return;
+    var self = this;
 
     var cfg    = this._config || {};
     var lang   = cfg.language || 'vi';
@@ -4223,6 +4415,10 @@ class AcControllerCardV2 extends HTMLElement {
     var modeChip = isOn ? ('<span class="ac-mode-chip">' + modeChipIcon + ' ' + mode.lbl + '</span>') : '';
 
     var pwClass = isOn ? 'pw-on' : 'pw-off';
+    var _pwMc = (isOn && MODE_CFG[hvac]) ? MODE_CFG[hvac] : null;
+    var _pwColor = _pwMc ? _pwMc.color : '#3b9eff';
+    var _pwGlow  = _pwMc ? _pwMc.glow  : 'rgba(59,158,255,0.7)';
+    var pwStyle = isOn && _pwMc ? ('--pw-color1:' + _pwColor + ';--pw-color2:' + _pwColor + ';--pw-glow:' + _pwGlow + ';') : '';
     var entityState = this._hass && this._hass.states && this._hass.states[room.id] ? this._hass.states[room.id].state : 'unknown';
     var wifiOk = entityState !== 'unknown' && entityState !== 'unavailable';
     var wifiColor = wifiOk ? '#34d399' : 'rgba(255,255,255,0.4)';
@@ -4667,62 +4863,67 @@ class AcControllerCardV2 extends HTMLElement {
 
 + (modeBtns ? '<div class="mode-dock-wrap" id="mode-dock">' + modeBtns + '</div>' : '')
 
-+ ((cfg.show_fan !== false || cfg.show_swing !== false) ? (
-  '<div class="fan-swing-row">'
-+ (cfg.show_fan !== false ? (
-  '  <div class="fan-card">'
-+ '    <div class="fc-head"><span class="fc-label">' + tr.fanLabel + '</span><span class="fc-val">' + (function(){ var _fIdx = FAN_LEVELS.indexOf(fanMode); return (_fIdx >= 0 && _fIdx < fanLabels.length) ? fanLabels[_fIdx] : fanMode; })() + '</span></div>'
-+ '    <button class="fan-tap" id="btn-fan-cycle">'
-+ '      <span class="fan-ico">' + fanIconSvg + '</span>'
-+ '      <div class="fan-bars">' + fanBarHtml + '</div>'
-+ '    </button>'
-+ '  </div>'
-) : '')
-+ (function() {
-    // ── Nếu là Central AC: thay swing-card bằng damper-card ─────────────────
-    var _rCfg = (cfg.entities && cfg.entities[self._activeIdx]) || {};
-    if (_rCfg.is_central_ac) {
-      var _dmps = (_rCfg.dampers || []).filter(function(d){ return d && d.entity_id; });
-      // Tính avg position cho badge
-      var _avgPos = 0;
-      if (_dmps.length) {
-        _dmps.forEach(function(d) {
-          var ds = self._hass && self._hass.states && self._hass.states[d.entity_id];
-          _avgPos += ds ? (parseFloat(ds.attributes && ds.attributes.current_position) || 0) : 0;
-        });
-        _avgPos = Math.round(_avgPos / _dmps.length);
-      }
-      var _dColor = _avgPos < 20 ? 'rgba(255,255,255,0.4)' : _avgPos < 60 ? '#34d399' : '#00d4ff';
-      return '  <div class="swing-card" id="damper-card-btn" style="cursor:pointer;position:relative;">'
-           + '    <div class="fc-head"><span class="fc-label">&#127744; ' + (tr.damperLabel || 'Lưu lượng gió') + '</span>'
-           + '      <span class="fc-val" style="color:' + _dColor + '">' + (_dmps.length ? _avgPos + '%' : '--') + '</span>'
-           + '    </div>'
-           + '    <div style="display:flex;flex-direction:column;gap:4px;margin-top:4px;">'
-           + _dmps.slice(0, 3).map(function(d, di) {
-               var ds = self._hass && self._hass.states && self._hass.states[d.entity_id];
-               var pos = ds ? Math.round(parseFloat(ds.attributes && ds.attributes.current_position) || 0) : 0;
-               var dc = pos < 20 ? 'rgba(255,255,255,0.25)' : pos < 60 ? '#34d399' : '#00d4ff';
-               return '<div style="display:flex;align-items:center;gap:5px;">'
-                    + '  <span style="font-size:9px;color:rgba(255,255,255,0.55);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:52px;flex:1;">' + (d.name || ('Van '+(di+1))) + '</span>'
-                    + '  <div style="flex:2;height:3px;border-radius:2px;background:rgba(255,255,255,0.1);overflow:hidden;">'
-                    + '    <div style="height:100%;width:' + pos + '%;background:' + dc + ';border-radius:2px;transition:width 0.3s;"></div>'
-                    + '  </div>'
-                    + '  <span style="font-size:9px;font-weight:700;color:' + dc + ';min-width:22px;text-align:right;">' + pos + '%</span>'
-                    + '</div>';
-             }).join('')
-           + (_dmps.length > 3 ? '<div style="font-size:9px;color:rgba(255,255,255,0.4);text-align:center;margin-top:1px;">+' + (_dmps.length - 3) + ' van nữa</div>' : '')
-           + '    </div>'
-           + '  </div>';
++ (function(){
+    var roomEntCfgFS = (cfg.entities && cfg.entities[self._activeIdx]) || {};
+    var isCentralAC = roomEntCfgFS.is_central_ac;
+    var dampersFS = roomEntCfgFS.dampers || [];
+    var validDampers = dampersFS.filter(function(d){ return d && d.entity_id; });
+
+    // ── Fan + Swing row (luôn hiện, bất kể central AC hay không) ────────────
+    if (cfg.show_fan === false && cfg.show_swing === false) {
+      // Nếu cả hai bị tắt thì chỉ render damper (nếu có)
     }
-    // ── Bình thường: swing-card ───────────────────────────────────────────────
-    if (cfg.show_swing === false) return '';
-    return '  <div class="swing-card">'
-         + '    <div class="fc-head"><span class="fc-label">' + tr.swingLabel + '</span></div>'
-         + '    ' + swingBtn
-         + '  </div>';
+    var fsRow = '';
+    if (cfg.show_fan !== false || cfg.show_swing !== false) {
+      fsRow += '<div class="fan-swing-row">';
+      if (cfg.show_fan !== false) {
+        fsRow += '<div class="fan-card">'
+          + '<div class="fc-head"><span class="fc-label">' + tr.fanLabel + '</span><span class="fc-val">' + (function(){ var _fIdx = FAN_LEVELS.indexOf(fanMode); return (_fIdx >= 0 && _fIdx < fanLabels.length) ? fanLabels[_fIdx] : fanMode; })() + '</span></div>'
+          + '<button class="fan-tap" id="btn-fan-cycle">'
+          + '  <span class="fan-ico">' + fanIconSvg + '</span>'
+          + '  <div class="fan-bars">' + fanBarHtml + '</div>'
+          + '</button>'
+          + '</div>';
+      }
+      if (cfg.show_swing !== false) {
+        fsRow += '<div class="swing-card">'
+          + '<div class="fc-head"><span class="fc-label">' + tr.swingLabel + '</span></div>'
+          + swingBtn
+          + '</div>';
+      }
+      fsRow += '</div>';
+    }
+
+    // ── Damper row: chỉ hiện khi is_central_ac=true VÀ có ít nhất 1 cover.* ─
+    var damperRow = '';
+    if (isCentralAC && validDampers.length > 0) {
+      var openCount = 0; var totalPct = 0;
+      validDampers.forEach(function(d) {
+        var dst = self._hass && self._hass.states && self._hass.states[d.entity_id];
+        var pos = dst ? Math.round(parseFloat(dst.attributes && dst.attributes.current_position) || 0) : 0;
+        if (pos > 0) openCount++;
+        totalPct += pos;
+      });
+      var avgPct = validDampers.length ? Math.round(totalPct / validDampers.length) : 0;
+      var summaryColor = openCount === 0 ? 'rgba(255,255,255,0.4)' : openCount < validDampers.length ? '#34d399' : '#00d4ff';
+      var summaryTxt = openCount + '/' + validDampers.length
+        + (self._config.language === 'vi' ? ' van mở · TB ' : ' open · Avg ') + avgPct + '%';
+      damperRow = '<div style="width:100%;margin-top:8px;">'
+        + '  <button class="damper-ctrl-btn" id="btn-damper-ctrl" style="padding:8px 14px;">'
+        + '    <span class="damper-ctrl-ico" style="font-size:18px;">🌀</span>'
+        + '    <span class="fc-label" style="font-size:10px;letter-spacing:0.8px;white-space:nowrap;">' + (tr.damperLabel || 'Lưu lượng gió') + '</span>'
+        + '    <div class="damper-ctrl-info" style="display:flex;align-items:center;gap:8px;">'
+        + '      <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.5);letter-spacing:0.6px;text-transform:uppercase;white-space:nowrap;">' + validDampers.length + (self._config.language === 'vi' ? ' van' : ' dampers') + '</span>'
+        + '      <span style="font-size:12px;font-weight:700;color:' + summaryColor + ';white-space:nowrap;">' + summaryTxt + '</span>'
+        + '    </div>'
+        + '    <span class="damper-ctrl-arrow">&#8250;</span>'
+        + '  </button>'
+        + '</div>';
+    }
+
+    return fsRow + damperRow;
   }).call(this)
-+ '</div>'
-) : '')
+
 
 + (!isLite && this._config.show_preset_bar !== false ? (
   '<div class="chips">'
@@ -4735,7 +4936,7 @@ class AcControllerCardV2 extends HTMLElement {
 + (isLite ? '' : (
   '<div class="bottom-row">'
 + '<button class="power-row" id="btn-power">'
-+ '  <div class="pw-btn ' + pwClass + '">&#9211;</div>'
++ '  <div class="pw-btn ' + pwClass + '" style="' + pwStyle + '">&#9211;</div>'
 + '  <div style="flex:1;min-width:0">'
 + '    <div class="pw-sub pw-sub--big">' + pwSub + '</div>'
 + '  </div>'
@@ -4793,7 +4994,7 @@ class AcControllerCardV2 extends HTMLElement {
 + (isLite ? (
   '<div class="lite-bottom">'
 + '<button class="power-row power-row--lite" id="btn-power-lite">'
-+ '  <div class="pw-btn ' + pwClass + '">&#9211;</div>'
++ '  <div class="pw-btn ' + pwClass + '" style="' + pwStyle + '">&#9211;</div>'
 + '  <div style="flex:1;min-width:0"><div class="pw-sub pw-sub--big">' + pwSub + '</div></div>'
 + '  <span class="pw-arrow">&#8250;</span>'
 + '</button>'
@@ -5065,7 +5266,7 @@ class AcControllerCardV2 extends HTMLElement {
       self._call('climate','set_hvac_mode',{entity_id:_hvacId, hvac_mode:_newMode});
     });
 
-    // ── macOS Dock effect for mode buttons ──────────────────────────────
+    // ── macOS Dock effect for mode buttons ──────────────────────────────────
     (function() {
       var dock = r.getElementById('mode-dock');
       if (!dock) return;
@@ -5076,7 +5277,7 @@ class AcControllerCardV2 extends HTMLElement {
         dock.classList.add('dock-active');
         btns.forEach(function(btn, i) {
           btn.classList.remove('dock-hovered','dock-near1','dock-near2');
-          var d = i - hoveredIdx; // signed: âm = bên trái, dương = bên phải
+          var d  = i - hoveredIdx;
           var ad = Math.abs(d);
           var dir = d < 0 ? -1 : 1;
           if (ad === 0) {
@@ -5104,17 +5305,150 @@ class AcControllerCardV2 extends HTMLElement {
 
       btns.forEach(function(btn, i) {
         btn.addEventListener('mouseenter', function() { applyDock(i); });
-        btn.addEventListener('touchstart', function() { applyDock(i); }, {passive:true});
+        btn.addEventListener('touchstart', function() { applyDock(i); }, { passive: true });
       });
       dock.addEventListener('mouseleave', resetDock);
-      dock.addEventListener('touchend', function() {
-        setTimeout(resetDock, 350);
-      }, {passive:true});
+      dock.addEventListener('touchend', function() { setTimeout(resetDock, 350); }, { passive: true });
     })();
-    // ────────────────────────────────────────────────────────────────────
+
     onTapAll(r.querySelectorAll('[data-fan]'), function(b) {
       self._call('climate','set_fan_mode',{entity_id:ROOMS[self._activeIdx].id, fan_mode:b.dataset.fan});
     });
+    // ── Damper All-in-One Popup (Central AC) ──────────────────────────────────
+    (function() {
+      var ctrlBtn = r.getElementById('btn-damper-ctrl');
+      if (!ctrlBtn) return;
+
+      var roomEntCfgP = (self._config && self._config.entities && self._config.entities[self._activeIdx]) || {};
+      var dampersAll  = (roomEntCfgP.dampers || []).filter(function(d){ return d && d.entity_id; });
+      if (!dampersAll.length) return;
+
+      var trP = AC_TRANSLATIONS[(self._config && self._config.language) || 'vi'] || AC_TRANSLATIONS.vi;
+
+      function openDamperAllPopup() {
+        // Xóa popup cũ
+        var oldOv = self.shadowRoot.getElementById('damper-all-ov');
+        if (oldOv) { oldOv.remove(); return; }
+
+        // Lấy position hiện tại mỗi damper
+        var pending = dampersAll.map(function(d) {
+          var dst = self._hass && self._hass.states && self._hass.states[d.entity_id];
+          return dst ? Math.round(parseFloat(dst.attributes && dst.attributes.current_position) || 0) : 0;
+        });
+
+        // Build popup HTML
+        var itemsHtml = dampersAll.map(function(d, di) {
+          var pos = pending[di];
+          var col = pos < 20 ? 'rgba(255,255,255,0.4)' : pos < 60 ? '#34d399' : '#00d4ff';
+          var trackBg = 'linear-gradient(to right,' + col + ' ' + pos + '%,rgba(255,255,255,0.15) ' + pos + '%)';
+          return '<div class="damper-all-item" id="dmp-item-' + di + '">'
+            + '  <div class="damper-all-item-header">'
+            + '    <div class="damper-all-item-name">🌀 ' + (d.name || d.entity_id) + '</div>'
+            + '    <div class="damper-all-item-pct" id="dmp-pct-' + di + '" style="color:' + col + '">' + pos + '%</div>'
+            + '  </div>'
+            + '  <input class="damper-all-slider" id="dmp-sl-' + di + '" type="range" min="0" max="100" step="5"'
+            + '    value="' + pos + '" style="background:' + trackBg + '">'
+            + '  <div class="damper-all-quick">'
+            + '    <button class="damper-all-quick-btn' + (pos===0?' active':'') + '" data-di="' + di + '" data-val="0">✕ Đóng</button>'
+            + '    <button class="damper-all-quick-btn' + (pos===25?' active':'') + '" data-di="' + di + '" data-val="25">25%</button>'
+            + '    <button class="damper-all-quick-btn' + (pos===50?' active':'') + '" data-di="' + di + '" data-val="50">50%</button>'
+            + '    <button class="damper-all-quick-btn' + (pos===75?' active':'') + '" data-di="' + di + '" data-val="75">75%</button>'
+            + '    <button class="damper-all-quick-btn' + (pos===100?' active':'') + '" data-di="' + di + '" data-val="100">✓ Mở</button>'
+            + '  </div>'
+            + '</div>';
+        }).join('');
+
+        var ov = document.createElement('div');
+        ov.id = 'damper-all-ov';
+        ov.className = 'damper-all-popup-overlay';
+        ov.innerHTML =
+          '<div class="damper-all-popup" id="damper-all-inner">'
+        + '  <div class="damper-all-header">'
+        + '    <div class="damper-all-title">🌀 ' + (trP.damperLabel || 'AIRFLOW') + ' · ' + dampersAll.length + ' Cover</div>'
+        + '    <button class="damper-all-close" id="dmp-close-top">✕</button>'
+        + '  </div>'
+        + '  <div id="dmp-items-wrap">' + itemsHtml + '</div>'
+        + '  <div class="damper-all-footer">'
+        + '    <button class="damper-all-btn damper-all-btn--close" id="dmp-btn-cancel">' + (trP.cancel || 'Cancel') + '</button>'
+        + '    <button class="damper-all-btn damper-all-btn--apply" id="dmp-btn-apply">✓ Apply</button>'
+        + '  </div>'
+        + '</div>';
+
+        self.shadowRoot.appendChild(ov);
+
+        // ── Helpers ─────────────────────────────────────────────────────────
+        function getColor(p) {
+          return p < 20 ? 'rgba(255,255,255,0.4)' : p < 60 ? '#34d399' : '#00d4ff';
+        }
+        function updateSliderTrack(sl, p) {
+          var c = getColor(p);
+          sl.style.background = 'linear-gradient(to right,' + c + ' ' + p + '%,rgba(255,255,255,0.15) ' + p + '%)';
+        }
+        function setDamperVal(di, val) {
+          pending[di] = val;
+          var pctEl = ov.querySelector('#dmp-pct-' + di);
+          var slEl  = ov.querySelector('#dmp-sl-'  + di);
+          if (pctEl) { pctEl.textContent = val + '%'; pctEl.style.color = getColor(val); }
+          if (slEl)  { slEl.value = val; updateSliderTrack(slEl, val); }
+          // Update quick buttons active state
+          ov.querySelectorAll('[data-di="' + di + '"]').forEach(function(qb) {
+            var qv = parseInt(qb.dataset.val);
+            if (!isNaN(qv)) qb.classList.toggle('active', qv === val);
+          });
+        }
+
+        // ── Bind sliders ────────────────────────────────────────────────────
+        dampersAll.forEach(function(d, di) {
+          var sl = ov.querySelector('#dmp-sl-' + di);
+          if (!sl) return;
+          sl.addEventListener('input', function() {
+            setDamperVal(di, parseInt(sl.value));
+          });
+        });
+
+        // ── Bind quick buttons ───────────────────────────────────────────────
+        ov.querySelectorAll('.damper-all-quick-btn').forEach(function(btn) {
+          btn.addEventListener('click', function() {
+            var di  = parseInt(btn.dataset.di);
+            var val = parseInt(btn.dataset.val);
+            if (!isNaN(di) && !isNaN(val)) setDamperVal(di, val);
+          });
+        });
+
+        // ── Close / Apply ────────────────────────────────────────────────────
+        function closePopup() { ov.remove(); }
+
+        function applyAll() {
+          dampersAll.forEach(function(d, di) {
+            self._call('cover', 'set_cover_position', {
+              entity_id: d.entity_id,
+              position: pending[di]
+            });
+          });
+          ov.remove();
+        }
+
+        ov.querySelector('#dmp-btn-cancel').addEventListener('click', closePopup);
+        ov.querySelector('#dmp-close-top').addEventListener('click', closePopup);
+        ov.querySelector('#dmp-btn-apply').addEventListener('click', applyAll);
+
+        // Click backdrop
+        ov.addEventListener('click', function(e) {
+          if (e.target === ov) closePopup();
+        });
+      }
+
+      ctrlBtn.addEventListener('click', openDamperAllPopup);
+      ctrlBtn.addEventListener('touchend', function(e) {
+        e.preventDefault();
+        openDamperAllPopup();
+      }, { passive: false });
+    })();
+    // ── End damper popup ─────────────────────────────────────────────────────
+
+
+
+
 
     onTap(r.getElementById('btn-power'), function() {
       var id = ROOMS[self._activeIdx].id;
@@ -5122,11 +5456,31 @@ class AcControllerCardV2 extends HTMLElement {
       // Không làm gì khi entity mất kết nối
       if (curState === 'unavailable' || curState === 'unknown') return;
       if (curState !== 'off') {
-        // Lưu chế độ hiện tại vào localStorage trước khi tắt
         self._hvacModeSave(id, curState);
         self._call('climate','set_hvac_mode',{entity_id:id, hvac_mode:'off'});
       } else {
-        // Bật lại: ưu tiên climate.turn_on để tôn trọng mode hệ thống (Mitsubishi City Multi, v.v.)
+        // Kiểm tra central AC: chặn bật nếu tất cả damper đóng
+        var roomCfgPwr = (cfg.entities && cfg.entities[self._activeIdx]) || {};
+        if (roomCfgPwr.is_central_ac) {
+          var dmpsPwr = roomCfgPwr.dampers || [];
+          var anyOpen = dmpsPwr.some(function(d) {
+            if (!d || !d.entity_id) return false;
+            var st = self._hass && self._hass.states && self._hass.states[d.entity_id];
+            return st ? ((parseFloat(st.attributes && st.attributes.current_position) || 0) > 0) : false;
+          });
+          if (!anyOpen && dmpsPwr.length > 0) {
+            // Hiển thị cảnh báo nhỏ
+            var warnEl = r.getElementById('damper-list-main');
+            if (warnEl) {
+              var wb = document.createElement('div');
+              wb.style.cssText = 'font-size:10px;color:#f87171;text-align:center;padding:4px 8px;background:rgba(248,113,113,0.1);border-radius:8px;margin-top:4px;';
+              wb.textContent = '⚠ Cần mở ít nhất 1 van gió trước khi bật';
+              warnEl.parentNode.insertBefore(wb, warnEl.nextSibling);
+              setTimeout(function() { if (wb.parentNode) wb.parentNode.removeChild(wb); }, 3000);
+            }
+            return;
+          }
+        }
         self._turnOn(id);
       }
     });
@@ -5191,6 +5545,17 @@ class AcControllerCardV2 extends HTMLElement {
         self._hvacModeSave(id, curState2);
         self._call('climate','set_hvac_mode',{entity_id:id, hvac_mode:'off'});
       } else {
+        // Kiểm tra central AC: chặn bật nếu tất cả damper đóng
+        var roomCfgLite = (cfg.entities && cfg.entities[self._activeIdx]) || {};
+        if (roomCfgLite.is_central_ac) {
+          var dmpsLite = roomCfgLite.dampers || [];
+          var anyOpenLite = dmpsLite.some(function(d) {
+            if (!d || !d.entity_id) return false;
+            var st = self._hass && self._hass.states && self._hass.states[d.entity_id];
+            return st ? ((parseFloat(st.attributes && st.attributes.current_position) || 0) > 0) : false;
+          });
+          if (!anyOpenLite && dmpsLite.length > 0) return;
+        }
         self._turnOn(id);
       }
     });
@@ -5389,123 +5754,6 @@ class AcControllerCardV2 extends HTMLElement {
         _showRoomTip(btn);
       }, { passive: true });
     });
-
-    // ── Damper card button → popup với tất cả dampers ────────────────────────
-    onTap(r.getElementById('damper-card-btn'), function(e) {
-      e.stopPropagation();
-      var cfg2 = self._config || {};
-      var rCfg = (cfg2.entities && cfg2.entities[self._activeIdx]) || {};
-      var dampers = (rCfg.dampers || []).filter(function(d){ return d && d.entity_id; });
-      if (!dampers.length) return;
-      _openDamperMenuPopup(dampers);
-    });
-
-    function _openDamperMenuPopup(dampers) {
-      var old = self.shadowRoot.getElementById('damper-popup-overlay');
-      if (old) { old.remove(); return; }
-
-      var accent = (self._config && self._config.accent_color) || '#00ffcc';
-      var tr2 = AC_TRANSLATIONS[(self._config && self._config.language) || 'vi'] || AC_TRANSLATIONS.vi;
-
-      // Build each damper row
-      var rowsHtml = '';
-      dampers.forEach(function(dmp, di) {
-        var ds = self._hass && self._hass.states && self._hass.states[dmp.entity_id];
-        var pos = ds ? Math.round(parseFloat(ds.attributes && ds.attributes.current_position) || 0) : 0;
-        var dc = pos < 20 ? 'rgba(255,255,255,0.35)' : pos < 60 ? '#34d399' : accent;
-        var dmpName = dmp.name || ('Van ' + (di + 1));
-        rowsHtml +=
-          '<div class="dmp-row" id="dmp-row-' + di + '">'
-        + '  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">'
-        + '    <span style="font-size:12px;font-weight:700;color:rgba(255,255,255,0.9);">&#127744; ' + dmpName + '</span>'
-        + '    <span class="dmp-row-pct" id="dmp-row-pct-' + di + '" style="font-size:14px;font-weight:700;color:' + dc + ';">' + pos + '%</span>'
-        + '  </div>'
-        + '  <div style="display:flex;align-items:center;gap:8px;">'
-        + '    <span style="font-size:9px;color:rgba(255,255,255,0.35);font-weight:600;">' + (tr2.damperClosed || 'Đóng') + '</span>'
-        + '    <input type="range" class="damper-popup-slider dmp-row-slider" id="dmp-row-slider-' + di + '"'
-        + '      min="0" max="100" step="5" value="' + pos + '"'
-        + '      data-di="' + di + '" data-eid="' + dmp.entity_id + '"'
-        + '      style="flex:1;accent-color:' + accent + ';">'
-        + '    <span style="font-size:9px;color:rgba(255,255,255,0.35);font-weight:600;">' + (tr2.damperOpen || 'Mở') + '</span>'
-        + '  </div>'
-        + '  <div style="display:flex;gap:5px;margin-top:7px;">'
-        + '    <button class="dmp-preset-btn" data-di="' + di + '" data-v="0"  style="flex:1;">0%</button>'
-        + '    <button class="dmp-preset-btn" data-di="' + di + '" data-v="25" style="flex:1;">25%</button>'
-        + '    <button class="dmp-preset-btn" data-di="' + di + '" data-v="50" style="flex:1;">50%</button>'
-        + '    <button class="dmp-preset-btn" data-di="' + di + '" data-v="75" style="flex:1;">75%</button>'
-        + '    <button class="dmp-preset-btn" data-di="' + di + '" data-v="100" style="flex:1;">100%</button>'
-        + '  </div>'
-        + (di < dampers.length - 1 ? '<div style="border-top:1px solid rgba(255,255,255,0.08);margin:12px 0 4px;"></div>' : '')
-        + '</div>';
-      });
-
-      var overlay = document.createElement('div');
-      overlay.id = 'damper-popup-overlay';
-      overlay.className = 'damper-popup-overlay';
-      overlay.innerHTML =
-        '<div class="damper-popup" id="damper-popup-inner" style="max-height:80vh;overflow-y:auto;">'
-      + '  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">'
-      + '    <div class="damper-popup-title" style="margin:0;">&#127744; ' + (tr2.damperLabel || 'Lưu lượng gió') + '</div>'
-      + '    <button id="dmp-menu-close" style="background:rgba(255,255,255,0.1);border:none;border-radius:50%;width:26px;height:26px;color:rgba(255,255,255,0.7);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;">&#10005;</button>'
-      + '  </div>'
-      + rowsHtml
-      + '  <button id="dmp-menu-apply-all" style="width:100%;margin-top:14px;padding:11px;border-radius:12px;font-size:13px;font-weight:700;border:none;cursor:pointer;font-family:\'Sora\',sans-serif;background:' + accent + ';color:#002030;">'
-      + (tr2.timerConfirm || 'Xác nhận tất cả') + '</button>'
-      + '</div>';
-
-      self.shadowRoot.appendChild(overlay);
-
-      // pending values map
-      var pending = {};
-      dampers.forEach(function(d, di) {
-        var ds = self._hass && self._hass.states && self._hass.states[d.entity_id];
-        pending[di] = ds ? Math.round(parseFloat(ds.attributes && ds.attributes.current_position) || 0) : 0;
-      });
-
-      function _updateRow(di, v) {
-        pending[di] = v;
-        var dc2 = v < 20 ? 'rgba(255,255,255,0.35)' : v < 60 ? '#34d399' : accent;
-        var pctEl2 = self.shadowRoot.getElementById('dmp-row-pct-' + di);
-        var slEl2  = self.shadowRoot.getElementById('dmp-row-slider-' + di);
-        if (pctEl2) { pctEl2.textContent = v + '%'; pctEl2.style.color = dc2; }
-        if (slEl2 && parseInt(slEl2.value) !== v) slEl2.value = v;
-      }
-
-      // Bind sliders
-      self.shadowRoot.querySelectorAll('.dmp-row-slider').forEach(function(sl) {
-        sl.addEventListener('input', function() {
-          _updateRow(parseInt(sl.dataset.di), parseInt(sl.value));
-        });
-      });
-
-      // Bind preset buttons
-      self.shadowRoot.querySelectorAll('.dmp-preset-btn').forEach(function(pb) {
-        pb.addEventListener('click', function() {
-          _updateRow(parseInt(pb.dataset.di), parseInt(pb.dataset.v));
-        });
-      });
-
-      // Apply all
-      var btnApplyAll = self.shadowRoot.getElementById('dmp-menu-apply-all');
-      if (btnApplyAll) btnApplyAll.addEventListener('click', function() {
-        dampers.forEach(function(dmp2, di2) {
-          self._call('cover', 'set_cover_position', { entity_id: dmp2.entity_id, position: pending[di2] });
-        });
-        overlay.remove();
-        // Trigger re-render after short delay for HA to propagate
-        setTimeout(function() { self._renderFull(); }, 400);
-      });
-
-      // Close button
-      var btnClose2 = self.shadowRoot.getElementById('dmp-menu-close');
-      if (btnClose2) btnClose2.addEventListener('click', function() { overlay.remove(); });
-
-      // Backdrop click
-      overlay.addEventListener('click', function(ev) {
-        var inner2 = self.shadowRoot.getElementById('damper-popup-inner');
-        if (inner2 && !inner2.contains(ev.target)) overlay.remove();
-      });
-    }
 
     this._bindTimer();
   }
@@ -6355,37 +6603,6 @@ class AcControllerCardV2 extends HTMLElement {
         if (powEl.textContent !== pv) powEl.textContent = pv;
       }
     }
-
-    // ── Patch damper card mini rows ──────────────────────────────────────────
-    if (roomEntCfg.is_central_ac && roomEntCfg.dampers && roomEntCfg.dampers.length) {
-      var damperCard = sr.getElementById('damper-card-btn');
-      if (damperCard) {
-        var self2 = this;
-        var validDmps = roomEntCfg.dampers.filter(function(d){ return d && d.entity_id; });
-        var totalPos = 0;
-        validDmps.forEach(function(d) {
-          var ds2 = self2._hass && self2._hass.states[d.entity_id];
-          totalPos += ds2 ? (parseFloat(ds2.attributes && ds2.attributes.current_position) || 0) : 0;
-        });
-        var avgPos2 = validDmps.length ? Math.round(totalPos / validDmps.length) : 0;
-        var avgColor = avgPos2 < 20 ? 'rgba(255,255,255,0.4)' : avgPos2 < 60 ? '#34d399' : '#00d4ff';
-        var fcVal = damperCard.querySelector('.fc-val');
-        if (fcVal) { fcVal.textContent = validDmps.length ? avgPos2 + '%' : '--'; fcVal.style.color = avgColor; }
-        var miniRows = damperCard.querySelectorAll('[style*="gap:5px"]');
-        validDmps.forEach(function(d, mdi) {
-          var ds3 = self2._hass && self2._hass.states[d.entity_id];
-          var mPos = ds3 ? Math.round(parseFloat(ds3.attributes && ds3.attributes.current_position) || 0) : 0;
-          var mc = mPos < 20 ? 'rgba(255,255,255,0.25)' : mPos < 60 ? '#34d399' : '#00d4ff';
-          if (miniRows[mdi]) {
-            var barDiv = miniRows[mdi].querySelectorAll('div')[0];
-            var barFill2 = barDiv && barDiv.firstElementChild;
-            var pctSpan = miniRows[mdi].querySelectorAll('span')[1];
-            if (barFill2) { barFill2.style.width = mPos + '%'; barFill2.style.background = mc; }
-            if (pctSpan)  { pctSpan.textContent = mPos + '%'; pctSpan.style.color = mc; }
-          }
-        });
-      }
-    }
   }
 
   _startClock() {
@@ -7003,7 +7220,7 @@ class MultiAcCardEditor extends HTMLElement {
 </style>
 <div class="editor">
   <div class="credit">❄️ <strong>Multi Air Conditioner Card</strong>
-    <span style="color:var(--secondary-text-color);font-weight:400;">v1.9 Designed by @doanlong1412 from 🇻🇳 Vietnam</span>
+    <span style="color:var(--secondary-text-color);font-weight:400;">v1.9.1 Designed by @doanlong1412 from 🇻🇳 Vietnam</span>
   </div>
   <div style="display:flex;gap:8px;margin:6px 0 10px;">
     <!-- TikTok button (compact) -->
@@ -7863,7 +8080,7 @@ window.customCards.push({
 });
 
 console.info(
-  '%c ❄ Multi Air Conditioner Card %c v1.9 %c ready! 🚀',
+  '%c ❄ Multi Air Conditioner Card %c v1.9.1 %c ready! 🚀',
   'background:#00d4ff;color:#002030;font-weight:700;padding:2px 6px;border-radius:4px 0 0 4px;font-size:11px',
   'background:#002030;color:#00d4ff;font-weight:700;padding:2px 6px;border-radius:0 4px 4px 0;font-size:11px',
   'color:#34d399;font-weight:600;font-size:11px'
