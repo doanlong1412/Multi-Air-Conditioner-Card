@@ -5446,41 +5446,17 @@ class AcControllerCardV2 extends HTMLElement {
     })();
     // ── End damper popup ─────────────────────────────────────────────────────
 
-
-
-
-
     onTap(r.getElementById('btn-power'), function() {
       var id = ROOMS[self._activeIdx].id;
       var curState = self._s(id);
       // Không làm gì khi entity mất kết nối
       if (curState === 'unavailable' || curState === 'unknown') return;
       if (curState !== 'off') {
+        // Lưu chế độ hiện tại vào localStorage trước khi tắt
         self._hvacModeSave(id, curState);
         self._call('climate','set_hvac_mode',{entity_id:id, hvac_mode:'off'});
       } else {
-        // Kiểm tra central AC: chặn bật nếu tất cả damper đóng
-        var roomCfgPwr = (cfg.entities && cfg.entities[self._activeIdx]) || {};
-        if (roomCfgPwr.is_central_ac) {
-          var dmpsPwr = roomCfgPwr.dampers || [];
-          var anyOpen = dmpsPwr.some(function(d) {
-            if (!d || !d.entity_id) return false;
-            var st = self._hass && self._hass.states && self._hass.states[d.entity_id];
-            return st ? ((parseFloat(st.attributes && st.attributes.current_position) || 0) > 0) : false;
-          });
-          if (!anyOpen && dmpsPwr.length > 0) {
-            // Hiển thị cảnh báo nhỏ
-            var warnEl = r.getElementById('damper-list-main');
-            if (warnEl) {
-              var wb = document.createElement('div');
-              wb.style.cssText = 'font-size:10px;color:#f87171;text-align:center;padding:4px 8px;background:rgba(248,113,113,0.1);border-radius:8px;margin-top:4px;';
-              wb.textContent = '⚠ Cần mở ít nhất 1 van gió trước khi bật';
-              warnEl.parentNode.insertBefore(wb, warnEl.nextSibling);
-              setTimeout(function() { if (wb.parentNode) wb.parentNode.removeChild(wb); }, 3000);
-            }
-            return;
-          }
-        }
+        // Bật lại: ưu tiên climate.turn_on để tôn trọng mode hệ thống (Mitsubishi City Multi, v.v.)
         self._turnOn(id);
       }
     });
@@ -5492,7 +5468,6 @@ class AcControllerCardV2 extends HTMLElement {
         detail: { entityId: entityId }
       }));
     });
-
     // View mode switcher (full/lite header)
     onTap(r.getElementById('hdr-vs-full'), function() {
       self._config = Object.assign({}, self._config, { view_mode: 'full' });
@@ -5540,8 +5515,10 @@ class AcControllerCardV2 extends HTMLElement {
     // btn-power-lite (lite mode) — same action as btn-power
     onTap(r.getElementById('btn-power-lite'), function() {
       var id = ROOMS[self._activeIdx].id;
-      var curState2 = self._hass && self._hass.states[id] && self._hass.states[id].state;
-      if (curState2 && curState2 !== 'off') {
+      var curState2 = self._s(id);
+      // Không làm gì khi entity mất kết nối
+      if (curState2 === 'unavailable' || curState2 === 'unknown') return;
+      if (curState2 !== 'off') {
         self._hvacModeSave(id, curState2);
         self._call('climate','set_hvac_mode',{entity_id:id, hvac_mode:'off'});
       } else {
