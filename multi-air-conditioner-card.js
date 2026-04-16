@@ -1,9 +1,20 @@
 /**
  * Multi Air Conditioner Card
- * v1.8 Designed by @doanlong1412 from 🇻🇳 Vietnam
+ * v1.9 Designed by @doanlong1412 from 🇻🇳 Vietnam
  * HACS-compatible Web Component
  *
- * ─── What's new in v1.8 ─────────────────────────────────────────────────
+ * ─── What's new in v1.9 ─────────────────────────────────────────────────
+ * 🏢 Central AC / Damper support — per-room toggle "Điều hòa trung tâm"
+ *    in the Visual Editor; add/remove cover damper entities with custom names;
+ *    damper list appears below fan-speed panel when enabled;
+ *    tap any damper button → glass popup with drag slider + 5 preset buttons
+ *    (0 / 25 / 50 / 75 / 100%); calls cover.set_cover_position; live position
+ *    bar updates from HA state; change detection for cover current_position
+ *    added to set hass so card reacts instantly when dampers move
+ * 🐛 Super Lite inner ring fix — inner arc (r=76) now tracks curTempC
+ *    (actual room temperature) instead of setTempC, matching Full/Lite behaviour;
+ *    dragging outer haptic ring no longer moves the inner ring
+ * 🗑 Removed ▲ setTemp indicator inside dial center (Full/Lite)
  * Room tab → flashing red OFFLINE badge, sub-text "Offline" instead of temperature, icon dimmed, progress bar hidden
  * Temperature dial → displays --° and 📡 Offline instead of live temperature
  * STATUS block (right panel) → flashing red OFFLINE label + sub-text "Disconnected, waiting to restore..."
@@ -124,6 +135,10 @@ const AC_TRANSLATIONS = {
       if (t<=31) return 'Hơi ấm, cần làm mát thêm';
       return 'Quá nóng! Hãy điều chỉnh nhiệt độ';
     },
+    centralAcLabel: '🏢 Điều hòa trung tâm', centralAcDesc: 'Bật để cấu hình van gió (damper)',
+    damperAdd: '+ Thêm van gió', damperRemove: 'Xóa',
+    damperEntity: 'Entity van gió (cover.*)', damperName: 'Tên van gió',
+    damperLabel: 'Lưu lượng gió', damperOpen: 'Mở', damperClosed: 'Đóng',
     timerBtn: 'Hẹn giờ',
     timerTitle: '⏰ Hẹn giờ',
     timerOff: '⏹ Hẹn tắt', timerOn: '▶ Hẹn bật',
@@ -158,6 +173,7 @@ const AC_TRANSLATIONS = {
     edShowSlFan: '💨 Tốc độ quạt (Super Lite)', edShowSlFanDesc: 'Hiện nút quạt trong Super Lite',
     edShowSlSwing: '🔄 Hướng gió (Super Lite)', edShowSlSwingDesc: 'Hiện nút hướng gió trong Super Lite',
     edShowSlRoomPower: '⚡ Tiêu thụ điện phòng (Super Lite)', edShowSlRoomPowerDesc: 'Hiện mức tiêu thụ điện phòng đang chọn',
+    edDialInvert: '🔄 Đảo vòng tròn nhiệt độ', edDialInvertDesc: 'Nhiệt set bên ngoài (haptic kéo), nhiệt phòng bên trong — mặc định',
     edPowerUnit: '⚡ Đơn vị công suất', edPowerUnitKw: 'kW', edPowerUnitW: 'W',
     edTempUnit: '🌡 Đơn vị nhiệt độ', edTempUnitC: '°C — Celsius', edTempUnitF: '°F — Fahrenheit',
     edCoolAnimSpeed: '❄ Lặp lại bông tuyết (giây)', edCoolAnimSpeedDesc: 'Thời gian chờ giữa các lần bông tuyết bay (2–15s)',
@@ -229,6 +245,10 @@ const AC_TRANSLATIONS = {
     },
     timerBtn: 'Timer',
     bgLabel: 'Gradient background',
+    centralAcLabel: '🏢 Central AC', centralAcDesc: 'Enable to configure air dampers',
+    damperAdd: '+ Add damper', damperRemove: 'Remove',
+    damperEntity: 'Damper entity (cover.*)', damperName: 'Damper name',
+    damperLabel: 'Airflow', damperOpen: 'Open', damperClosed: 'Closed',
     timerTitle: '⏰ Timer',
     timerOff: '⏹ Schedule off', timerOn: '▶ Schedule on',
     timerMinPlaceholder: 'Enter minutes...', timerMinUnit: 'min',
@@ -261,6 +281,7 @@ const AC_TRANSLATIONS = {
     edShowSlFan: '💨 Fan speed (Super Lite)', edShowSlFanDesc: 'Show fan button in Super Lite',
     edShowSlSwing: '🔄 Airflow (Super Lite)', edShowSlSwingDesc: 'Show airflow button in Super Lite',
     edShowSlRoomPower: '⚡ Room power (Super Lite)', edShowSlRoomPowerDesc: 'Show selected room power consumption',
+    edDialInvert: '🔄 Swap dial rings', edDialInvertDesc: 'Set-temp outer (haptic drag), room-temp inner — default',
     edPowerUnit: '⚡ Power unit', edPowerUnitKw: 'kW', edPowerUnitW: 'W',
     edTempUnit: '🌡 Temperature unit', edTempUnitC: '°C — Celsius', edTempUnitF: '°F — Fahrenheit',
     edCoolAnimSpeed: '❄ Snowflake repeat (seconds)', edCoolAnimSpeedDesc: 'Wait time between snowflake animations (2–15s)',
@@ -364,6 +385,7 @@ const AC_TRANSLATIONS = {
     edShowSlFan: '💨 Lüftergeschwindigkeit (Super Lite)', edShowSlFanDesc: 'Lüftertaste in Super Lite anzeigen',
     edShowSlSwing: '🔄 Luftrichtung (Super Lite)', edShowSlSwingDesc: 'Luftrichtungstaste in Super Lite anzeigen',
     edShowSlRoomPower: '⚡ Raumleistung (Super Lite)', edShowSlRoomPowerDesc: 'Raumverbrauch der gewählten Zone anzeigen',
+    edDialInvert: '🔄 Ringe tauschen', edDialInvertDesc: 'Solltemp außen (Haptic), Raumtemp innen — Standard',
     edPowerUnit: '⚡ Leistungseinheit', edPowerUnitKw: 'kW', edPowerUnitW: 'W',
     edTempUnit: '🌡 Temperatureinheit', edTempUnitC: '°C — Celsius', edTempUnitF: '°F — Fahrenheit',
     edCoolAnimSpeed: '❄ Schneeflocke wiederholen (s)', edCoolAnimSpeedDesc: 'Wartezeit zwischen Animationen (2–15s)',
@@ -467,6 +489,7 @@ const AC_TRANSLATIONS = {
     edShowSlFan: '💨 Vitesse ventilateur (Super Lite)', edShowSlFanDesc: 'Afficher bouton ventilateur en Super Lite',
     edShowSlSwing: '🔄 Direction air (Super Lite)', edShowSlSwingDesc: 'Afficher bouton direction en Super Lite',
     edShowSlRoomPower: '⚡ Consommation pièce (Super Lite)', edShowSlRoomPowerDesc: 'Afficher la consommation de la pièce sélectionnée',
+    edDialInvert: '🔄 Inverser les anneaux', edDialInvertDesc: 'Consigne ext. (glisser), temp. pièce int. — défaut',
     edPowerUnit: '⚡ Unité puissance', edPowerUnitKw: 'kW', edPowerUnitW: 'W',
     edTempUnit: '🌡 Unité de température', edTempUnitC: '°C — Celsius', edTempUnitF: '°F — Fahrenheit',
     edCoolAnimSpeed: '❄ Répétition flocon (s)', edCoolAnimSpeedDesc: 'Délai entre les animations (2–15s)',
@@ -570,6 +593,7 @@ const AC_TRANSLATIONS = {
     edShowSlFan: '💨 Ventilatorsnelheid (Super Lite)', edShowSlFanDesc: 'Ventilatorknop tonen in Super Lite',
     edShowSlSwing: '🔄 Luchtrichting (Super Lite)', edShowSlSwingDesc: 'Luchtrichtingsknop tonen in Super Lite',
     edShowSlRoomPower: '⚡ Kamerverbruik (Super Lite)', edShowSlRoomPowerDesc: 'Verbruik geselecteerde kamer tonen',
+    edDialInvert: '🔄 Ringen omwisselen', edDialInvertDesc: 'Ingestelde temp buiten (slepen), kamertemp binnen — standaard',
     edPowerUnit: '⚡ Vermogenseenheid', edPowerUnitKw: 'kW', edPowerUnitW: 'W',
     edTempUnit: '🌡 Temperatuureenheid', edTempUnitC: '°C — Celsius', edTempUnitF: '°F — Fahrenheit',
     edCoolAnimSpeed: '❄ Sneeuwvlok herhalen (s)', edCoolAnimSpeedDesc: 'Wachttijd tussen animaties (2–15s)',
@@ -673,6 +697,7 @@ const AC_TRANSLATIONS = {
     edShowSlFan: '💨 Prędkość wentylatora (Super Lite)', edShowSlFanDesc: 'Pokaż przycisk wentylatora w Super Lite',
     edShowSlSwing: '🔄 Kierunek powietrza (Super Lite)', edShowSlSwingDesc: 'Pokaż przycisk kierunku w Super Lite',
     edShowSlRoomPower: '⚡ Moc pokoju (Super Lite)', edShowSlRoomPowerDesc: 'Pokaż zużycie wybranego pokoju',
+    edDialInvert: '🔄 Zamień pierścienie', edDialInvertDesc: 'Temp. ustaw. zewn. (przeciągnij), temp. pokoju wewnątrz — domyślne',
     edPowerUnit: '⚡ Jednostka mocy', edPowerUnitKw: 'kW', edPowerUnitW: 'W',
     edTempUnit: '🌡 Jednostka temperatury', edTempUnitC: '°C — Celsius', edTempUnitF: '°F — Fahrenheit',
     edCoolAnimSpeed: '❄ Powtarzanie płatka śniegu (s)', edCoolAnimSpeedDesc: 'Czas oczekiwania między animacjami (2–15s)',
@@ -776,6 +801,7 @@ const AC_TRANSLATIONS = {
     edShowSlFan: '💨 Fläkthastighet (Super Lite)', edShowSlFanDesc: 'Visa fläktknapp i Super Lite',
     edShowSlSwing: '🔄 Luftriktning (Super Lite)', edShowSlSwingDesc: 'Visa luftriktningsknapp i Super Lite',
     edShowSlRoomPower: '⚡ Rumseffekt (Super Lite)', edShowSlRoomPowerDesc: 'Visa elförbrukning för valt rum',
+    edDialInvert: '🔄 Byt ringar', edDialInvertDesc: 'Inställd temp yttre (dra), rumstemperatur inre — standard',
     edPowerUnit: '⚡ Effektenhet', edPowerUnitKw: 'kW', edPowerUnitW: 'W',
     edTempUnit: '🌡 Temperaturenhet', edTempUnitC: '°C — Celsius', edTempUnitF: '°F — Fahrenheit',
     edCoolAnimSpeed: '❄ Upprepa snöflingan (s)', edCoolAnimSpeedDesc: 'Väntetid mellan animationer (2–15s)',
@@ -879,6 +905,7 @@ const AC_TRANSLATIONS = {
     edShowSlFan: '💨 Ventilátor sebesség (Super Lite)', edShowSlFanDesc: 'Ventilátor gomb mutatása Super Lite-ban',
     edShowSlSwing: '🔄 Légáramlat (Super Lite)', edShowSlSwingDesc: 'Légáramlat gomb mutatása Super Lite-ban',
     edShowSlRoomPower: '⚡ Szoba fogyasztás (Super Lite)', edShowSlRoomPowerDesc: 'Kiválasztott szoba fogyasztásának mutatása',
+    edDialInvert: '🔄 Gyűrűk cseréje', edDialInvertDesc: 'Célhőmérséklet külső (húzás), szobahőm. belső — alapértelmezett',
     edPowerUnit: '⚡ Teljesítményegység', edPowerUnitKw: 'kW', edPowerUnitW: 'W',
     edTempUnit: '🌡 Hőmérsékleti egység', edTempUnitC: '°C — Celsius', edTempUnitF: '°F — Fahrenheit',
     edCoolAnimSpeed: '❄ Hópehely ismétlése (s)', edCoolAnimSpeedDesc: 'Várakozási idő animációk között (2–15s)',
@@ -982,6 +1009,7 @@ const AC_TRANSLATIONS = {
     edShowSlFan: '💨 Rychlost ventilátoru (Super Lite)', edShowSlFanDesc: 'Zobrazit tlačítko ventilátoru v Super Lite',
     edShowSlSwing: '🔄 Směr vzduchu (Super Lite)', edShowSlSwingDesc: 'Zobrazit tlačítko směru v Super Lite',
     edShowSlRoomPower: '⚡ Spotřeba místnosti (Super Lite)', edShowSlRoomPowerDesc: 'Zobrazit spotřebu vybrané místnosti',
+    edDialInvert: '🔄 Přehodit kruhy', edDialInvertDesc: 'Nastavená teplota vně (tažení), teplota místnosti uvnitř — výchozí',
     edPowerUnit: '⚡ Jednotka výkonu', edPowerUnitKw: 'kW', edPowerUnitW: 'W',
     edTempUnit: '🌡 Jednotka teploty', edTempUnitC: '°C — Celsius', edTempUnitF: '°F — Fahrenheit',
     edCoolAnimSpeed: '❄ Opakování sněhové vločky (s)', edCoolAnimSpeedDesc: 'Čekání mezi animacemi (2–15s)',
@@ -1085,6 +1113,7 @@ const AC_TRANSLATIONS = {
     edShowSlFan: '💨 Velocità ventilatore (Super Lite)', edShowSlFanDesc: 'Mostra pulsante ventilatore in Super Lite',
     edShowSlSwing: '🔄 Direzione aria (Super Lite)', edShowSlSwingDesc: 'Mostra pulsante direzione in Super Lite',
     edShowSlRoomPower: '⚡ Consumo stanza (Super Lite)', edShowSlRoomPowerDesc: 'Mostra consumo stanza selezionata',
+    edDialInvert: '🔄 Scambia anelli', edDialInvertDesc: 'Temp. impostata esterna (trascina), temp. stanza interna — default',
     edPowerUnit: '⚡ Unità potenza', edPowerUnitKw: 'kW', edPowerUnitW: 'W',
     edTempUnit: '🌡 Unità di temperatura', edTempUnitC: '°C — Celsius', edTempUnitF: '°F — Fahrenheit',
     edCoolAnimSpeed: '❄ Ripetizione fiocco di neve (s)', edCoolAnimSpeedDesc: 'Attesa tra le animazioni (2–15s)',
@@ -1188,6 +1217,7 @@ const AC_TRANSLATIONS = {
     edShowSlFan: '💨 Velocidade do ventilador (Super Lite)', edShowSlFanDesc: 'Mostrar botão ventilador em Super Lite',
     edShowSlSwing: '🔄 Direção do ar (Super Lite)', edShowSlSwingDesc: 'Mostrar botão de direção em Super Lite',
     edShowSlRoomPower: '⚡ Consumo sala (Super Lite)', edShowSlRoomPowerDesc: 'Mostrar consumo da sala selecionada',
+    edDialInvert: '🔄 Trocar anéis', edDialInvertDesc: 'Temp. definida fora (arrastar), temp. sala dentro — padrão',
     edPowerUnit: '⚡ Unidade de potência', edPowerUnitKw: 'kW', edPowerUnitW: 'W',
     edTempUnit: '🌡 Unidade de temperatura', edTempUnitC: '°C — Celsius', edTempUnitF: '°F — Fahrenheit',
     edCoolAnimSpeed: '❄ Repetição do floco de neve (s)', edCoolAnimSpeedDesc: 'Aguardar entre animações (2–15s)',
@@ -1447,7 +1477,7 @@ const CARD_CSS = `
 button,a{touch-action:manipulation;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
 :host{display:block;font-family:'Sora',sans-serif}
 .card{background:linear-gradient(135deg,rgba(180,220,255,0.22) 0%,rgba(120,200,220,0.18) 50%,rgba(100,180,210,0.22) 100%);
-  backdrop-filter:blur(28px) saturate(1.6);-webkit-backdrop-filter:blur(28px) saturate(1.6);
+  backdrop-filter:blur(var(--card-blur,28px)) saturate(1.6);-webkit-backdrop-filter:blur(var(--card-blur,28px)) saturate(1.6);
   border-radius:28px;overflow:hidden;display:flex;align-items:stretch;width:100%;box-sizing:border-box;
   box-shadow:0 0 0 1px rgba(255,255,255,0.28),0 40px 120px rgba(0,0,0,0.35),inset 0 1px 0 rgba(255,255,255,0.45)}
 .left{flex:1.22;background:linear-gradient(160deg,rgba(200,235,255,0.18) 0%,rgba(140,210,230,0.12) 100%);
@@ -1511,65 +1541,130 @@ button,a{touch-action:manipulation;-webkit-tap-highlight-color:transparent;user-
 .temp-btn:hover{background:rgba(0,30,70,0.4);border-color:var(--accent);color:var(--accent);box-shadow:0 0 18px var(--glow)}
 .temp-btn:active{transform:scale(0.88)}
 .temp-set{min-width:100px;text-align:center;font-family:'Orbitron',sans-serif;font-size:14px;font-weight:600;color:var(--cv-temp-set,rgba(255,255,255,0.85))}
-.mode-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(52px,1fr));gap:7px}
-.mode-btn{background:rgba(0,20,50,0.3);border:1px solid rgba(255,255,255,0.25);border-radius:13px;
-  padding:9px 3px 7px;display:flex;flex-direction:column;align-items:center;gap:4px;
-  cursor:pointer;outline:none;color:rgba(255,255,255,0.75);font-size:8.5px;font-weight:600;
-  font-family:'Sora',sans-serif;transition:all 0.22s cubic-bezier(.34,1.56,.64,1);overflow:hidden;position:relative}
-.mode-btn:hover{transform:translateY(-2px) scale(1.04);border-color:rgba(255,255,255,0.55);z-index:2}
-.mode-btn:active{transform:scale(0.93)}
-.mode-btn--active{background:linear-gradient(160deg,color-mix(in srgb,var(--cv-mode-active,var(--bc,var(--accent))) 55%,rgba(0,15,40,0.5)),color-mix(in srgb,var(--cv-mode-active,var(--bc,var(--accent))) 35%,rgba(0,15,40,0.4)));
-  border-color:color-mix(in srgb,var(--cv-mode-active,var(--bc,var(--accent))) 80%,transparent);color:#ffffff;
-  box-shadow:0 0 24px var(--bg,var(--glow)),inset 0 1px 0 rgba(255,255,255,0.25)}
-.mode-icon{font-size:22px;line-height:1;display:flex;align-items:center;justify-content:center;
-  transition:transform 0.25s ease,filter 0.25s ease}
-.mode-lbl{font-size:8.5px;color:var(--cv-mode-lbl,inherit)}
+/* ── macOS Dock mode selector ── */
+.mode-dock-wrap{
+  display:flex;align-items:flex-end;justify-content:center;
+  background:rgba(0,15,40,0.45);
+  border:1px solid rgba(255,255,255,0.18);
+  border-radius:18px;
+  padding:8px 14px 8px;
+  gap:4px;
+  backdrop-filter:blur(12px);
+  -webkit-backdrop-filter:blur(12px);
+  box-shadow:0 4px 24px rgba(0,0,0,0.35),inset 0 1px 0 rgba(255,255,255,0.1);
+  position:relative;
+  overflow:visible;
+  transition:gap 0.22s ease;
+}
+.mode-btn{
+  background:rgba(0,20,50,0.3);
+  border:1px solid rgba(255,255,255,0.22);
+  border-radius:13px;
+  padding:8px 6px 6px;
+  display:flex;flex-direction:column;align-items:center;gap:3px;
+  cursor:pointer;outline:none;
+  color:rgba(255,255,255,0.75);
+  font-size:8px;font-weight:600;
+  font-family:'Sora',sans-serif;
+  transition:transform 0.2s cubic-bezier(.34,1.56,.64,1),
+             background 0.2s ease,
+             border-color 0.2s ease,
+             box-shadow 0.2s ease;
+  transform-origin:bottom center;
+  overflow:visible;position:relative;
+  min-width:46px;
+  flex-shrink:1;
+}
+.mode-btn:active{transform:scale(0.9) !important}
+.mode-btn--active{
+  background:linear-gradient(160deg,
+    color-mix(in srgb,var(--cv-mode-active,var(--bc,var(--accent))) 55%,rgba(0,15,40,0.5)),
+    color-mix(in srgb,var(--cv-mode-active,var(--bc,var(--accent))) 35%,rgba(0,15,40,0.4)));
+  border-color:color-mix(in srgb,var(--cv-mode-active,var(--bc,var(--accent))) 80%,transparent);
+  color:#ffffff;
+  box-shadow:0 0 24px var(--bg,var(--glow)),inset 0 1px 0 rgba(255,255,255,0.25);
+  transform:scale(1.0);
+}
+/* Active dot indicator */
+.mode-btn--active::after{
+  content:'';
+  position:absolute;
+  bottom:-8px;left:50%;transform:translateX(-50%);
+  width:4px;height:4px;border-radius:50%;
+  background:var(--bc,var(--accent,#00ffcc));
+  box-shadow:0 0 6px var(--bc,var(--accent,#00ffcc));
+}
+.mode-icon{
+  font-size:22px;line-height:1;
+  display:flex;align-items:center;justify-content:center;
+  transition:transform 0.25s ease,filter 0.25s ease;
+}
+.mode-lbl{font-size:8px;color:var(--cv-mode-lbl,inherit);white-space:nowrap;line-height:1.2}
+/* Dock neighbour scaling — handled via JS mousemove */
+.mode-dock-wrap.dock-active .mode-btn{transform:scale(0.85) translateY(0px);opacity:0.65;transition:transform 0.22s cubic-bezier(.34,1.56,.64,1),opacity 0.18s ease,margin 0.22s cubic-bezier(.34,1.56,.64,1)}
+.mode-dock-wrap.dock-active .mode-btn.dock-hovered{transform:scale(1.22) translateY(-6px);opacity:1;z-index:10;border-color:rgba(255,255,255,0.6);margin:0 6px}
+.mode-dock-wrap.dock-active .mode-btn.dock-near1{transform:scale(0.95) translateY(-2px);opacity:0.88;z-index:5;margin:0 2px}
+.mode-dock-wrap.dock-active .mode-btn.dock-near2{transform:scale(0.88) translateY(0px);opacity:0.75;z-index:3}
+/* Keep active btn same size as others when dock not hovered */
+.mode-dock-wrap .mode-btn--active:not(.dock-hovered):not(.dock-near1):not(.dock-near2){transform:scale(1.0) !important}
+/* Tooltip on hover */
+.mode-btn .dock-tooltip{
+  position:absolute;bottom:calc(100% + 12px);left:50%;transform:translateX(-50%) scale(0.85);
+  background:rgba(0,10,30,0.9);border:1px solid rgba(255,255,255,0.2);
+  border-radius:7px;padding:3px 8px;font-size:9px;font-weight:600;
+  color:#fff;white-space:nowrap;pointer-events:none;
+  opacity:0;transition:opacity 0.15s,transform 0.15s;
+  backdrop-filter:blur(8px);
+}
+.mode-dock-wrap.dock-active .mode-btn.dock-hovered .dock-tooltip{opacity:1;transform:translateX(-50%) scale(1)}
 
 /* ── Hover: Cool — bông tuyết xoay + sáng ── */
 @keyframes modeCoolSpin{0%{transform:rotate(0deg) scale(1)}50%{transform:rotate(180deg) scale(1.25)}100%{transform:rotate(360deg) scale(1)}}
 @keyframes modeCoolGlow{0%,100%{filter:drop-shadow(0 0 4px #3b9eff)}50%{filter:drop-shadow(0 0 12px #3b9eff) drop-shadow(0 0 22px #a8d8ff)}}
-.mode-btn[data-hvac="cool"]:hover .mode-icon{animation:modeCoolSpin 1.1s linear infinite,modeCoolGlow 1.1s ease-in-out infinite}
-.mode-btn[data-hvac="cool"]:hover{background:rgba(20,60,120,0.5);border-color:#3b9eff;box-shadow:0 4px 20px rgba(59,158,255,0.35),inset 0 0 14px rgba(59,158,255,0.1)}
+.mode-btn[data-hvac="cool"]:hover .mode-icon,.mode-btn[data-hvac="cool"].dock-hovered .mode-icon{animation:modeCoolSpin 1.1s linear infinite,modeCoolGlow 1.1s ease-in-out infinite}
+.mode-btn[data-hvac="cool"]:hover,.mode-btn[data-hvac="cool"].dock-hovered{background:rgba(20,60,120,0.5);border-color:#3b9eff;box-shadow:0 4px 20px rgba(59,158,255,0.35),inset 0 0 14px rgba(59,158,255,0.1)}
 .mode-btn[data-hvac="cool"].mode-btn--active .mode-icon{animation:modeCoolSpin 1.6s linear infinite,modeCoolGlow 1.6s ease-in-out infinite}
 
 /* ── Hover: Heat — lửa nhảy múa ── */
 @keyframes modeHeatFlicker{0%{transform:scale(1) rotate(-3deg)}20%{transform:scale(1.18) rotate(2deg)}40%{transform:scale(1.08) rotate(-2deg)}60%{transform:scale(1.22) rotate(3deg)}80%{transform:scale(1.1) rotate(-1deg)}100%{transform:scale(1) rotate(-3deg)}}
 @keyframes modeHeatGlow{0%,100%{filter:drop-shadow(0 0 5px #ff7b3b)}50%{filter:drop-shadow(0 0 14px #ff7b3b) drop-shadow(0 0 26px #ffcc44)}}
-.mode-btn[data-hvac="heat"]:hover .mode-icon{animation:modeHeatFlicker 0.7s ease-in-out infinite,modeHeatGlow 0.7s ease-in-out infinite}
-.mode-btn[data-hvac="heat"]:hover{background:rgba(80,30,10,0.5);border-color:#ff7b3b;box-shadow:0 4px 20px rgba(255,123,59,0.4),inset 0 0 14px rgba(255,123,59,0.12)}
+.mode-btn[data-hvac="heat"]:hover .mode-icon,.mode-btn[data-hvac="heat"].dock-hovered .mode-icon{animation:modeHeatFlicker 0.7s ease-in-out infinite,modeHeatGlow 0.7s ease-in-out infinite}
+.mode-btn[data-hvac="heat"]:hover,.mode-btn[data-hvac="heat"].dock-hovered{background:rgba(80,30,10,0.5);border-color:#ff7b3b;box-shadow:0 4px 20px rgba(255,123,59,0.4),inset 0 0 14px rgba(255,123,59,0.12)}
 .mode-btn[data-hvac="heat"].mode-btn--active .mode-icon{animation:modeHeatFlicker 1.1s ease-in-out infinite,modeHeatGlow 1.1s ease-in-out infinite}
 
 /* ── Hover: Dry — giọt nước nảy lên xuống ── */
 @keyframes modeDryBounce{0%,100%{transform:translateY(0) scale(1)}30%{transform:translateY(-5px) scale(0.92)}60%{transform:translateY(2px) scale(1.1)}80%{transform:translateY(-2px) scale(0.97)}}
 @keyframes modeDryGlow{0%,100%{filter:drop-shadow(0 0 4px #a78bfa)}50%{filter:drop-shadow(0 0 12px #a78bfa) drop-shadow(0 0 20px #d8b4fe)}}
-.mode-btn[data-hvac="dry"]:hover .mode-icon{animation:modeDryBounce 1s ease-in-out infinite,modeDryGlow 1s ease-in-out infinite}
-.mode-btn[data-hvac="dry"]:hover{background:rgba(50,20,90,0.5);border-color:#a78bfa;box-shadow:0 4px 20px rgba(167,139,250,0.35),inset 0 0 14px rgba(167,139,250,0.1)}
+.mode-btn[data-hvac="dry"]:hover .mode-icon,.mode-btn[data-hvac="dry"].dock-hovered .mode-icon{animation:modeDryBounce 1s ease-in-out infinite,modeDryGlow 1s ease-in-out infinite}
+.mode-btn[data-hvac="dry"]:hover,.mode-btn[data-hvac="dry"].dock-hovered{background:rgba(50,20,90,0.5);border-color:#a78bfa;box-shadow:0 4px 20px rgba(167,139,250,0.35),inset 0 0 14px rgba(167,139,250,0.1)}
 .mode-btn[data-hvac="dry"].mode-btn--active .mode-icon{animation:modeDryBounce 1.4s ease-in-out infinite,modeDryGlow 1.4s ease-in-out infinite}
 
 /* ── Hover: Fan — gió thổi sang phải (shake ngang) ── */
 @keyframes modeFanBlow{0%{transform:translateX(0) rotate(0deg)}15%{transform:translateX(3px) rotate(8deg)}30%{transform:translateX(-1px) rotate(-4deg)}50%{transform:translateX(4px) rotate(10deg)}70%{transform:translateX(-2px) rotate(-5deg)}85%{transform:translateX(3px) rotate(6deg)}100%{transform:translateX(0) rotate(0deg)}}
 @keyframes modeFanGlow{0%,100%{filter:drop-shadow(0 0 4px #34d399)}50%{filter:drop-shadow(0 0 12px #34d399) drop-shadow(0 0 22px #6ee7b7)}}
-.mode-btn[data-hvac="fan_only"]:hover .mode-icon{animation:modeFanBlow 0.9s ease-in-out infinite,modeFanGlow 0.9s ease-in-out infinite}
-.mode-btn[data-hvac="fan_only"]:hover{background:rgba(10,60,40,0.5);border-color:#34d399;box-shadow:0 4px 20px rgba(52,211,153,0.35),inset 0 0 14px rgba(52,211,153,0.1)}
+.mode-btn[data-hvac="fan_only"]:hover .mode-icon,.mode-btn[data-hvac="fan_only"].dock-hovered .mode-icon{animation:modeFanBlow 0.9s ease-in-out infinite,modeFanGlow 0.9s ease-in-out infinite}
+.mode-btn[data-hvac="fan_only"]:hover,.mode-btn[data-hvac="fan_only"].dock-hovered{background:rgba(10,60,40,0.5);border-color:#34d399;box-shadow:0 4px 20px rgba(52,211,153,0.35),inset 0 0 14px rgba(52,211,153,0.1)}
 .mode-btn[data-hvac="fan_only"].mode-btn--active .mode-icon{animation:modeFanBlow 1.3s ease-in-out infinite,modeFanGlow 1.3s ease-in-out infinite}
 
 /* ── Hover: Auto — xoay tự động + ánh vàng ── */
 @keyframes modeAutoSpin{0%{transform:rotate(0deg) scale(1)}50%{transform:rotate(180deg) scale(1.2)}100%{transform:rotate(360deg) scale(1)}}
 @keyframes modeAutoGlow{0%,100%{filter:drop-shadow(0 0 4px #f59e0b)}50%{filter:drop-shadow(0 0 14px #f59e0b) drop-shadow(0 0 26px #fcd34d)}}
 .mode-btn[data-hvac="auto"] .mode-icon{animation:modeAutoSpin 2.5s linear infinite,modeAutoGlow 2.5s ease-in-out infinite}
-.mode-btn[data-hvac="auto"]:hover .mode-icon{animation:modeAutoSpin 1.0s linear infinite,modeAutoGlow 1.0s ease-in-out infinite}
-.mode-btn[data-hvac="auto"]:hover{background:rgba(80,50,5,0.5);border-color:#f59e0b;box-shadow:0 4px 20px rgba(245,158,11,0.4),inset 0 0 14px rgba(245,158,11,0.12)}
+.mode-btn[data-hvac="auto"]:hover .mode-icon,.mode-btn[data-hvac="auto"].dock-hovered .mode-icon{animation:modeAutoSpin 1.0s linear infinite,modeAutoGlow 1.0s ease-in-out infinite}
+.mode-btn[data-hvac="auto"]:hover,.mode-btn[data-hvac="auto"].dock-hovered{background:rgba(80,50,5,0.5);border-color:#f59e0b;box-shadow:0 4px 20px rgba(245,158,11,0.4),inset 0 0 14px rgba(245,158,11,0.12)}
 .mode-btn[data-hvac="auto"].mode-btn--active .mode-icon{animation:modeAutoSpin 2s linear infinite,modeAutoGlow 2s ease-in-out infinite}
 
 /* ── Cool Active: Trail animation overlay ── */
 .dial-wrap{position:relative}
+/* Drag cursor hint on outer ring SVG */
+#dial-wrap-main svg { touch-action: none; }
 
-/* ── Hover: dial-temp — phóng to + sáng rực ── */
-@keyframes dialTempPulse{0%,100%{filter:brightness(1) drop-shadow(0 0 8px currentColor)}50%{filter:brightness(1.3) drop-shadow(0 0 22px currentColor) drop-shadow(0 0 40px currentColor)}}
+/* ── Hover: dial-temp — thu nhỏ nhẹ + glow vừa phải ── */
+@keyframes dialTempPulse{0%,100%{filter:brightness(1) drop-shadow(0 0 6px currentColor)}50%{filter:brightness(1.15) drop-shadow(0 0 14px currentColor) drop-shadow(0 0 24px currentColor)}}
 .dial-temp{font-size:44px;transition:transform 0.25s cubic-bezier(.34,1.56,.64,1),filter 0.25s ease;cursor:default}
-.dial-center:hover .dial-temp,.dial-wrap:hover .dial-temp{transform:scale(1.18);animation:dialTempPulse 1.4s ease-in-out infinite}
+.dial-center:hover .dial-temp,.dial-wrap:hover .dial-temp{transform:scale(1.12);animation:dialTempPulse 1.8s ease-in-out infinite}
 .sl-temp-val{transition:transform 0.25s cubic-bezier(.34,1.56,.64,1),filter 0.25s ease;cursor:default}
-.sl-dial-center:hover .sl-temp-val,.sl-dial-wrap:hover .sl-temp-val{transform:scale(1.18);animation:dialTempPulse 1.4s ease-in-out infinite}
+.sl-dial-center:hover .sl-temp-val,.sl-dial-wrap:hover .sl-temp-val{transform:scale(1.12);animation:dialTempPulse 1.8s ease-in-out infinite}
 /* ha-icon bên trong mode-icon inherit animation từ parent */
 .mode-icon ha-icon,.mode-icon>*{pointer-events:none;display:inline-flex;}
 .fan-swing-row{display:grid;grid-template-columns:3fr 2fr;gap:8px;min-width:0}
@@ -1590,6 +1685,46 @@ button,a{touch-action:manipulation;-webkit-tap-highlight-color:transparent;user-
 .swing-btn{display:flex;flex-direction:column;align-items:center;gap:4px;
   background:none;border:none;cursor:pointer;outline:none;padding:0;width:100%}
 .swing-lbl{font-size:9px;color:var(--cv-swing-lbl,rgba(255,255,255,0.7));font-weight:600}
+/* ── Damper list ── */
+.damper-list{display:flex;flex-direction:column;gap:6px;margin-top:6px}
+.damper-btn{display:flex;align-items:center;gap:9px;width:100%;padding:8px 10px;
+  background:rgba(0,20,50,0.28);border:1px solid rgba(255,255,255,0.18);border-radius:12px;
+  cursor:pointer;outline:none;font-family:'Sora',sans-serif;transition:all 0.18s;text-align:left}
+.damper-btn:hover{background:rgba(0,40,90,0.45);border-color:rgba(255,255,255,0.32);transform:translateY(-1px)}
+.damper-btn:active{transform:scale(0.98)}
+.damper-btn-ico{font-size:18px;flex-shrink:0;opacity:0.8}
+.damper-btn-info{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
+.damper-btn-name{font-size:10px;font-weight:700;color:rgba(255,255,255,0.9);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.damper-bar-wrap{width:100%;height:4px;border-radius:2px;background:rgba(255,255,255,0.1);overflow:hidden}
+.damper-bar-fill{height:100%;border-radius:2px;transition:width 0.4s ease,background 0.4s ease}
+.damper-btn-pct{font-size:11px;font-weight:700;flex-shrink:0;min-width:30px;text-align:right;letter-spacing:0.3px}
+/* ── Damper popup overlay ── */
+.damper-popup-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.55);backdrop-filter:blur(6px);
+  z-index:9000;display:flex;align-items:flex-end;justify-content:center;padding-bottom:env(safe-area-inset-bottom)}
+.damper-popup{background:linear-gradient(160deg,rgba(0,18,45,0.97),rgba(0,30,65,0.97));
+  border:1px solid rgba(255,255,255,0.15);border-radius:22px 22px 0 0;
+  padding:20px 20px 28px;width:100%;max-width:420px;box-sizing:border-box;
+  animation:dampPopUp 0.28s cubic-bezier(0.34,1.56,0.64,1)}
+@keyframes dampPopUp{from{transform:translateY(100%);opacity:0}to{transform:translateY(0);opacity:1}}
+.damper-popup-title{font-size:13px;font-weight:700;color:rgba(255,255,255,0.9);margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.damper-popup-val{font-size:32px;font-weight:700;text-align:center;margin-bottom:12px;letter-spacing:-0.5px}
+.damper-popup-slider{width:100%;-webkit-appearance:none;appearance:none;height:6px;border-radius:3px;
+  background:rgba(255,255,255,0.15);outline:none;cursor:pointer;margin:4px 0 16px}
+.damper-popup-slider::-webkit-slider-thumb{-webkit-appearance:none;width:24px;height:24px;border-radius:50%;
+  background:#fff;box-shadow:0 2px 8px rgba(0,0,0,0.4),0 0 0 3px var(--accent);cursor:grab;transition:transform 0.1s}
+.damper-popup-slider::-webkit-slider-thumb:active{transform:scale(1.15);cursor:grabbing}
+.damper-popup-btns{display:flex;gap:8px;margin-top:4px}
+.damper-popup-btn{flex:1;padding:10px;border-radius:12px;font-size:13px;font-weight:700;
+  border:none;cursor:pointer;font-family:'Sora',sans-serif;transition:all 0.15s}
+.damper-popup-btn--close{background:rgba(255,255,255,0.1);color:rgba(255,255,255,0.7)}
+.damper-popup-btn--apply{background:var(--accent);color:#002030}
+.damper-popup-btn--close:hover{background:rgba(255,255,255,0.18)}
+.damper-popup-btn--apply:hover{filter:brightness(1.1)}
+.dmp-preset-btn{padding:6px 2px;border-radius:8px;font-size:10px;font-weight:700;
+  border:1px solid rgba(255,255,255,0.15);background:rgba(255,255,255,0.07);
+  color:rgba(255,255,255,0.6);cursor:pointer;font-family:'Sora',sans-serif;transition:all 0.15s}
+.dmp-preset-btn:hover{background:rgba(255,255,255,0.16);color:#fff;border-color:rgba(255,255,255,0.3)}
+.dmp-preset-btn:active{transform:scale(0.95)}
 .chips{display:flex;gap:7px}
 .chip{flex:1;background:rgba(0,20,50,0.28);border:1px solid rgba(255,255,255,0.25);
   border-radius:12px;padding:7px 4px;display:flex;align-items:center;justify-content:center;gap:4px;
@@ -1600,11 +1735,20 @@ button,a{touch-action:manipulation;-webkit-tap-highlight-color:transparent;user-
 .chip--g{color:#ffffff;border-color:rgba(52,211,153,0.7)!important;background:rgba(52,211,153,0.35)!important}
 .chip--a{color:#ffffff;border-color:rgba(251,191,36,0.7)!important;background:rgba(251,191,36,0.35)!important}
 .chip--b{color:#ffffff;border-color:rgba(96,165,250,0.7)!important;background:rgba(96,165,250,0.35)!important}
-.power-row{display:flex;align-items:center;gap:12px;background:rgba(0,20,50,0.3);
-  border:1px solid rgba(255,255,255,0.25);border-radius:18px;padding:10px 14px;
-  cursor:pointer;outline:none;text-align:left;transition:all 0.2s;font-family:'Sora',sans-serif;width:100%}
-.power-row:hover{background:rgba(0,30,70,0.45)}
-.power-row:active{transform:scale(0.98)}
+.power-row{display:flex;align-items:center;gap:12px;
+  background:linear-gradient(145deg,rgba(20,40,80,0.75),rgba(10,25,55,0.85));
+  border:1px solid rgba(255,255,255,0.22);border-radius:18px;padding:10px 14px;
+  cursor:pointer;outline:none;text-align:left;font-family:'Sora',sans-serif;width:100%;
+  box-shadow:0 5px 0 rgba(0,0,0,0.55),0 7px 14px rgba(0,0,0,0.35),inset 0 1px 0 rgba(255,255,255,0.12),inset 0 -1px 0 rgba(0,0,0,0.2);
+  transform:translateY(-2px);
+  transition:transform 0.12s ease,box-shadow 0.12s ease,background 0.15s}
+.power-row:hover{
+  background:linear-gradient(145deg,rgba(30,55,110,0.85),rgba(15,35,75,0.92));
+  transform:translateY(-4px);
+  box-shadow:0 7px 0 rgba(0,0,0,0.55),0 10px 22px rgba(0,0,0,0.4),inset 0 1px 0 rgba(255,255,255,0.18),inset 0 -1px 0 rgba(0,0,0,0.2)}
+.power-row:active{
+  transform:translateY(1px);
+  box-shadow:0 2px 0 rgba(0,0,0,0.55),0 3px 8px rgba(0,0,0,0.3),inset 0 2px 4px rgba(0,0,0,0.25),inset 0 1px 0 rgba(255,255,255,0.06)}
 .pw-btn{width:40px;height:40px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:19px;transition:all 0.35s}
 .pw-on{background:linear-gradient(135deg,#3b9eff,#1a5faa);
   box-shadow:0 0 26px rgba(59,158,255,0.7),0 0 50px rgba(59,158,255,0.25);animation:pwP 2.5s ease-in-out infinite}
@@ -1787,11 +1931,20 @@ button,a{touch-action:manipulation;-webkit-tap-highlight-color:transparent;user-
 .all-off-sub{font-size:8.5px;color:rgba(255,200,200,0.7);margin-top:1px}
 .all-off-arr{color:rgba(255,180,180,0.75);font-size:18px;text-shadow:0 0 8px rgba(255,80,80,0.5)}
 .bottom-row{display:flex;gap:8px}
-.power-row{display:flex;align-items:center;gap:10px;background:rgba(0,20,50,0.3);
-  border:1px solid rgba(255,255,255,0.25);border-radius:18px;padding:12px 14px;
-  cursor:pointer;outline:none;text-align:left;transition:all 0.2s;font-family:'Sora',sans-serif;flex:1.6;min-width:0}
-.power-row:hover{background:rgba(0,30,70,0.45)}
-.power-row:active{transform:scale(0.98)}
+.power-row{display:flex;align-items:center;gap:10px;
+  background:linear-gradient(145deg,rgba(20,40,80,0.75),rgba(10,25,55,0.85));
+  border:1px solid rgba(255,255,255,0.22);border-radius:18px;padding:12px 14px;
+  cursor:pointer;outline:none;text-align:left;font-family:'Sora',sans-serif;flex:1.6;min-width:0;
+  box-shadow:0 5px 0 rgba(0,0,0,0.55),0 7px 14px rgba(0,0,0,0.35),inset 0 1px 0 rgba(255,255,255,0.12),inset 0 -1px 0 rgba(0,0,0,0.2);
+  transform:translateY(-2px);
+  transition:transform 0.12s ease,box-shadow 0.12s ease,background 0.15s}
+.power-row:hover{
+  background:linear-gradient(145deg,rgba(30,55,110,0.85),rgba(15,35,75,0.92));
+  transform:translateY(-4px);
+  box-shadow:0 7px 0 rgba(0,0,0,0.55),0 10px 22px rgba(0,0,0,0.4),inset 0 1px 0 rgba(255,255,255,0.18),inset 0 -1px 0 rgba(0,0,0,0.2)}
+.power-row:active{
+  transform:translateY(1px);
+  box-shadow:0 2px 0 rgba(0,0,0,0.55),0 3px 8px rgba(0,0,0,0.3),inset 0 2px 4px rgba(0,0,0,0.25),inset 0 1px 0 rgba(255,255,255,0.06)}
 .timer-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
   background:rgba(0,20,50,0.3);border:1px solid rgba(255,255,255,0.22);border-radius:18px;
   padding:10px 8px;cursor:pointer;outline:none;font-family:'Sora',sans-serif;
@@ -2236,6 +2389,17 @@ class AcControllerCardV2 extends HTMLElement {
             if (sNew !== sOld) { changed = true; break; }
           }
         }
+        // Damper cover entities
+        if (!changed && ents[ei] && ents[ei].is_central_ac && ents[ei].dampers) {
+          for (var dci = 0; dci < ents[ei].dampers.length && !changed; dci++) {
+            var dEnt = ents[ei].dampers[dci] && ents[ei].dampers[dci].entity_id;
+            if (dEnt) {
+              var dNew = h.states && h.states[dEnt] ? (h.states[dEnt].attributes && h.states[dEnt].attributes.current_position) : null;
+              var dOld = prev.states && prev.states[dEnt] ? (prev.states[dEnt].attributes && prev.states[dEnt].attributes.current_position) : null;
+              if (dNew !== dOld) changed = true;
+            }
+          }
+        }
       }
     }
 
@@ -2268,7 +2432,10 @@ class AcControllerCardV2 extends HTMLElement {
       if (histDirty) {
         try { localStorage.setItem('ac_temp_history_v2', JSON.stringify(this._tempHistory)); } catch(e) {}
       }
-      this._renderFull();
+      // Không rebuild SVG khi đang drag outer ring (Super Lite) — tránh inner ring bị re-render theo setTemp mới
+      if (!this._slDragging) {
+        this._renderFull();
+      }
     }
   }
 
@@ -3638,6 +3805,9 @@ class AcControllerCardV2 extends HTMLElement {
     var lang   = cfg.language || 'vi';
     var tr     = AC_TRANSLATIONS[lang] || AC_TRANSLATIONS.vi;
     var bgGrad = acPresetGradient(cfg.background_preset, cfg.bg_color1, cfg.bg_color2, cfg.bg_alpha);
+    var alphaPctBlur = (cfg.bg_alpha !== undefined && cfg.bg_alpha !== null) ? Math.max(0, Math.min(100, parseInt(cfg.bg_alpha))) : 80;
+    var bgBlurPx = Math.round(alphaPctBlur / 100 * 28);
+    var bgBlurStyle = '--card-blur:' + bgBlurPx + 'px;';
     var accent = (cfg.background_preset === 'deep_neon' && (!cfg.accent_color || cfg.accent_color === '#00ffcc'))
       ? '#00d4ff'
       : (cfg.accent_color || '#00ffcc');
@@ -3699,7 +3869,16 @@ class AcControllerCardV2 extends HTMLElement {
     // Arc range always in °C (16–32°C) — convert if haUnit is °F
     var curTempC = haUnit === 'F' ? acFtoC(curTemp) : curTemp;
     var setTempC = haUnit === 'F' ? acFtoC(setTemp) : setTemp;
-    var pct    = Math.max(0, Math.min(1, (curTempC - 16) / 16));
+
+    // dial_invert: false (default) = setTemp outer (haptic drag) + curTemp inner
+    //              true            = curTemp outer (original)    + setTemp inner
+    var dialInvert = cfg.dial_invert === true;
+
+    // Outer ring (r=88) — haptic drag if !dialInvert
+    var outerTempC  = dialInvert ? curTempC : setTempC;
+    var outerColor  = dialInvert ? null : mode.color; // null = use arcGrad
+    var outerIsDrag = !dialInvert; // outer ring is the draggable set-temp ring
+    var pct    = Math.max(0, Math.min(1, (outerTempC - 16) / 16));
     var arcEnd = -140 + pct * 280;
     var dotRad = (arcEnd - 90) * Math.PI / 180;
     var dotX   = (110 + 88 * Math.cos(dotRad)).toFixed(1);
@@ -3712,8 +3891,10 @@ class AcControllerCardV2 extends HTMLElement {
     var arcTrack = this._arc(110,110,88,-140,140);
     var arcFill  = pct > 0.02 ? this._arc(110,110,88,-140,arcEnd) : '';
 
-    // Inner set-temperature ring (r=76) — color by mode, length by setTemp
-    var setPct    = Math.max(0, Math.min(1, (setTempC - 16) / 16));
+    // Inner ring (r=76)
+    var innerTempC   = dialInvert ? setTempC : curTempC;
+    var innerIsSet   = dialInvert; // inner ring is setTemp only when inverted
+    var setPct    = Math.max(0, Math.min(1, (innerTempC - 16) / 16));
     var setArcEnd = -140 + setPct * 280;
     var innerTrack   = this._arc(110,110,76,-140,140);
     var innerArcFill = setPct > 0.02 ? this._arc(110,110,76,-140,setArcEnd) : '';
@@ -3721,15 +3902,42 @@ class AcControllerCardV2 extends HTMLElement {
     var innerSetDotX   = (110 + 76 * Math.cos(innerSetDotRad)).toFixed(1);
     var innerSetDotY   = (110 + 76 * Math.sin(innerSetDotRad)).toFixed(1);
 
+    // Outer arc fill — if outerIsDrag: use mode.color for setTemp ring; else arcGrad for curTemp
     var arcFillSvg = '';
     if (pct > 0.02) {
-      arcFillSvg = '<path d="' + arcFill + '" fill="none" stroke="url(#arcGrad)" stroke-width="12" stroke-linecap="round" filter="url(#arcGlow)" opacity="0.95"/>';
+      var outerStroke = outerIsDrag ? mode.color : 'url(#arcGrad)';
+      var outerWidth  = outerIsDrag ? '10' : '12';
+      arcFillSvg = '<path data-ring="outer" d="' + arcFill + '" fill="none" stroke="' + outerStroke + '" stroke-width="' + outerWidth + '" stroke-linecap="round" filter="url(#arcGlow)" opacity="0.95"/>';
     }
     var dotSvg = '';
     if (pct > 0.02) {
-      dotSvg = '<circle cx="' + dotX + '" cy="' + dotY + '" r="8" fill="' + mode.color + '" filter="url(#dotGlow)"/>'
-             + '<circle cx="' + dotX + '" cy="' + dotY + '" r="4" fill="white" opacity="0.9"/>';
+      var dotFill = outerIsDrag ? mode.color : mode.color;
+      // Outer dot: larger + drag handle style when it's the setTemp ring
+      if (outerIsDrag) {
+        dotSvg = '<circle data-ring="outer" cx="' + dotX + '" cy="' + dotY + '" r="11" fill="rgba(0,0,0,0.4)" filter="url(#dotGlow)"/>'
+               + '<circle data-ring="outer" cx="' + dotX + '" cy="' + dotY + '" r="9" fill="' + mode.color + '" filter="url(#dotGlow)"/>'
+               + '<circle data-ring="outer" cx="' + dotX + '" cy="' + dotY + '" r="4" fill="white" opacity="0.95"/>';
+      } else {
+        dotSvg = '<circle data-ring="outer" cx="' + dotX + '" cy="' + dotY + '" r="8" fill="' + mode.color + '" filter="url(#dotGlow)"/>'
+               + '<circle data-ring="outer" cx="' + dotX + '" cy="' + dotY + '" r="4" fill="white" opacity="0.9"/>';
+      }
     }
+    // Inner arc/dot colors
+    // When !dialInvert: inner = curTemp → gradient blue→red based on temperature
+    var innerArcColor = dialInvert ? mode.color : 'url(#innerTempGrad)';
+    var innerArcWidth = dialInvert ? '4' : '6';
+    var innerDotR1    = dialInvert ? '4' : '5';
+    var innerDotR2    = dialInvert ? '2' : '2.5';
+    // Gradient stops for inner arc (curTemp ring): blue (cold 16°C) → cyan → green → orange → red (hot 32°C)
+    var _itPct = Math.max(0, Math.min(1, (curTempC - 16) / 16));
+    var innerGradStart = _itPct < 0.33 ? '#3b9eff' : (_itPct < 0.66 ? '#34d399' : '#f97316');
+    var innerGradMid   = _itPct < 0.5  ? '#22d3ee' : '#fb923c';
+    var innerGradEnd   = _itPct < 0.5  ? '#34d399' : '#ef4444';
+    // Dynamic dot color for inner arc endpoint — interpolate blue→green→orange→red
+    var innerDotColor = _itPct < 0.25 ? '#3b9eff'
+                      : _itPct < 0.5  ? '#34d399'
+                      : _itPct < 0.75 ? '#fb923c'
+                      : '#ef4444';
 
     // Tick marks
     var ticks = '';
@@ -4002,6 +4210,7 @@ class AcControllerCardV2 extends HTMLElement {
         ? '<ha-icon icon="' + mc.icon + '" style="--mdc-icon-size:22px;--mdc-icon-color:' + modeIconColor + ';width:22px;height:22px;display:inline-flex;align-items:center;justify-content:center;color:' + modeIconColor + '"></ha-icon>'
         : '<span style="font-size:18px;line-height:1;vertical-align:middle">' + mc.icon + '</span>';
       modeBtns += '<button class="mode-btn' + (act ? ' mode-btn--active' : '') + '" data-hvac="' + mk + '" style="' + st + '">'
+        + '<span class="dock-tooltip">' + mc.lbl + '</span>'
         + '<span class="mode-icon">' + modeIconHtml + '</span>'
         + '<span class="mode-lbl">' + mc.lbl + '</span>'
         + '</button>';
@@ -4099,11 +4308,17 @@ class AcControllerCardV2 extends HTMLElement {
         slEnvHumidity = slHumidity;
         slEnvIsRoom   = false;
       }
-      // Inner set-temp ring (same calc as main render)
-      var slSetPct    = Math.max(0, Math.min(1, (setTempC - 16) / 16));
-      var slSetArcEnd = -140 + slSetPct * 280;
+      // Inner cur-temp ring — dùng curTempC (nhiệt thực tế), giống Full/Lite
+      var slCurPct    = Math.max(0, Math.min(1, (curTempC - 16) / 16));
+      // Dynamic dot color for inner SL arc endpoint — interpolate blue→green→orange→red
+      var _slItPct = slCurPct;
+      var slInnerDotColor = _slItPct < 0.25 ? '#3b9eff'
+                          : _slItPct < 0.5  ? '#34d399'
+                          : _slItPct < 0.75 ? '#fb923c'
+                          : '#ef4444';
+      var slSetArcEnd = -140 + slCurPct * 280;
       var slInnerTrack   = this._arc(110,110,76,-140,140);
-      var slInnerArcFill = slSetPct > 0.02 ? this._arc(110,110,76,-140,slSetArcEnd) : '';
+      var slInnerArcFill = slCurPct > 0.02 ? this._arc(110,110,76,-140,slSetArcEnd) : '';
       var slSetDotRad = (slSetArcEnd - 90) * Math.PI / 180;
       var slSetDotX   = (110 + 76 * Math.cos(slSetDotRad)).toFixed(1);
       var slSetDotY   = (110 + 76 * Math.sin(slSetDotRad)).toFixed(1);
@@ -4178,7 +4393,7 @@ class AcControllerCardV2 extends HTMLElement {
       if (cfg.color_room_name)    _customCssVarsSL += '--cv-room-name:' + cfg.color_room_name + ';';
       if (cfg.color_st_title)     _customCssVarsSL += '--cv-st-title:' + cfg.color_st_title + ';';
       if (cfg.color_st_sub)       _customCssVarsSL += '--cv-st-sub:' + cfg.color_st_sub + ';';
-      var slHtml = '<div class="card card--super-lite' + (isDeepNeonSL ? ' card--deep-neon' : '') + '" style="--accent:' + mode.color + ';--glow:' + mode.glow + ';background:' + bgGrad + ';' + _customCssVarsSL + '">'
+      var slHtml = '<div class="card card--super-lite' + (isDeepNeonSL ? ' card--deep-neon' : '') + '" style="--accent:' + mode.color + ';--glow:' + mode.glow + ';background:' + bgGrad + ';' + bgBlurStyle + _customCssVarsSL + '">'
         + '<div class="sl-body">'
 
         // ── Header: title + sensors + wifi + gear + status badge
@@ -4221,18 +4436,19 @@ class AcControllerCardV2 extends HTMLElement {
         + '<filter id="dotGlow" x="-150%" y="-150%" width="400%" height="400%"><feGaussianBlur stdDeviation="5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>'
         + '<filter id="innerArcGlow" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>'
         + '<linearGradient id="arcGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#3b9eff"/><stop offset="50%" stop-color="#a78bfa"/><stop offset="100%" stop-color="#f59e0b"/></linearGradient>'
+        + '<linearGradient id="innerTempGrad" x1="22" y1="110" x2="198" y2="110" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#3b9eff"/><stop offset="40%" stop-color="#34d399"/><stop offset="70%" stop-color="#fb923c"/><stop offset="100%" stop-color="#ef4444"/></linearGradient>'
         + '<radialGradient id="innerGlow" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="' + mode.color + '" stop-opacity="0.25"/><stop offset="100%" stop-color="' + mode.color + '" stop-opacity="0"/></radialGradient>'
         + '</defs>'
         + '<circle cx="110" cy="110" r="72" fill="rgba(180,220,255,0.25)" stroke="rgba(255,255,255,0.05)" stroke-width="1.5"/>'
         + '<circle cx="110" cy="110" r="68" fill="url(#innerGlow)"/>'
-        + '<path d="' + arcTrack + '" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="12" stroke-linecap="round"/>'
+        + '<path data-ring="outer" d="' + arcTrack + '" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="12" stroke-linecap="round"/>'
         + ticks
         + arcFillSvg
         + dotSvg
         // inner set-temp ring
-        + '<path d="' + slInnerTrack + '" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="4" stroke-linecap="round"/>'
-        + (slSetPct > 0.02 ? '<path d="' + slInnerArcFill + '" fill="none" stroke="' + mode.color + '" stroke-width="4" stroke-linecap="round" filter="url(#innerArcGlow)" opacity="0.85"/>' : '')
-        + (slSetPct > 0.02 ? '<circle cx="' + slSetDotX + '" cy="' + slSetDotY + '" r="4" fill="' + mode.color + '" filter="url(#innerArcGlow)"/><circle cx="' + slSetDotX + '" cy="' + slSetDotY + '" r="2" fill="white" opacity="0.9"/>' : '')
+        + '<path data-ring="inner" d="' + slInnerTrack + '" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="4" stroke-linecap="round"/>'
+        + (slCurPct > 0.02 ? '<path data-ring="inner" d="' + slInnerArcFill + '" fill="none" stroke="url(#innerTempGrad)" stroke-width="4" stroke-linecap="round" filter="url(#innerArcGlow)" opacity="0.9"/>' : '')
+        + (slCurPct > 0.02 ? '<circle data-ring="inner" cx="' + slSetDotX + '" cy="' + slSetDotY + '" r="4" fill="' + slInnerDotColor + '" filter="url(#innerArcGlow)"/><circle data-ring="inner" cx="' + slSetDotX + '" cy="' + slSetDotY + '" r="2" fill="white" opacity="0.9"/>' : '')
         + '</svg>'
         + '<div class="sl-dial-center">'
         + '  <div class="sl-temp-lbl">' + tr.tempLabel + '</div>'
@@ -4361,7 +4577,7 @@ class AcControllerCardV2 extends HTMLElement {
     if (cfg.color_room_name)    _customCssVars += '--cv-room-name:' + cfg.color_room_name + ';';
     if (cfg.color_st_title)     _customCssVars += '--cv-st-title:' + cfg.color_st_title + ';';
     if (cfg.color_st_sub)       _customCssVars += '--cv-st-sub:' + cfg.color_st_sub + ';';
-    var html = '<div class="card' + (isLite ? ' card--lite' : '') + (isDeepNeon ? ' card--deep-neon' : '') + '" style="--accent:' + mode.color + ';--glow:' + mode.glow + ';background:' + bgGrad + ';' + _customCssVars + '">'
+    var html = '<div class="card' + (isLite ? ' card--lite' : '') + (isDeepNeon ? ' card--deep-neon' : '') + '" style="--accent:' + mode.color + ';--glow:' + mode.glow + ';background:' + bgGrad + ';' + bgBlurStyle + _customCssVars + '">'
 + '<div class="left' + (isLite ? ' left--lite' : '') + '">'
 
 + '<div class="hdr">'
@@ -4402,6 +4618,7 @@ class AcControllerCardV2 extends HTMLElement {
     ? '<stop offset="0%" stop-color="' + cfg.color_dial_arc + '"/><stop offset="100%" stop-color="' + cfg.color_dial_arc + '"/>'
     : '<stop offset="0%" stop-color="#3b9eff"/><stop offset="50%" stop-color="#a78bfa"/><stop offset="100%" stop-color="#f59e0b"/>')
 + '</linearGradient>'
++ '<linearGradient id="innerTempGrad" x1="22" y1="110" x2="198" y2="110" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#3b9eff"/><stop offset="40%" stop-color="#34d399"/><stop offset="70%" stop-color="#fb923c"/><stop offset="100%" stop-color="#ef4444"/></linearGradient>'
 + '<radialGradient id="innerGlow" cx="50%" cy="50%" r="50%">'
 + '<stop offset="0%" stop-color="' + mode.color + '" stop-opacity="0.25"/>'
 + '<stop offset="100%" stop-color="' + mode.color + '" stop-opacity="0"/>'
@@ -4413,9 +4630,10 @@ class AcControllerCardV2 extends HTMLElement {
 + ticks
 + arcFillSvg
 + dotSvg
-+ '<path d="' + innerTrack + '" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="4" stroke-linecap="round"/>'
-+ (setPct > 0.02 ? '<path d="' + innerArcFill + '" fill="none" stroke="' + mode.color + '" stroke-width="4" stroke-linecap="round" filter="url(#innerArcGlow)" opacity="0.85"/>' : '')
-+ (setPct > 0.02 ? '<circle cx="' + innerSetDotX + '" cy="' + innerSetDotY + '" r="4" fill="' + mode.color + '" filter="url(#innerArcGlow)"/><circle cx="' + innerSetDotX + '" cy="' + innerSetDotY + '" r="2" fill="white" opacity="0.9"/>' : '')
++ '<path d="' + innerTrack + '" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="' + innerArcWidth + '" stroke-linecap="round"/>'
++ (setPct > 0.02 ? '<path d="' + innerArcFill + '" fill="none" stroke="' + innerArcColor + '" stroke-width="' + innerArcWidth + '" stroke-linecap="round" filter="url(#innerArcGlow)" opacity="0.9"/>' : '')
++ (setPct > 0.02 ? '<circle cx="' + innerSetDotX + '" cy="' + innerSetDotY + '" r="' + innerDotR1 + '" fill="' + innerDotColor + '" filter="url(#innerArcGlow)"/><circle cx="' + innerSetDotX + '" cy="' + innerSetDotY + '" r="' + innerDotR2 + '" fill="white" opacity="0.9"/>' : '')
++ (outerIsDrag ? '<circle id="dial-drag-zone" cx="110" cy="110" r="100" fill="transparent" style="cursor:grab" />' : '')
 + '</svg>'
 + '<div class="dial-center">'
 + '  <div class="dial-lbl">' + tr.tempLabel + '</div>'
@@ -4424,6 +4642,7 @@ class AcControllerCardV2 extends HTMLElement {
       + '  <div class="dial-feel" id="live-comfort" style="color:#f87171;font-weight:600">'
       + (lang === 'vi' ? '📡 Mất kết nối' : '📡 Offline') + '</div>'
     : '  <div class="dial-temp" id="live-cur-temp" style="color:' + acTempColor(curTempC) + ';text-shadow:0 0 30px ' + acTempColor(curTempC) + ',0 0 60px ' + acTempColor(curTempC) + '">' + curTempDisp + '<span class="dial-deg">&#176;</span></div>'
+      + ''
       + '  <div class="dial-feel" id="live-comfort">' + comfortTxt + '</div>')
 + '</div>'
 + '</div>'
@@ -4446,7 +4665,7 @@ class AcControllerCardV2 extends HTMLElement {
     return '<div class="eta-bar" id="live-eta" ' + tipTxt + '>' + etaTxt + '</div>';
   }).call(this)
 
-+ (modeBtns ? '<div class="mode-grid">' + modeBtns + '</div>' : '')
++ (modeBtns ? '<div class="mode-dock-wrap" id="mode-dock">' + modeBtns + '</div>' : '')
 
 + ((cfg.show_fan !== false || cfg.show_swing !== false) ? (
   '<div class="fan-swing-row">'
@@ -4459,12 +4678,49 @@ class AcControllerCardV2 extends HTMLElement {
 + '    </button>'
 + '  </div>'
 ) : '')
-+ (cfg.show_swing !== false ? (
-  '  <div class="swing-card">'
-+ '    <div class="fc-head"><span class="fc-label">' + tr.swingLabel + '</span></div>'
-+ '    ' + swingBtn
-+ '  </div>'
-) : '')
++ (function() {
+    // ── Nếu là Central AC: thay swing-card bằng damper-card ─────────────────
+    var _rCfg = (cfg.entities && cfg.entities[self._activeIdx]) || {};
+    if (_rCfg.is_central_ac) {
+      var _dmps = (_rCfg.dampers || []).filter(function(d){ return d && d.entity_id; });
+      // Tính avg position cho badge
+      var _avgPos = 0;
+      if (_dmps.length) {
+        _dmps.forEach(function(d) {
+          var ds = self._hass && self._hass.states && self._hass.states[d.entity_id];
+          _avgPos += ds ? (parseFloat(ds.attributes && ds.attributes.current_position) || 0) : 0;
+        });
+        _avgPos = Math.round(_avgPos / _dmps.length);
+      }
+      var _dColor = _avgPos < 20 ? 'rgba(255,255,255,0.4)' : _avgPos < 60 ? '#34d399' : '#00d4ff';
+      return '  <div class="swing-card" id="damper-card-btn" style="cursor:pointer;position:relative;">'
+           + '    <div class="fc-head"><span class="fc-label">&#127744; ' + (tr.damperLabel || 'Lưu lượng gió') + '</span>'
+           + '      <span class="fc-val" style="color:' + _dColor + '">' + (_dmps.length ? _avgPos + '%' : '--') + '</span>'
+           + '    </div>'
+           + '    <div style="display:flex;flex-direction:column;gap:4px;margin-top:4px;">'
+           + _dmps.slice(0, 3).map(function(d, di) {
+               var ds = self._hass && self._hass.states && self._hass.states[d.entity_id];
+               var pos = ds ? Math.round(parseFloat(ds.attributes && ds.attributes.current_position) || 0) : 0;
+               var dc = pos < 20 ? 'rgba(255,255,255,0.25)' : pos < 60 ? '#34d399' : '#00d4ff';
+               return '<div style="display:flex;align-items:center;gap:5px;">'
+                    + '  <span style="font-size:9px;color:rgba(255,255,255,0.55);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:52px;flex:1;">' + (d.name || ('Van '+(di+1))) + '</span>'
+                    + '  <div style="flex:2;height:3px;border-radius:2px;background:rgba(255,255,255,0.1);overflow:hidden;">'
+                    + '    <div style="height:100%;width:' + pos + '%;background:' + dc + ';border-radius:2px;transition:width 0.3s;"></div>'
+                    + '  </div>'
+                    + '  <span style="font-size:9px;font-weight:700;color:' + dc + ';min-width:22px;text-align:right;">' + pos + '%</span>'
+                    + '</div>';
+             }).join('')
+           + (_dmps.length > 3 ? '<div style="font-size:9px;color:rgba(255,255,255,0.4);text-align:center;margin-top:1px;">+' + (_dmps.length - 3) + ' van nữa</div>' : '')
+           + '    </div>'
+           + '  </div>';
+    }
+    // ── Bình thường: swing-card ───────────────────────────────────────────────
+    if (cfg.show_swing === false) return '';
+    return '  <div class="swing-card">'
+         + '    <div class="fc-head"><span class="fc-label">' + tr.swingLabel + '</span></div>'
+         + '    ' + swingBtn
+         + '  </div>';
+  }).call(this)
 + '</div>'
 ) : '')
 
@@ -4655,6 +4911,152 @@ class AcControllerCardV2 extends HTMLElement {
       self._call('climate','set_temperature',{entity_id:id, temperature: Math.max(acMinTemp(hU), next)});
     });
 
+    // ── Haptic drag on outer dial ring (set-temp) ──────────────────────────────
+    (function() {
+      if (self._config.dial_invert === true) return; // only when setTemp is on outer ring
+      var svg = r.querySelector('#dial-wrap-main svg');
+      if (!svg) return;
+      var cx = 110, cy = 110;
+      var _dragging = false;
+      var _lastTemp = null;
+      var _commitTimer = null;
+
+      function angleToTemp(angle) {
+        // Arc from -140° to +140° maps to 16°C–32°C
+        var clamped = Math.max(-140, Math.min(140, angle));
+        return 16 + (clamped + 140) / 280 * 16;
+      }
+
+      function getAngle(clientX, clientY) {
+        var rect = svg.getBoundingClientRect();
+        var scaleX = 220 / rect.width;
+        var scaleY = 220 / rect.height;
+        var lx = (clientX - rect.left) * scaleX - cx;
+        var ly = (clientY - rect.top)  * scaleY - cy;
+        var angle = Math.atan2(ly, lx) * 180 / Math.PI + 90;
+        if (angle >  180) angle -= 360;
+        if (angle < -180) angle += 360;
+        return angle;
+      }
+
+      function getRadius(clientX, clientY) {
+        var rect = svg.getBoundingClientRect();
+        var scaleX = 220 / rect.width;
+        var scaleY = 220 / rect.height;
+        var lx = (clientX - rect.left) * scaleX - cx;
+        var ly = (clientY - rect.top)  * scaleY - cy;
+        return Math.sqrt(lx * lx + ly * ly);
+      }
+
+      function applyTemp(angle) {
+        var id = ROOMS[self._activeIdx].id;
+        var cfg2 = self._config || {};
+        var tU = cfg2.temp_unit || 'C';
+        var hU = parseFloat(self._a(id, 'temperature') || 24) > 50 ? 'F' : 'C';
+        var tempC = angleToTemp(angle);
+        // Convert to HA unit if needed
+        var tempHA = hU === 'F' ? (tempC * 9/5 + 32) : tempC;
+        tempHA = Math.round(tempHA * 2) / 2; // round to 0.5
+        tempHA = Math.max(acMinTemp(hU), Math.min(acMaxTemp(hU), tempHA));
+        if (_lastTemp !== tempHA) {
+          _lastTemp = tempHA;
+          // Update display immediately for haptic feel
+          var liveSet = r.getElementById('live-set-temp');
+          if (liveSet) {
+            var dispVal = hU === 'F' && tU === 'C'
+              ? (Math.round((tempHA - 32) * 5/9 * 2) / 2).toFixed(1)
+              : (tU === 'F' && hU === 'C' ? Math.round(tempHA * 9/5 + 32).toString() : tempHA.toFixed(1));
+            var dSym = tU === 'F' ? '°F' : '°C';
+            liveSet.innerHTML = dispVal + '<span style="font-size:0.55em;vertical-align:super;">' + dSym + '</span>';
+          }
+          // Vibrate if available (haptic feedback)
+          if (navigator.vibrate) navigator.vibrate(8);
+          // Debounce HA service call
+          clearTimeout(_commitTimer);
+          _commitTimer = setTimeout(function() {
+            self._call('climate','set_temperature',{entity_id:id, temperature: tempHA});
+          }, 300);
+        }
+      }
+
+      // Arc path helper — same convention as this._arc(): angle 0 = 12 o'clock, clockwise
+      function _arcPath(cx, cy, r, a1, a2) {
+        var rad = function(d) { return (d - 90) * Math.PI / 180; };
+        var x1 = cx + r * Math.cos(rad(a1)), y1 = cy + r * Math.sin(rad(a1));
+        var x2 = cx + r * Math.cos(rad(a2)), y2 = cy + r * Math.sin(rad(a2));
+        var lg = (a2 - a1 > 180) ? 1 : 0;
+        return 'M' + x1.toFixed(2) + ' ' + y1.toFixed(2) + ' A' + r + ' ' + r + ' 0 ' + lg + ' 1 ' + x2.toFixed(2) + ' ' + y2.toFixed(2);
+      }
+
+      function updateDotPosition(angle) {
+        var clamped = Math.max(-140, Math.min(140, angle));
+        var arcEnd2 = clamped; // same value, explicit naming
+
+        // -- Move outer dot circles to new position on r=88 ring --
+        var dotRad = (arcEnd2 - 90) * Math.PI / 180;
+        var nx = (110 + 88 * Math.cos(dotRad)).toFixed(1);
+        var ny = (110 + 88 * Math.sin(dotRad)).toFixed(1);
+        svg.querySelectorAll('circle').forEach(function(c) {
+          if (c.id === 'dial-drag-zone') return;
+          var cx2 = parseFloat(c.getAttribute('cx'));
+          var cy2 = parseFloat(c.getAttribute('cy'));
+          var dist = Math.sqrt((cx2-110)*(cx2-110) + (cy2-110)*(cy2-110));
+          if (dist > 82) { // outer ring r=88 only — skip inner ring r=76
+            c.setAttribute('cx', nx);
+            c.setAttribute('cy', ny);
+          }
+        });
+
+        // -- Update outer arc fill path using same _arcPath convention --
+        var pct2 = (clamped + 140) / 280;
+        if (pct2 > 0.02) {
+          svg.querySelectorAll('path[fill="none"]').forEach(function(p) {
+            var sw = p.getAttribute('stroke-width');
+            if (sw !== '10' && sw !== '12') return;
+            var st = p.getAttribute('stroke') || '';
+            if (st.startsWith('rgba(255,255,255')) return; // skip track paths
+            p.setAttribute('d', _arcPath(110, 110, 88, -140, arcEnd2));
+          });
+        }
+      }
+
+      svg.addEventListener('pointerdown', function(e) {
+        var r2 = getRadius(e.clientX, e.clientY);
+        if (r2 < 70 || r2 > 108) return; // only outer ring zone
+        _dragging = true;
+        svg.style.cursor = 'grabbing';
+        e.preventDefault();
+        svg.setPointerCapture(e.pointerId);
+        var ang = getAngle(e.clientX, e.clientY);
+        applyTemp(ang);
+        updateDotPosition(ang);
+      });
+      svg.addEventListener('pointermove', function(e) {
+        if (!_dragging) return;
+        e.preventDefault();
+        var ang = getAngle(e.clientX, e.clientY);
+        applyTemp(ang);
+        updateDotPosition(ang);
+      });
+      svg.addEventListener('pointerup', function(e) {
+        if (!_dragging) return;
+        _dragging = false;
+        svg.style.cursor = '';
+        // Commit final value
+        var id = ROOMS[self._activeIdx].id;
+        var cfg2 = self._config || {};
+        var hU = parseFloat(self._a(id, 'temperature') || 24) > 50 ? 'F' : 'C';
+        if (_lastTemp !== null) {
+          clearTimeout(_commitTimer);
+          self._call('climate','set_temperature',{entity_id:id, temperature: _lastTemp});
+        }
+      });
+      svg.addEventListener('pointercancel', function() {
+        _dragging = false;
+        svg.style.cursor = '';
+      });
+    })();
+
     onTapAll(r.querySelectorAll('[data-hvac]'), function(b) {
       var _hvacId = ROOMS[self._activeIdx].id;
       var _newMode = b.dataset.hvac;
@@ -4663,6 +5065,53 @@ class AcControllerCardV2 extends HTMLElement {
       self._call('climate','set_hvac_mode',{entity_id:_hvacId, hvac_mode:_newMode});
     });
 
+    // ── macOS Dock effect for mode buttons ──────────────────────────────
+    (function() {
+      var dock = r.getElementById('mode-dock');
+      if (!dock) return;
+      var btns = Array.prototype.slice.call(dock.querySelectorAll('.mode-btn'));
+      if (btns.length < 2) return;
+
+      function applyDock(hoveredIdx) {
+        dock.classList.add('dock-active');
+        btns.forEach(function(btn, i) {
+          btn.classList.remove('dock-hovered','dock-near1','dock-near2');
+          var d = i - hoveredIdx; // signed: âm = bên trái, dương = bên phải
+          var ad = Math.abs(d);
+          var dir = d < 0 ? -1 : 1;
+          if (ad === 0) {
+            btn.classList.add('dock-hovered');
+            btn.style.transform = 'scale(1.22) translateY(-6px)';
+          } else if (ad === 1) {
+            btn.classList.add('dock-near1');
+            btn.style.transform = 'scale(0.95) translateY(-2px) translateX(' + (dir * 5) + 'px)';
+          } else if (ad === 2) {
+            btn.classList.add('dock-near2');
+            btn.style.transform = 'scale(0.88) translateX(' + (dir * 8) + 'px)';
+          } else {
+            btn.style.transform = 'scale(0.85) translateX(' + (dir * 10) + 'px)';
+          }
+        });
+      }
+
+      function resetDock() {
+        dock.classList.remove('dock-active');
+        btns.forEach(function(btn) {
+          btn.classList.remove('dock-hovered','dock-near1','dock-near2');
+          btn.style.transform = '';
+        });
+      }
+
+      btns.forEach(function(btn, i) {
+        btn.addEventListener('mouseenter', function() { applyDock(i); });
+        btn.addEventListener('touchstart', function() { applyDock(i); }, {passive:true});
+      });
+      dock.addEventListener('mouseleave', resetDock);
+      dock.addEventListener('touchend', function() {
+        setTimeout(resetDock, 350);
+      }, {passive:true});
+    })();
+    // ────────────────────────────────────────────────────────────────────
     onTapAll(r.querySelectorAll('[data-fan]'), function(b) {
       self._call('climate','set_fan_mode',{entity_id:ROOMS[self._activeIdx].id, fan_mode:b.dataset.fan});
     });
@@ -4941,6 +5390,123 @@ class AcControllerCardV2 extends HTMLElement {
       }, { passive: true });
     });
 
+    // ── Damper card button → popup với tất cả dampers ────────────────────────
+    onTap(r.getElementById('damper-card-btn'), function(e) {
+      e.stopPropagation();
+      var cfg2 = self._config || {};
+      var rCfg = (cfg2.entities && cfg2.entities[self._activeIdx]) || {};
+      var dampers = (rCfg.dampers || []).filter(function(d){ return d && d.entity_id; });
+      if (!dampers.length) return;
+      _openDamperMenuPopup(dampers);
+    });
+
+    function _openDamperMenuPopup(dampers) {
+      var old = self.shadowRoot.getElementById('damper-popup-overlay');
+      if (old) { old.remove(); return; }
+
+      var accent = (self._config && self._config.accent_color) || '#00ffcc';
+      var tr2 = AC_TRANSLATIONS[(self._config && self._config.language) || 'vi'] || AC_TRANSLATIONS.vi;
+
+      // Build each damper row
+      var rowsHtml = '';
+      dampers.forEach(function(dmp, di) {
+        var ds = self._hass && self._hass.states && self._hass.states[dmp.entity_id];
+        var pos = ds ? Math.round(parseFloat(ds.attributes && ds.attributes.current_position) || 0) : 0;
+        var dc = pos < 20 ? 'rgba(255,255,255,0.35)' : pos < 60 ? '#34d399' : accent;
+        var dmpName = dmp.name || ('Van ' + (di + 1));
+        rowsHtml +=
+          '<div class="dmp-row" id="dmp-row-' + di + '">'
+        + '  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">'
+        + '    <span style="font-size:12px;font-weight:700;color:rgba(255,255,255,0.9);">&#127744; ' + dmpName + '</span>'
+        + '    <span class="dmp-row-pct" id="dmp-row-pct-' + di + '" style="font-size:14px;font-weight:700;color:' + dc + ';">' + pos + '%</span>'
+        + '  </div>'
+        + '  <div style="display:flex;align-items:center;gap:8px;">'
+        + '    <span style="font-size:9px;color:rgba(255,255,255,0.35);font-weight:600;">' + (tr2.damperClosed || 'Đóng') + '</span>'
+        + '    <input type="range" class="damper-popup-slider dmp-row-slider" id="dmp-row-slider-' + di + '"'
+        + '      min="0" max="100" step="5" value="' + pos + '"'
+        + '      data-di="' + di + '" data-eid="' + dmp.entity_id + '"'
+        + '      style="flex:1;accent-color:' + accent + ';">'
+        + '    <span style="font-size:9px;color:rgba(255,255,255,0.35);font-weight:600;">' + (tr2.damperOpen || 'Mở') + '</span>'
+        + '  </div>'
+        + '  <div style="display:flex;gap:5px;margin-top:7px;">'
+        + '    <button class="dmp-preset-btn" data-di="' + di + '" data-v="0"  style="flex:1;">0%</button>'
+        + '    <button class="dmp-preset-btn" data-di="' + di + '" data-v="25" style="flex:1;">25%</button>'
+        + '    <button class="dmp-preset-btn" data-di="' + di + '" data-v="50" style="flex:1;">50%</button>'
+        + '    <button class="dmp-preset-btn" data-di="' + di + '" data-v="75" style="flex:1;">75%</button>'
+        + '    <button class="dmp-preset-btn" data-di="' + di + '" data-v="100" style="flex:1;">100%</button>'
+        + '  </div>'
+        + (di < dampers.length - 1 ? '<div style="border-top:1px solid rgba(255,255,255,0.08);margin:12px 0 4px;"></div>' : '')
+        + '</div>';
+      });
+
+      var overlay = document.createElement('div');
+      overlay.id = 'damper-popup-overlay';
+      overlay.className = 'damper-popup-overlay';
+      overlay.innerHTML =
+        '<div class="damper-popup" id="damper-popup-inner" style="max-height:80vh;overflow-y:auto;">'
+      + '  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">'
+      + '    <div class="damper-popup-title" style="margin:0;">&#127744; ' + (tr2.damperLabel || 'Lưu lượng gió') + '</div>'
+      + '    <button id="dmp-menu-close" style="background:rgba(255,255,255,0.1);border:none;border-radius:50%;width:26px;height:26px;color:rgba(255,255,255,0.7);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;">&#10005;</button>'
+      + '  </div>'
+      + rowsHtml
+      + '  <button id="dmp-menu-apply-all" style="width:100%;margin-top:14px;padding:11px;border-radius:12px;font-size:13px;font-weight:700;border:none;cursor:pointer;font-family:\'Sora\',sans-serif;background:' + accent + ';color:#002030;">'
+      + (tr2.timerConfirm || 'Xác nhận tất cả') + '</button>'
+      + '</div>';
+
+      self.shadowRoot.appendChild(overlay);
+
+      // pending values map
+      var pending = {};
+      dampers.forEach(function(d, di) {
+        var ds = self._hass && self._hass.states && self._hass.states[d.entity_id];
+        pending[di] = ds ? Math.round(parseFloat(ds.attributes && ds.attributes.current_position) || 0) : 0;
+      });
+
+      function _updateRow(di, v) {
+        pending[di] = v;
+        var dc2 = v < 20 ? 'rgba(255,255,255,0.35)' : v < 60 ? '#34d399' : accent;
+        var pctEl2 = self.shadowRoot.getElementById('dmp-row-pct-' + di);
+        var slEl2  = self.shadowRoot.getElementById('dmp-row-slider-' + di);
+        if (pctEl2) { pctEl2.textContent = v + '%'; pctEl2.style.color = dc2; }
+        if (slEl2 && parseInt(slEl2.value) !== v) slEl2.value = v;
+      }
+
+      // Bind sliders
+      self.shadowRoot.querySelectorAll('.dmp-row-slider').forEach(function(sl) {
+        sl.addEventListener('input', function() {
+          _updateRow(parseInt(sl.dataset.di), parseInt(sl.value));
+        });
+      });
+
+      // Bind preset buttons
+      self.shadowRoot.querySelectorAll('.dmp-preset-btn').forEach(function(pb) {
+        pb.addEventListener('click', function() {
+          _updateRow(parseInt(pb.dataset.di), parseInt(pb.dataset.v));
+        });
+      });
+
+      // Apply all
+      var btnApplyAll = self.shadowRoot.getElementById('dmp-menu-apply-all');
+      if (btnApplyAll) btnApplyAll.addEventListener('click', function() {
+        dampers.forEach(function(dmp2, di2) {
+          self._call('cover', 'set_cover_position', { entity_id: dmp2.entity_id, position: pending[di2] });
+        });
+        overlay.remove();
+        // Trigger re-render after short delay for HA to propagate
+        setTimeout(function() { self._renderFull(); }, 400);
+      });
+
+      // Close button
+      var btnClose2 = self.shadowRoot.getElementById('dmp-menu-close');
+      if (btnClose2) btnClose2.addEventListener('click', function() { overlay.remove(); });
+
+      // Backdrop click
+      overlay.addEventListener('click', function(ev) {
+        var inner2 = self.shadowRoot.getElementById('damper-popup-inner');
+        if (inner2 && !inner2.contains(ev.target)) overlay.remove();
+      });
+    }
+
     this._bindTimer();
   }
 
@@ -4954,6 +5520,119 @@ class AcControllerCardV2 extends HTMLElement {
       el.addEventListener('touchstart', function(e) { e.preventDefault(); tapped = true; fn(e); }, { passive: false });
       el.addEventListener('click', function(e) { e.stopPropagation(); if (tapped) { tapped = false; return; } fn(e); });
     }
+
+    // ── Haptic drag on SL outer dial ring (set-temp) ──────────────────────────
+    (function() {
+      if (self._config.dial_invert === true) return;
+      var slSvg = r.querySelector('.sl-dial-wrap svg');
+      if (!slSvg) return;
+      self._slDragging = false;
+      var _slLastTemp = null;
+      var _slCommit   = null;
+      var cx = 110, cy = 110;
+
+      function slAngleToTemp(a) { return 16 + (Math.max(-140, Math.min(140, a)) + 140) / 280 * 16; }
+
+      function slGetAngle(clientX, clientY) {
+        var rect = slSvg.getBoundingClientRect();
+        var scaleX = 220 / rect.width, scaleY = 220 / rect.height;
+        var lx = (clientX - rect.left) * scaleX - cx;
+        var ly = (clientY - rect.top)  * scaleY - cy;
+        var a  = Math.atan2(ly, lx) * 180 / Math.PI + 90;
+        if (a >  180) a -= 360;
+        if (a < -180) a += 360;
+        return a;
+      }
+
+      function slGetRadius(clientX, clientY) {
+        var rect = slSvg.getBoundingClientRect();
+        var scaleX = 220 / rect.width, scaleY = 220 / rect.height;
+        var lx = (clientX - rect.left) * scaleX - cx;
+        var ly = (clientY - rect.top)  * scaleY - cy;
+        return Math.sqrt(lx*lx + ly*ly);
+      }
+
+      function slApplyTemp(angle) {
+        var id   = ROOMS[self._activeIdx].id;
+        var cfg2 = self._config || {};
+        var tU   = cfg2.temp_unit || 'C';
+        var hU   = parseFloat(self._a(id, 'temperature') || 24) > 50 ? 'F' : 'C';
+        var tempC  = slAngleToTemp(angle);
+        var tempHA = hU === 'F' ? (tempC * 9/5 + 32) : tempC;
+        tempHA = Math.round(tempHA * 2) / 2;
+        tempHA = Math.max(acMinTemp(hU), Math.min(acMaxTemp(hU), tempHA));
+        if (_slLastTemp !== tempHA) {
+          _slLastTemp = tempHA;
+          var liveSet = r.getElementById('live-set-temp');
+          if (liveSet) {
+            var dispVal = hU === 'F' && tU === 'C'
+              ? (Math.round((tempHA - 32) * 5/9 * 2) / 2).toFixed(1)
+              : (tU === 'F' && hU === 'C' ? Math.round(tempHA * 9/5 + 32).toString() : tempHA.toFixed(1));
+            liveSet.innerHTML = dispVal + '<span style="font-size:0.55em;vertical-align:super;">' + (tU === 'F' ? '°F' : '°C') + '</span>';
+          }
+          if (navigator.vibrate) navigator.vibrate(8);
+          clearTimeout(_slCommit);
+          _slCommit = setTimeout(function() {
+            self._call('climate', 'set_temperature', { entity_id: id, temperature: tempHA });
+          }, 300);
+        }
+      }
+
+      // Arc helper — angle 0 = 12 o'clock, clockwise (matches _arc())
+      function slArcPath(cx2, cy2, rr, a1, a2) {
+        var rad = function(d) { return (d - 90) * Math.PI / 180; };
+        var x1 = cx2 + rr * Math.cos(rad(a1)), y1 = cy2 + rr * Math.sin(rad(a1));
+        var x2 = cx2 + rr * Math.cos(rad(a2)), y2 = cy2 + rr * Math.sin(rad(a2));
+        var lg = (a2 - a1 > 180) ? 1 : 0;
+        return 'M' + x1.toFixed(2) + ' ' + y1.toFixed(2) + ' A' + rr + ' ' + rr + ' 0 ' + lg + ' 1 ' + x2.toFixed(2) + ' ' + y2.toFixed(2);
+      }
+
+      function slUpdateDot(angle) {
+        var clamped = Math.max(-140, Math.min(140, angle));
+        // Move outer dot circles only (data-ring="outer")
+        var dotRad = (clamped - 90) * Math.PI / 180;
+        var nx = (110 + 88 * Math.cos(dotRad)).toFixed(1);
+        var ny = (110 + 88 * Math.sin(dotRad)).toFixed(1);
+        slSvg.querySelectorAll('circle[data-ring="outer"]').forEach(function(c) {
+          c.setAttribute('cx', nx);
+          c.setAttribute('cy', ny);
+        });
+        // Update outer arc fill only (data-ring="outer"), never touch inner ring
+        var pct2 = (clamped + 140) / 280;
+        if (pct2 > 0.02) {
+          slSvg.querySelectorAll('path[data-ring="outer"][fill="none"]').forEach(function(p) {
+            var st = p.getAttribute('stroke') || '';
+            if (st.startsWith('rgba(255,255,255')) return; // skip track (background)
+            p.setAttribute('d', slArcPath(110, 110, 88, -140, clamped));
+          });
+        }
+      }
+
+      slSvg.addEventListener('pointerdown', function(e) {
+        if (slGetRadius(e.clientX, e.clientY) < 70 || slGetRadius(e.clientX, e.clientY) > 108) return;
+        self._slDragging = true;
+        slSvg.style.cursor = 'grabbing';
+        e.preventDefault();
+        slSvg.setPointerCapture(e.pointerId);
+        var ang = slGetAngle(e.clientX, e.clientY);
+        slApplyTemp(ang); slUpdateDot(ang);
+      });
+      slSvg.addEventListener('pointermove', function(e) {
+        if (!self._slDragging) return;
+        e.preventDefault();
+        var ang = slGetAngle(e.clientX, e.clientY);
+        slApplyTemp(ang); slUpdateDot(ang);
+      });
+      slSvg.addEventListener('pointerup', function(e) {
+        if (!self._slDragging) return;
+        self._slDragging = false; slSvg.style.cursor = '';
+        if (_slLastTemp !== null) {
+          clearTimeout(_slCommit);
+          self._call('climate', 'set_temperature', { entity_id: ROOMS[self._activeIdx].id, temperature: _slLastTemp });
+        }
+      });
+      slSvg.addEventListener('pointercancel', function() { self._slDragging = false; slSvg.style.cursor = ''; });
+    })();
 
     // Temp up/down
     onTapSL(r.getElementById('sl-btn-temp-up'), function() {
@@ -5676,6 +6355,37 @@ class AcControllerCardV2 extends HTMLElement {
         if (powEl.textContent !== pv) powEl.textContent = pv;
       }
     }
+
+    // ── Patch damper card mini rows ──────────────────────────────────────────
+    if (roomEntCfg.is_central_ac && roomEntCfg.dampers && roomEntCfg.dampers.length) {
+      var damperCard = sr.getElementById('damper-card-btn');
+      if (damperCard) {
+        var self2 = this;
+        var validDmps = roomEntCfg.dampers.filter(function(d){ return d && d.entity_id; });
+        var totalPos = 0;
+        validDmps.forEach(function(d) {
+          var ds2 = self2._hass && self2._hass.states[d.entity_id];
+          totalPos += ds2 ? (parseFloat(ds2.attributes && ds2.attributes.current_position) || 0) : 0;
+        });
+        var avgPos2 = validDmps.length ? Math.round(totalPos / validDmps.length) : 0;
+        var avgColor = avgPos2 < 20 ? 'rgba(255,255,255,0.4)' : avgPos2 < 60 ? '#34d399' : '#00d4ff';
+        var fcVal = damperCard.querySelector('.fc-val');
+        if (fcVal) { fcVal.textContent = validDmps.length ? avgPos2 + '%' : '--'; fcVal.style.color = avgColor; }
+        var miniRows = damperCard.querySelectorAll('[style*="gap:5px"]');
+        validDmps.forEach(function(d, mdi) {
+          var ds3 = self2._hass && self2._hass.states[d.entity_id];
+          var mPos = ds3 ? Math.round(parseFloat(ds3.attributes && ds3.attributes.current_position) || 0) : 0;
+          var mc = mPos < 20 ? 'rgba(255,255,255,0.25)' : mPos < 60 ? '#34d399' : '#00d4ff';
+          if (miniRows[mdi]) {
+            var barDiv = miniRows[mdi].querySelectorAll('div')[0];
+            var barFill2 = barDiv && barDiv.firstElementChild;
+            var pctSpan = miniRows[mdi].querySelectorAll('span')[1];
+            if (barFill2) { barFill2.style.width = mPos + '%'; barFill2.style.background = mc; }
+            if (pctSpan)  { pctSpan.textContent = mPos + '%'; pctSpan.style.color = mc; }
+          }
+        });
+      }
+    }
   }
 
   _startClock() {
@@ -6061,6 +6771,17 @@ class MultiAcCardEditor extends HTMLElement {
         const saved = (ents[idx] && ents[idx].humidity_entity) || '';
         if (saved && p.value !== saved) { p.value = saved; p.setAttribute('value', saved); }
       });
+      // damper entity pickers
+      this.shadowRoot.querySelectorAll('ha-entity-picker[data-damper]').forEach(p => {
+        p.hass = this._hass;
+        p.includeDomains = ['cover'];
+        const roomIdx   = parseInt(p.dataset.damper);
+        const damperIdx = parseInt(p.dataset.damperIdx);
+        const ents    = this._config.entities || [];
+        const dampers = (ents[roomIdx] && ents[roomIdx].dampers) || [];
+        const saved   = (dampers[damperIdx] && dampers[damperIdx].entity_id) || '';
+        if (saved && p.value !== saved) { p.value = saved; p.setAttribute('value', saved); }
+      });
     };
     apply();
     requestAnimationFrame(() => requestAnimationFrame(apply));
@@ -6172,6 +6893,42 @@ class MultiAcCardEditor extends HTMLElement {
       </div>` : `<div id="img-preview-${i}" style="display:none"></div>`}
     </div>
   </div>
+  <!-- ── Central AC toggle ── -->
+  <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-top:1px solid var(--divider-color);margin-top:4px;">
+    <ha-icon icon="mdi:hvac" style="color:var(--primary-color);--mdi-icon-size:18px;flex-shrink:0;"></ha-icon>
+    <div style="flex:1;min-width:0;">
+      <div style="font-size:12px;font-weight:700;color:var(--primary-text-color);">${t.centralAcLabel || '🏢 Điều hòa trung tâm'}</div>
+      <div style="font-size:10px;color:var(--secondary-text-color);margin-top:1px;">${t.centralAcDesc || 'Bật để cấu hình van gió (damper)'}</div>
+    </div>
+    <label style="position:relative;display:inline-block;width:36px;height:20px;flex-shrink:0;">
+      <input type="checkbox" id="tog-central-ac-${i}" ${ent.is_central_ac ? 'checked' : ''} style="opacity:0;width:0;height:0;position:absolute;">
+      <span style="position:absolute;inset:0;border-radius:20px;cursor:pointer;transition:0.25s;background:${ent.is_central_ac ? 'var(--primary-color)' : 'rgba(0,0,0,0.18)'}"></span>
+      <span style="position:absolute;top:2px;left:${ent.is_central_ac ? '18px' : '2px'};width:16px;height:16px;border-radius:50%;background:#fff;transition:0.25s;box-shadow:0 1px 4px rgba(0,0,0,0.3)"></span>
+    </label>
+  </div>
+  <!-- ── Damper list (shown when central AC enabled) ── -->
+  <div id="damper-section-${i}" style="display:${ent.is_central_ac ? 'block' : 'none'};margin-top:4px;">
+    <div id="damper-list-${i}">
+      ${(ent.dampers||[]).map((d,di) => `
+      <div id="damper-row-${i}-${di}" style="display:flex;flex-direction:column;gap:6px;padding:8px;background:var(--secondary-background-color);border:1px solid var(--divider-color);border-radius:8px;margin-bottom:6px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;">
+          <span style="font-size:11px;font-weight:600;color:var(--primary-color);">Van ${di+1}</span>
+          <button id="btn-del-damper-${i}-${di}" style="padding:2px 8px;border-radius:6px;font-size:10px;font-weight:600;border:1px solid var(--error-color,#f44);color:var(--error-color,#f44);background:transparent;cursor:pointer;">${t.damperRemove||'Xóa'}</button>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:2px;">
+          <label style="font-size:10px;color:var(--secondary-text-color);font-weight:600;">${t.damperEntity||'Entity van gió (cover.*)'}</label>
+          <ha-entity-picker data-damper="${i}" data-damper-idx="${di}" data-domain="cover" allow-custom-entity></ha-entity-picker>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:2px;">
+          <label style="font-size:10px;color:var(--secondary-text-color);font-weight:600;">${t.damperName||'Tên van gió'}</label>
+          <input class="txt-inp" type="text" id="inp-damper-name-${i}-${di}" placeholder="Phòng khách..." value="${d.name||''}" style="font-size:12px;padding:6px 10px;"/>
+        </div>
+      </div>`).join('')}
+    </div>
+    <button id="btn-add-damper-${i}" style="width:100%;padding:7px;border-radius:8px;font-size:12px;font-weight:600;border:1.5px dashed var(--primary-color);color:var(--primary-color);background:rgba(3,169,244,0.06);cursor:pointer;margin-top:2px;">
+      ${t.damperAdd||'+ Thêm van gió'}
+    </button>
+  </div>
 </div>`;
     }
 
@@ -6246,31 +7003,51 @@ class MultiAcCardEditor extends HTMLElement {
 </style>
 <div class="editor">
   <div class="credit">❄️ <strong>Multi Air Conditioner Card</strong>
-    <span style="color:var(--secondary-text-color);font-weight:400;">v1.8 Designed by @doanlong1412 from 🇻🇳 Vietnam</span>
+    <span style="color:var(--secondary-text-color);font-weight:400;">v1.9 Designed by @doanlong1412 from 🇻🇳 Vietnam</span>
   </div>
-  <a href="https://www.tiktok.com/@long.1412" target="_blank" rel="noopener noreferrer"
-    style="display:flex;align-items:center;gap:8px;margin:6px 0 10px;padding:8px 14px;
-      border-radius:10px;text-decoration:none;cursor:pointer;
-      background:linear-gradient(135deg,rgba(0,0,0,0.85) 0%,rgba(30,20,40,0.92) 100%);
-      border:1px solid rgba(255,255,255,0.08);
-      box-shadow:0 2px 8px rgba(0,0,0,0.3);
-      transition:transform .15s,box-shadow .15s;"
-    onmouseover="this.style.transform='translateY(-1px)';this.style.boxShadow='0 4px 16px rgba(0,0,0,0.4)'"
-    onmouseout="this.style.transform='';this.style.boxShadow='0 2px 8px rgba(0,0,0,0.3)'">
-    <!-- TikTok logo SVG -->
-    <svg width="22" height="22" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0;">
-      <path d="M27.2 7.2a7.6 7.6 0 0 1-7.6-7.6h-5v21.5a3.6 3.6 0 1 1-3.6-3.6c.33 0 .65.05.96.13V12.5a8.6 8.6 0 1 0 8.24 8.6V11.5a12.6 12.6 0 0 0 7.6 2.5V8.6a7.66 7.66 0 0 1-.54-.01z" fill="white"/>
-      <path d="M27.2 7.2a7.6 7.6 0 0 1-7.6-7.6h-3v21.5a3.6 3.6 0 1 1-2.6-3.46V12.5a8.6 8.6 0 1 0 7.6 8.6V11.5a12.6 12.6 0 0 0 5.6 1.5V8.6a7.6 7.6 0 0 1 0 0z" fill="#69C9D0" fill-opacity="0.5"/>
-      <path d="M13 21.1a3.6 3.6 0 1 0 3.6 3.6V3.6h-3v20.95a3.61 3.61 0 0 0-.6-.45z" fill="#EE1D52" fill-opacity="0.6"/>
-    </svg>
-    <div style="flex:1;min-width:0;">
-      <div style="font-size:12px;font-weight:700;color:#ffffff;letter-spacing:.2px;line-height:1.3;">TikTok Channel</div>
-      <div style="font-size:10.5px;color:rgba(255,255,255,0.6);line-height:1.3;">Xem thêm &amp; Follow @long.1412</div>
-    </div>
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" style="flex-shrink:0;opacity:0.45;">
-      <path d="M9 18l6-6-6-6" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-    </svg>
-  </a>
+  <div style="display:flex;gap:8px;margin:6px 0 10px;">
+    <!-- TikTok button (compact) -->
+    <a href="https://www.tiktok.com/@long.1412" target="_blank" rel="noopener noreferrer"
+      style="display:flex;align-items:center;gap:6px;flex:1;padding:7px 10px;
+        border-radius:10px;text-decoration:none;cursor:pointer;
+        background:linear-gradient(135deg,rgba(0,0,0,0.85) 0%,rgba(30,20,40,0.92) 100%);
+        border:1px solid rgba(255,255,255,0.08);
+        box-shadow:0 2px 8px rgba(0,0,0,0.3);
+        transition:transform .15s,box-shadow .15s;"
+      onmouseover="this.style.transform='translateY(-1px)';this.style.boxShadow='0 4px 16px rgba(0,0,0,0.4)'"
+      onmouseout="this.style.transform='';this.style.boxShadow='0 2px 8px rgba(0,0,0,0.3)'">
+      <svg width="18" height="18" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0;">
+        <path d="M27.2 7.2a7.6 7.6 0 0 1-7.6-7.6h-5v21.5a3.6 3.6 0 1 1-3.6-3.6c.33 0 .65.05.96.13V12.5a8.6 8.6 0 1 0 8.24 8.6V11.5a12.6 12.6 0 0 0 7.6 2.5V8.6a7.66 7.66 0 0 1-.54-.01z" fill="white"/>
+        <path d="M27.2 7.2a7.6 7.6 0 0 1-7.6-7.6h-3v21.5a3.6 3.6 0 1 1-2.6-3.46V12.5a8.6 8.6 0 1 0 7.6 8.6V11.5a12.6 12.6 0 0 0 5.6 1.5V8.6a7.6 7.6 0 0 1 0 0z" fill="#69C9D0" fill-opacity="0.5"/>
+        <path d="M13 21.1a3.6 3.6 0 1 0 3.6 3.6V3.6h-3v20.95a3.61 3.61 0 0 0-.6-.45z" fill="#EE1D52" fill-opacity="0.6"/>
+      </svg>
+      <div style="min-width:0;">
+        <div style="font-size:11px;font-weight:700;color:#ffffff;line-height:1.3;white-space:nowrap;">TikTok</div>
+        <div style="font-size:9.5px;color:rgba(255,255,255,0.55);line-height:1.3;white-space:nowrap;">@long.1412</div>
+      </div>
+    </a>
+    <!-- Donate PayPal button -->
+    <a href="http://paypal.me/doanlong1412" target="_blank" rel="noopener noreferrer"
+      style="display:flex;align-items:center;gap:6px;flex:1;padding:7px 10px;
+        border-radius:10px;text-decoration:none;cursor:pointer;
+        background:linear-gradient(135deg,rgba(0,68,153,0.9) 0%,rgba(0,36,100,0.95) 100%);
+        border:1px solid rgba(255,255,255,0.1);
+        box-shadow:0 2px 8px rgba(0,0,0,0.3);
+        transition:transform .15s,box-shadow .15s;"
+      onmouseover="this.style.transform='translateY(-1px)';this.style.boxShadow='0 4px 16px rgba(0,68,153,0.5)'"
+      onmouseout="this.style.transform='';this.style.boxShadow='0 2px 8px rgba(0,0,0,0.3)'">
+      <!-- PayPal logo SVG -->
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0;">
+        <path d="M19.5 6.5C19.5 9.5 17.5 11.5 14.5 11.5H12L11 16H8L10 6H14.5C17.3 6 19.5 4 19.5 6.5Z" fill="#009cde"/>
+        <path d="M17.5 4C17.5 7 15.5 9 12.5 9H10L9 14H6L8 4H12.5C15.3 4 17.5 2 17.5 4Z" fill="#ffffff" fill-opacity="0.85"/>
+        <path d="M7 16H4.5L6.5 6H9L7 16Z" fill="#ffffff" fill-opacity="0.5"/>
+      </svg>
+      <div style="min-width:0;">
+        <div style="font-size:11px;font-weight:700;color:#ffffff;line-height:1.3;white-space:nowrap;">Donate ☕</div>
+        <div style="font-size:9.5px;color:rgba(255,255,255,0.55);line-height:1.3;white-space:nowrap;">PayPal</div>
+      </div>
+    </a>
+  </div>
 
   <!-- 0. Owner name -->
   <div class="row" style="margin-bottom:4px;">
@@ -6406,6 +7183,8 @@ class MultiAcCardEditor extends HTMLElement {
         null,
         ['show_room_env',     t.edShowRoomEnv,      t.edShowRoomEnvDesc],
         ['show_sl_room_power',t.edShowSlRoomPower,  t.edShowSlRoomPowerDesc],
+        null,
+        ['dial_invert',       t.edDialInvert||'🔄 Swap dial rings', t.edDialInvertDesc||'Set-temp outer (haptic drag), room-temp inner — default'],
       ].map(item => {
         if (!item) return '<div style="height:1px;background:var(--divider-color,rgba(0,0,0,0.08));margin:4px 0;"></div>';
         const [key, label, desc] = item;
@@ -6814,6 +7593,96 @@ class MultiAcCardEditor extends HTMLElement {
         this._fire();
       }));
 
+    // ── Central AC: toggle is_central_ac per room ─────────────────────────────
+    const roomCountForDamper = Math.max(1, Math.min(8, parseInt(this._config.room_count) || 4));
+    for (let i = 0; i < roomCountForDamper; i++) {
+      const togCA = sr.getElementById('tog-central-ac-' + i);
+      if (togCA) {
+        togCA.addEventListener('change', () => {
+          const ents = (this._config.entities || []).slice();
+          while (ents.length <= i) ents.push({});
+          ents[i] = { ...ents[i], is_central_ac: togCA.checked };
+          if (!togCA.checked) { ents[i] = { ...ents[i], dampers: [] }; }
+          this._config = { ...this._config, entities: ents };
+          this._fire();
+          // Show/hide damper section without full re-render
+          const sec = sr.getElementById('damper-section-' + i);
+          if (sec) sec.style.display = togCA.checked ? 'block' : 'none';
+          // Update toggle knob + track color
+          const knob = togCA.nextElementSibling && togCA.nextElementSibling.nextElementSibling;
+          const track = togCA.nextElementSibling;
+          if (track) track.style.background = togCA.checked ? 'var(--primary-color)' : 'rgba(0,0,0,0.18)';
+          if (knob)  knob.style.left = togCA.checked ? '18px' : '2px';
+        });
+      }
+
+      // ── Add damper button ───────────────────────────────────────────────────
+      const btnAddDamper = sr.getElementById('btn-add-damper-' + i);
+      if (btnAddDamper) {
+        btnAddDamper.addEventListener('click', () => {
+          const ents = (this._config.entities || []).slice();
+          while (ents.length <= i) ents.push({});
+          const dampers = ((ents[i] && ents[i].dampers) || []).slice();
+          dampers.push({ entity_id: '', name: '' });
+          ents[i] = { ...ents[i], dampers };
+          this._config = { ...this._config, entities: ents };
+          this._fire();
+          this._render();
+        });
+      }
+
+      // ── Delete damper buttons ───────────────────────────────────────────────
+      const ents0 = (this._config.entities || []);
+      const dampers0 = ((ents0[i] && ents0[i].dampers) || []);
+      for (let di = 0; di < dampers0.length; di++) {
+        const btnDel = sr.getElementById('btn-del-damper-' + i + '-' + di);
+        if (btnDel) {
+          btnDel.addEventListener('click', () => {
+            const ents2 = (this._config.entities || []).slice();
+            while (ents2.length <= i) ents2.push({});
+            const dmps = ((ents2[i] && ents2[i].dampers) || []).slice();
+            dmps.splice(di, 1);
+            ents2[i] = { ...ents2[i], dampers: dmps };
+            this._config = { ...this._config, entities: ents2 };
+            this._fire();
+            this._render();
+          });
+        }
+        // Damper name input
+        const nameEl = sr.getElementById('inp-damper-name-' + i + '-' + di);
+        if (nameEl) {
+          nameEl.addEventListener('input', () => {
+            const ents3 = (this._config.entities || []).slice();
+            while (ents3.length <= i) ents3.push({});
+            const dmps3 = ((ents3[i] && ents3[i].dampers) || []).slice();
+            while (dmps3.length <= di) dmps3.push({});
+            dmps3[di] = { ...dmps3[di], name: nameEl.value };
+            ents3[i] = { ...ents3[i], dampers: dmps3 };
+            this._config = { ...this._config, entities: ents3 };
+          });
+          nameEl.addEventListener('blur', () => { this._fire(); });
+          nameEl.addEventListener('keydown', e => { if (e.key === 'Enter') nameEl.blur(); });
+        }
+      }
+    }
+
+    // ha-entity-picker: damper entity
+    sr.querySelectorAll('ha-entity-picker[data-damper]').forEach(picker =>
+      picker.addEventListener('value-changed', e => {
+        const roomIdx   = parseInt(picker.dataset.damper);
+        const damperIdx = parseInt(picker.dataset.damperIdx);
+        const val = e.detail.value;
+        const ents = (this._config.entities || []).slice();
+        while (ents.length <= roomIdx) ents.push({});
+        const dmps = ((ents[roomIdx] && ents[roomIdx].dampers) || []).slice();
+        while (dmps.length <= damperIdx) dmps.push({});
+        if (val) dmps[damperIdx] = { ...dmps[damperIdx], entity_id: val };
+        else delete dmps[damperIdx].entity_id;
+        ents[roomIdx] = { ...ents[roomIdx], dampers: dmps };
+        this._config = { ...this._config, entities: ents };
+        this._fire();
+      }));
+
     // power unit select
     const selPowerUnit = sr.getElementById('sel-power-unit');
     if (selPowerUnit) selPowerUnit.addEventListener('change', () => {
@@ -6994,7 +7863,7 @@ window.customCards.push({
 });
 
 console.info(
-  '%c ❄ Multi Air Conditioner Card %c v1.8 %c ready! 🚀',
+  '%c ❄ Multi Air Conditioner Card %c v1.9 %c ready! 🚀',
   'background:#00d4ff;color:#002030;font-weight:700;padding:2px 6px;border-radius:4px 0 0 4px;font-size:11px',
   'background:#002030;color:#00d4ff;font-weight:700;padding:2px 6px;border-radius:0 4px 4px 0;font-size:11px',
   'color:#34d399;font-weight:600;font-size:11px'
