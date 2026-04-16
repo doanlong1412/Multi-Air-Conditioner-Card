@@ -1,7 +1,7 @@
 # ❄️ Multi Air Conditioner Card
 
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/hacs/integration)
-![version](https://img.shields.io/badge/version-1.8-blue)
+![version](https://img.shields.io/badge/version-1.9-blue)
 ![HA](https://img.shields.io/badge/Home%20Assistant-2023.1+-green)
 ![license](https://img.shields.io/badge/license-MIT-lightgrey)
 
@@ -29,7 +29,7 @@ A custom Home Assistant Lovelace card for multi-room air conditioner control —
 
 ---
 
-## ✨ Features (v1.8)
+## ✨ Features (v1.9)
 
 ### 🎨 Display & Interface
 - ❄️ **Temperature dial** — animated arc gauge with dynamic colour glow: blue (cold) → cyan → green → orange → red (hot)
@@ -65,6 +65,15 @@ Every section of the card can be individually shown or hidden directly from the 
 - **Room Temp / Humidity** (Super Lite) — toggle to show the selected room's temperature and humidity in the Super Lite header instead of outdoor sensor data
 - **Room Power** (Super Lite) — toggle to show the selected room's power consumption next to humidity in the header
 - **Fan speed / Airflow buttons** (Super Lite) — show or hide individually
+
+### 🌬️ Central AC Damper Control *(New in v1.9)*
+For rooms using a centralised AC system, the card now supports controlling **individual air dampers (vents)** per room:
+- Enable **Central AC mode** per room (`is_central_ac: true`) in the editor
+- Add one or more `cover.*` entities to the room's **dampers** list
+- A **Damper button** appears below the Fan Speed / Airflow row — full-width, compact single-line layout showing the icon, label, number of dampers and a live summary (e.g. `1/3 open · Avg 33%`)
+- Tapping the button opens a **full damper popup** where each damper can be opened, closed or set to a specific percentage individually
+- The summary colour reflects the overall state: cyan when at least one damper is open, dimmed white when all are closed
+- The Damper button only appears when **both** conditions are met: `is_central_ac: true` is set **and** at least one valid `cover.*` entity is added to the dampers list
 
 ### 📡 Offline / Unavailable Detection *(New in v1.8)*
 When an AC unit loses network or power (`unavailable` / `unknown` state), the card clearly reflects this without any manual intervention:
@@ -201,7 +210,7 @@ After adding the card, click **✏️ Edit** to open the Config Editor.
 | 3 | ✨ **Popup style** | Normal / Effect / Wave (Super Lite only) |
 | 4 | 👁️ **Visibility** | Toggle individual sections on or off; power unit selector (kW / W) |
 | 5 | 🔢 **Room count** | Slider to set 1–8 rooms |
-| 6 | ❄️ **Air Conditioners** | Entity picker, display name, MDI icon, custom image URL, per-room temperature / humidity / power sensors |
+| 6 | ❄️ **Air Conditioners** | Entity picker, display name, MDI icon, custom image URL, per-room temperature / humidity / power sensors, Central AC toggle, damper entities |
 | 7 | 📡 **Environment Sensors** | PM2.5, outdoor temperature, humidity, power (global fallback) |
 | 8 | 🎨 **Colors** | Accent, text colours |
 | 9 | 🎨 **Background** | 16 gradient presets + custom two-colour picker |
@@ -222,6 +231,10 @@ After adding the card, click **✏️ Edit** to open the Config Editor.
 | `entities[n].temp_entity` | `sensor` | Room temperature sensor (if AC has none) |
 | `entities[n].humidity_entity` | `sensor` | Room humidity sensor (if AC has none) |
 | `entities[n].power_entity` | `sensor` | Per-room power consumption sensor |
+| `entities[n].is_central_ac` | boolean | Enable Central AC mode for this room (shows Damper button) |
+| `entities[n].dampers` | array | List of `cover.*` damper entities for this room |
+| `entities[n].dampers[m].entity_id` | `cover` | Damper / vent entity ID |
+| `entities[n].dampers[m].name` | string | Display name for this damper (optional) |
 
 ### Environment sensors (optional)
 
@@ -315,11 +328,21 @@ entities:
     temp_entity: sensor.living_room_temperature        # optional room sensor
     humidity_entity: sensor.living_room_humidity       # optional room sensor
     power_entity: sensor.living_room_ac_power          # optional per-room power
+    is_central_ac: true                                # enable Central AC damper control
+    dampers:
+      - entity_id: cover.living_room_vent
+        name: Main vent
+      - entity_id: cover.living_room_vent_2
+        name: Side vent
   - entity_id: climate.bedroom_ac
     label: Bedroom
     area: "18 m²"
     icon: mdi:bed
     power_entity: sensor.bedroom_ac_power
+    is_central_ac: true
+    dampers:
+      - entity_id: cover.bedroom_vent
+        name: ""
   - entity_id: climate.kitchen_ac
     label: Kitchen
     area: "20 m²"
@@ -392,6 +415,16 @@ entities:
 ---
 
 ## 📋 Changelog
+
+### v1.9
+- 🌬️ **Central AC Damper Control** — per-room support for controlling individual air dampers/vents in centralised AC systems:
+  - Enable per room with `is_central_ac: true` and add any number of `cover.*` entities to the `dampers` list
+  - A compact **full-width Damper button** appears below the Fan Speed / Airflow row showing a live summary: number of dampers, open count and average position percentage
+  - Tapping opens a **Damper popup** to open, close or precisely set each vent individually
+  - Summary colour is cyan when at least one damper is open, dimmed white when all are closed
+  - Button only appears when both `is_central_ac: true` and at least one valid `cover.*` entity are configured
+- 🐛 **Fix `self` not defined in `_renderFull()`** — the fan/damper IIFE now correctly resolves `self._activeIdx` and `self._config`
+- 🐛 **Fix `cfg` not defined in `_bind()` damper popup** — replaced bare `cfg` reference with `self._config` to prevent `ReferenceError` on card load
 
 ### v1.8
 - 📡 **Offline / Unavailable handling** — when an AC unit loses network or power (`unavailable` / `unknown`):

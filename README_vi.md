@@ -1,7 +1,7 @@
 # ❄️ Multi Air Conditioner Card
 
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/hacs/integration)
-![version](https://img.shields.io/badge/version-1.8-blue)
+![version](https://img.shields.io/badge/version-1.9-blue)
 ![HA](https://img.shields.io/badge/Home%20Assistant-2023.1+-green)
 ![license](https://img.shields.io/badge/license-MIT-lightgrey)
 
@@ -29,7 +29,7 @@ Card tùy chỉnh cho Home Assistant Lovelace — điều khiển điều hòa n
 
 ---
 
-## ✨ Tính năng (v1.8)
+## ✨ Tính năng (v1.9)
 
 ### 🎨 Hiển thị & Giao diện
 - ❄️ **Đồng hồ nhiệt độ** — vòng cung động với màu sắc thay đổi theo nhiệt độ: xanh dương (lạnh) → xanh lơ → xanh lá → cam → đỏ (nóng)
@@ -65,6 +65,15 @@ Mỗi phần của card có thể bật/tắt riêng lẻ ngay trong editor:
 - **Nhiệt độ/Độ ẩm phòng** (Super Lite) — bật để hiển thị nhiệt độ & độ ẩm của phòng đang chọn trên header
 - **Tiêu thụ điện phòng** (Super Lite) — bật để hiển thị mức điện tiêu thụ cạnh độ ẩm trên header
 - **Nút Quạt / Hướng gió** (Super Lite) — bật/tắt từng nút riêng lẻ
+
+### 🌬️ Điều khiển van gió (Điều hòa trung tâm) *(Mới trong v1.9)*
+Đối với phòng sử dụng hệ thống điều hòa trung tâm, card nay hỗ trợ điều khiển **từng van gió (damper)** riêng lẻ theo từng phòng:
+- Bật **chế độ Điều hòa trung tâm** cho từng phòng (`is_central_ac: true`) trong editor
+- Thêm một hoặc nhiều entity `cover.*` vào danh sách **dampers** của phòng
+- Một **nút Van gió** xuất hiện bên dưới hàng Quạt / Hướng gió — chiều ngang đầy đủ, một hàng gọn gàng hiển thị icon, nhãn, số lượng van và tóm tắt trực tiếp (vd: `1/3 van mở · TB 33%`)
+- Nhấn nút sẽ mở **popup Van gió** để mở, đóng hoặc đặt phần trăm mở cho từng van riêng lẻ
+- Màu tóm tắt: xanh lơ khi có ít nhất 1 van đang mở, trắng mờ khi tất cả đóng
+- Nút chỉ xuất hiện khi **đồng thời** thỏa: `is_central_ac: true` được bật **và** có ít nhất một entity `cover.*` hợp lệ trong danh sách dampers
 
 ### 📡 Phát hiện Offline / Mất kết nối *(Mới trong v1.8)*
 Khi điều hòa mất mạng hoặc mất điện (trạng thái `unavailable` / `unknown`), card phản ánh rõ ràng ngay lập tức mà không cần thao tác thủ công:
@@ -201,7 +210,7 @@ Sau khi thêm, nhấn **✏️ Edit** để mở Config Editor.
 | 3 | ✨ **Kiểu Popup** | Normal / Effect / Wave (chỉ Super Lite) |
 | 4 | 👁️ **Hiển thị** | Bật/tắt từng thành phần; tùy chọn đơn vị điện (kW / W) |
 | 5 | 🔢 **Số phòng** | Thanh trượt 1–8 phòng |
-| 6 | ❄️ **Điều hòa** | Chọn entity, tên hiển thị, MDI icon, URL ảnh, cảm biến nhiệt độ/độ ẩm/điện từng phòng |
+| 6 | ❄️ **Điều hòa** | Chọn entity, tên hiển thị, MDI icon, URL ảnh, cảm biến nhiệt độ/độ ẩm/điện từng phòng, bật Điều hòa trung tâm, danh sách van gió |
 | 7 | 📡 **Cảm biến môi trường** | PM2.5, nhiệt độ ngoài trời, độ ẩm, điện (fallback toàn cục) |
 | 8 | 🎨 **Màu sắc** | Màu nhấn, màu chữ |
 | 9 | 🎨 **Màu nền** | 16 preset gradient + bộ chọn 2 màu tùy chỉnh |
@@ -222,6 +231,10 @@ Sau khi thêm, nhấn **✏️ Edit** để mở Config Editor.
 | `entities[n].temp_entity` | `sensor` | Cảm biến nhiệt độ phòng (nếu điều hòa không có) |
 | `entities[n].humidity_entity` | `sensor` | Cảm biến độ ẩm phòng (nếu điều hòa không có) |
 | `entities[n].power_entity` | `sensor` | Cảm biến tiêu thụ điện riêng từng phòng |
+| `entities[n].is_central_ac` | boolean | Bật chế độ Điều hòa trung tâm (hiện nút Van gió) |
+| `entities[n].dampers` | array | Danh sách entity `cover.*` van gió của phòng này |
+| `entities[n].dampers[m].entity_id` | `cover` | Entity ID của van gió |
+| `entities[n].dampers[m].name` | string | Tên hiển thị của van gió (tùy chọn) |
 
 ### Cảm biến môi trường (tùy chọn)
 
@@ -315,11 +328,21 @@ entities:
     temp_entity: sensor.nhiet_do_phong_khach            # tuỳ chọn: cảm biến nhiệt độ phòng
     humidity_entity: sensor.do_am_phong_khach           # tuỳ chọn: cảm biến độ ẩm phòng
     power_entity: sensor.dien_phong_khach               # tuỳ chọn: cảm biến điện phòng
+    is_central_ac: true                                 # bật điều hòa trung tâm
+    dampers:
+      - entity_id: cover.van_gio_phong_khach
+        name: Van chính
+      - entity_id: cover.van_gio_phong_khach_2
+        name: Van phụ
   - entity_id: climate.bed_air_conditioning
     label: Phòng ngủ
     area: "18 m²"
     icon: mdi:bed
     power_entity: sensor.dien_phong_ngu
+    is_central_ac: true
+    dampers:
+      - entity_id: cover.van_gio_phong_ngu
+        name: ""
   - entity_id: climate.kitchen_air_conditioning
     label: Phòng ăn
     area: "20 m²"
@@ -392,6 +415,16 @@ entities:
 ---
 
 ## 📋 Lịch sử thay đổi
+
+### v1.9
+- 🌬️ **Điều khiển van gió (Điều hòa trung tâm)** — hỗ trợ điều khiển từng van gió/damper riêng lẻ cho hệ thống điều hòa trung tâm:
+  - Bật cho từng phòng bằng `is_central_ac: true` và thêm entity `cover.*` vào danh sách `dampers`
+  - **Nút Van gió** ngang đầy đủ xuất hiện bên dưới hàng Quạt / Hướng gió, hiển thị tóm tắt trực tiếp: số van, số đang mở và phần trăm trung bình
+  - Nhấn mở **popup Van gió** để mở, đóng hoặc đặt chính xác từng van riêng lẻ
+  - Màu tóm tắt xanh lơ khi có ít nhất 1 van mở, trắng mờ khi tất cả đóng
+  - Nút chỉ hiện khi đồng thời: `is_central_ac: true` và có ít nhất 1 entity `cover.*` hợp lệ
+- 🐛 **Sửa `self` không được định nghĩa trong `_renderFull()`** — IIFE quạt/van gió nay đọc đúng `self._activeIdx` và `self._config`
+- 🐛 **Sửa `cfg` không được định nghĩa trong `_bind()` popup van gió** — thay tham chiếu `cfg` thành `self._config` để tránh `ReferenceError` khi card load
 
 ### v1.8
 - 📡 **Phát hiện Offline / Mất kết nối** — khi điều hòa mất mạng hoặc mất điện (`unavailable` / `unknown`):
